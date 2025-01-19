@@ -9,59 +9,31 @@ void loop() {
   app->loop();
 }
 
-// void moveToTargetPostion() {
-//     if(!m_moveSequence[m_currentMoveID].moveInit) {
-//         for(unsigned int axis=0; axis < (unsigned int)MOTOR::MOTOR_MAX; axis++) {
-//             m_motorList[axis].moveTo(m_moveSequence[m_currentMoveID].armAngle[axis]);
-//         }
-//         m_moveSequence[m_currentMoveID].moveInit = true;
-//     }
-//     bool allMotorsAreHome = true;
-//     for(unsigned int axis=0; axis < (unsigned int)MOTOR::MOTOR_MAX; axis++) {
-//         if(m_motorList[axis].distanceToGo() != 0){
-//             allMotorsAreHome = false;
-//             m_motorList[axis].run();
-//         }
-//     }
-    
-//     if(allMotorsAreHome) {
-//       delay(100);
-//       m_currentMoveID++;
-//     }
-// }
-// void setup() {
-//   Serial.begin(115200);
-//   printf("CNC Shield Initialized UART[%ld]\r\n",115200);
-//   pinMode(enPin, OUTPUT);
-//   digitalWrite(enPin, LOW);
-//   // Set the maximum speed in steps per second:
-//   m_motorList[MOTOR::MOTOR_BASE].setMaxSpeed(2000.0);
-//   m_motorList[MOTOR::MOTOR_BASE].setAcceleration(2000.0);
-//   // m_motorList[MOTOR::MOTOR_BASE].moveTo(200);
-//   m_motorList[MOTOR::MOTOR_ARM1].setMaxSpeed(2000.0);
-//   m_motorList[MOTOR::MOTOR_ARM1].setAcceleration(2000.0);
-//   // m_motorList[MOTOR::MOTOR_ARM1].moveTo(100);
-//   m_motorList[MOTOR::MOTOR_ARM2].setMaxSpeed(2000.0);
-//   m_motorList[MOTOR::MOTOR_ARM2].setAcceleration(2000.0);
-//   // m_motorList[MOTOR::MOTOR_ARM2].moveTo(100);
+// #include <AccelStepper.h>
 
-//   m_moveSequence[0] = {false,{0,0,0}};
-//   m_moveSequence[1] = {false,{0,900,900}};
-//   m_moveSequence[2] = {false,{0,700,700}};
-//   m_moveSequence[3] = {false,{0,900,100}};
-//   m_moveSequence[4] = {false,{0,1140,300}};
-//   m_numberMove = 5;
-//   m_currentMoveID = 0;
-//   delay(2000);
-//   Serial.println("Start");
+// int Stepper1Pulse = 2;  // **** for CNC shield
+// int Stepper1Direction = 5;  // **** for CNC shield
+// const byte enablePin = 8;   // **** for CNC shield
+// int speedpot = A0;
+
+// int Motor1speed = -100;
+// int speedmin = 0;
+// int speedmax = 4000;
+// AccelStepper step1(1, Stepper1Pulse, Stepper1Direction);
+
+// void setup()
+// {
+//    step1.setMaxSpeed (speedmax);
+//    step1.setSpeed(0);
+//    step1.setAcceleration(500);
+//    pinMode(enablePin, OUTPUT);  // **** for CNC shield
+//    digitalWrite(enablePin, LOW);   // **** for CNC shield
+//    Serial.begin(115200); // ************** faster baud rate
+//    Serial.println("Running: StepperDriverTest");
+//    step1.setSpeed(Motor1speed);
 // }
 
-// void loop() { 
-//   if(m_currentMoveID >= m_numberMove) {
-//     m_currentMoveID = 0;
-//     for(int i=0; i< m_numberMove; i++) {
-//       m_moveSequence[i].moveInit = false;
-//     }
-//   }
-//   moveToTargetPostion();
+// void loop()
+// {
+//       step1.runSpeed();
 // }

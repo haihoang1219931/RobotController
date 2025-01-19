@@ -22,21 +22,28 @@ ApplicationArduino::ApplicationArduino()
     const int stepZPin = 4; //Z.STEP
     const int dirZPin = 7; // Z.DIR
 
+    const int limitX = 9;
+    const int limitY = 10;
+    const int limitZ = 11;
+
     m_machineState = MACHINE_STATE::MACHINE_INIT;
     setMachineState(MACHINE_STATE::MACHINE_WAIT_COMMAND);
     
-    m_buttonPin[BTN_BASE] = 9;
-    m_buttonPin[BTN_ARM1] = 10;
-    m_buttonPin[BTN_ARM2] = 11;
+    m_buttonPin[BTN_BASE] = limitX;
+    m_buttonPin[BTN_ARM1] = limitY;
+    m_buttonPin[BTN_ARM2] = limitZ;
 
     pinMode(m_buttonPin[BTN_BASE], INPUT_PULLUP);
     pinMode(m_buttonPin[BTN_ARM1], INPUT_PULLUP);
     pinMode(m_buttonPin[BTN_ARM2], INPUT_PULLUP);
     
 
-    m_listStepper[MOTOR_BASE] = new AccelStepper(AccelStepper::FULL2WIRE, stepZPin, dirZPin);
-    m_listStepper[MOTOR_ARM1] = new AccelStepper(AccelStepper::FULL2WIRE, stepXPin, dirXPin);
-    m_listStepper[MOTOR_ARM2] = new AccelStepper(AccelStepper::FULL2WIRE, stepYPin, dirYPin);
+    m_listStepper[MOTOR_BASE] = new AccelStepper(AccelStepper::FULL2WIRE, stepXPin, dirXPin);
+    m_listStepper[MOTOR_ARM1] = new AccelStepper(AccelStepper::FULL2WIRE, stepYPin, dirYPin);
+    m_listStepper[MOTOR_ARM2] = new AccelStepper(AccelStepper::FULL2WIRE, stepZPin, dirZPin);
+
+    pinMode(enPin, OUTPUT);
+    digitalWrite(enPin, LOW);
 }
 int ApplicationArduino::printf(const char *fmt, ...) {
     char buffer[256];
@@ -75,6 +82,10 @@ int ApplicationArduino::readSerial(char* output, int length) {
   return command.length();
 }
 
+void ApplicationArduino::setMaxSpeed(MOTOR motor, float speed) {
+  m_listStepper[motor]->setMaxSpeed(speed);
+}
+
 void ApplicationArduino::setSpeed(MOTOR motor, float speed) {
   m_listStepper[motor]->setSpeed(speed);
 }
@@ -93,4 +104,20 @@ long ApplicationArduino::distanceToGo(MOTOR motor) {
 
 void ApplicationArduino::run(MOTOR motor) {
   m_listStepper[motor]->run();
+}
+
+void ApplicationArduino::runSpeed(MOTOR motor) {
+  m_listStepper[motor]->runSpeed();
+}
+
+void ApplicationArduino::setCurrentPosition(MOTOR motor, long position) {
+  m_listStepper[motor]->setCurrentPosition(position);
+}
+
+long ApplicationArduino::currentPosition(MOTOR motor) {
+  return m_listStepper[motor]->currentPosition();
+}
+
+float ApplicationArduino::speed(MOTOR motor) {
+  return m_listStepper[motor]->speed();
 }

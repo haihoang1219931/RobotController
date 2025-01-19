@@ -25,18 +25,44 @@ void Robot::loop() {
       executeGoToPosition();
     }
     break;
+    case ROBOT_EXECUTE_ROTATE_COMMAND: {
+      executeRotateAngle();
+    }
+    break;
   }
 }
 void Robot::goHome() {
+  for(unsigned int axis=0; axis < (unsigned int)MOTOR::MOTOR_MAX; axis++) {
+    m_app->setMaxSpeed (axis, 4000);
+    m_app->setSpeed(axis,0);
+    m_app->setAcceleration(axis,500);
+    
+  }
+  m_app->setSpeed(0, -100);
+  m_app->setSpeed(1, -100);
+  m_app->setSpeed(2, -100);
+
   setState(ROBOT_GO_HOME);
   m_app->setMachineState(MACHINE_EXECUTE_COMMAND);
 }
+
+void Robot::rotateAngle(MOTOR motorID, long angle, long speed) {
+  m_motorID = motorID;
+  m_app->printf("MOVE MOTOR[%d] to POS[%ld] SPEED[%ld]\r\n", motorID, angle, speed);
+  m_app->setSpeed(motorID, speed);
+  m_app->setTargetPos(motorID,angle);
+  setState(ROBOT_EXECUTE_ROTATE_COMMAND);
+  m_app->setMachineState(MACHINE_EXECUTE_COMMAND);
+}
+
 void Robot::executeGohome() {
   bool allMotorsAtHome = true;
   for(unsigned int button = 0; button < BUTTON_ID::BTN_MAX; button ++) {
     if(m_app->buttonState(button) == BUTTON_STATE::BUTTON_NOMAL) {
       allMotorsAtHome = false;
-      break;
+      m_app->runSpeed(button);
+    }else {
+      m_app->setCurrentPosition(button, 0);
     }
   }
   if(allMotorsAtHome) {
@@ -47,13 +73,20 @@ void Robot::executeGohome() {
     
 void Robot::goToPosition(int startCol, int startRow, int stopCol, int stopRow, bool attack, bool castle, char promote) {
   m_moveSequence[0] = {false,{0,0,0},100};
-  m_moveSequence[1] = {false,{0,900,900},100};
-  m_moveSequence[2] = {false,{0,900,900},0};
-  m_moveSequence[3] = {false,{0,700,700},0};
-  m_moveSequence[4] = {false,{0,900,100},100};
-  m_moveSequence[5] = {false,{0,1140,300},100};
-  m_numberMove = 6;
+  m_moveSequence[1] = {false,{0,300,600},100};
+  m_moveSequence[2] = {false,{0,300,600},0};
+  m_moveSequence[3] = {false,{0,300,450},0};
+  m_moveSequence[4] = {false,{0,1200,160},100};
+  m_moveSequence[5] = {false,{0,1140,260},100};
+  m_moveSequence[6] = {false,{0,0,0},100};
+  m_numberMove = 2;
   m_currentMoveID = 0;
+
+  for(unsigned int axis=0; axis < (unsigned int)MOTOR::MOTOR_MAX; axis++) {
+    m_app->setMaxSpeed(axis, 2000.0);
+    m_app->setAcceleration(axis, 500.0);
+  }
+
   setState(ROBOT_EXECUTE_SEQUENCE);
   m_app->setMachineState(MACHINE_EXECUTE_COMMAND);
 }
@@ -79,5 +112,19 @@ void Robot::executeGoToPosition() {
 
   if(m_currentMoveID >= m_numberMove) {
     goHome();
+  }
+}
+
+void Robot::executeRotateAngle() {
+  if(m_app->buttonState((BUTTON_ID)m_motorID) != BUTTON_STATE::BUTTON_NOMAL && m_app->speed(m_motorID) < 0) {
+    m_app->printf("MOTOR[%d] at limit inverse speed\r\n", m_motorID);
+    m_app->setMachineState(MACHINE_WAIT_COMMAND);
+  } else {
+    if(m_app->distanceToGo(m_motorID) != 0) {
+      m_app->run(m_motorID);
+    } else {
+      m_app->printf("MOTOR[%d] reached[%ld]\r\n", m_motorID, m_app->currentPosition(m_motorID));
+      m_app->setMachineState(MACHINE_WAIT_COMMAND);
+    }
   }
 }

@@ -52,9 +52,27 @@ void ApplicationController::setMachineState(MACHINE_STATE machineState) {
 }
 
 void ApplicationController::executeCommand(char* command) {
-  if(command[0] == 'H') {
+  if(command[0] == 'h') {
     m_robot->goHome();
-  } else if(command[0] == 'P'){
-    m_robot->goHome();
+  } else if(command[0] == 'p'){
+    m_robot->goToPosition(1,0,1,0);
+  } else  if(command[0] == 'r') {
+    int motorID = command[1]-'0';
+    char angleStr[16];
+    angleStr[0] = command[3];
+    angleStr[1] = command[4];
+    angleStr[2] = command[5];
+    angleStr[3] = command[6];
+    angleStr[4] = 0;
+    long angle = atoi(angleStr);
+
+    char speedStr[16];
+    speedStr[0] = command[8];
+    speedStr[1] = command[9];
+    speedStr[2] = command[10];
+    speedStr[3] = command[11];
+    speedStr[4] = 0;
+    long speed = atoi(speedStr);
+    m_robot->rotateAngle(motorID, angle, speed);
   }
 }

@@ -40,11 +40,16 @@ public:
     virtual void msleep(int millis) = 0;
     virtual long getSystemTimeInMillis() = 0;
     virtual int readSerial(char* output, int length) = 0;
+    virtual void setMaxSpeed(MOTOR motor, float speed) = 0;
     virtual void setSpeed(MOTOR motor, float speed) = 0;
     virtual void setAcceleration(MOTOR motor, float acceleration) = 0;
     virtual void setTargetPos(MOTOR motor, long target) = 0;
     virtual long distanceToGo(MOTOR motor) = 0;
-    virtual void run(MOTOR motor) = 0; 
+    virtual void run(MOTOR motor) = 0;
+    virtual void runSpeed(MOTOR motor) = 0;
+    virtual void setCurrentPosition(MOTOR motor, long position) = 0;
+    virtual long currentPosition(MOTOR motor) = 0;
+    virtual float speed(MOTOR motor) = 0;
 
 protected:
     MACHINE_STATE m_machineState;
