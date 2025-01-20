@@ -38,6 +38,8 @@ private:
     MoveLocation m_moveSequence[MOTOR_MAX_SEQUENCE];
     MOTOR m_motorID;
     ROBOT_STATE m_state;
+    int m_servoAngle;
+    long m_servoStartTime;
 };
 
 #endif // ROBOT_H

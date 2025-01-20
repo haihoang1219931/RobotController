@@ -9,31 +9,28 @@ void loop() {
   app->loop();
 }
 
-// #include <AccelStepper.h>
+// #include <Servo.h>
 
-// int Stepper1Pulse = 2;  // **** for CNC shield
-// int Stepper1Direction = 5;  // **** for CNC shield
-// const byte enablePin = 8;   // **** for CNC shield
-// int speedpot = A0;
+// Servo servo;  // create servo object to control a servo
 
-// int Motor1speed = -100;
-// int speedmin = 0;
-// int speedmax = 4000;
-// AccelStepper step1(1, Stepper1Pulse, Stepper1Direction);
-
-// void setup()
-// {
-//    step1.setMaxSpeed (speedmax);
-//    step1.setSpeed(0);
-//    step1.setAcceleration(500);
-//    pinMode(enablePin, OUTPUT);  // **** for CNC shield
-//    digitalWrite(enablePin, LOW);   // **** for CNC shield
-//    Serial.begin(115200); // ************** faster baud rate
-//    Serial.println("Running: StepperDriverTest");
-//    step1.setSpeed(Motor1speed);
+// void setup() {
+//   servo.attach(13);  // attaches the servo on pin 9 to the servo objectư
+//   servo.write(0);   // rotate slowly servo to 0 degrees immediately
 // }
 
-// void loop()
-// {
-//       step1.runSpeed();
+// void loop() {
+//   // for (int angle = 0; angle <= 100; angle += 1) {  // rotate slowly from 0 degrees to 180 degrees, one by one degree
+//   //   // in steps of 1 degree
+//   //   servo.write(angle);  // control servo to go to position in variable 'angle'
+//   //   delay(1);         // waits 10ms for the servo to reach the position
+//   // }
+
+//   // for (int angle = 100; angle >= 0; angle -= 1) {  // rotate from 180 degrees to 0 degrees, one by one degree
+//   //   servo.write(angle);                        // control servo to go to position in variable 'angle'
+//   //   delay(1);                               // waits 10ms for the servo to reach the position
+//   // }
+//   servo.write(100);
+//   delay(1000);
+//   servo.write(0);
+//   delay(1000);
 // }

@@ -76,10 +76,11 @@ void Robot::goToPosition(int startCol, int startRow, int stopCol, int stopRow, b
   m_moveSequence[1] = {false,{0,300,600},100};
   m_moveSequence[2] = {false,{0,300,600},0};
   m_moveSequence[3] = {false,{0,300,450},0};
-  m_moveSequence[4] = {false,{0,1200,160},100};
-  m_moveSequence[5] = {false,{0,1140,260},100};
-  m_moveSequence[6] = {false,{0,0,0},100};
-  m_numberMove = 2;
+  m_moveSequence[4] = {false,{0,900,300},0};
+  m_moveSequence[5] = {false,{0,900,300},100};
+  m_moveSequence[6] = {false,{0,900,100},100};
+  m_moveSequence[7] = {false,{0,0,0},100};
+  m_numberMove = 8;
   m_currentMoveID = 0;
 
   for(unsigned int axis=0; axis < (unsigned int)MOTOR::MOTOR_MAX; axis++) {
@@ -95,6 +96,10 @@ void Robot::executeGoToPosition() {
       for(unsigned int axis=0; axis < (unsigned int)MOTOR::MOTOR_MAX; axis++) {
           m_app->setTargetPos(axis,m_moveSequence[m_currentMoveID].armAngle[axis]);
       }
+      // control servo
+      m_servoAngle = m_moveSequence[m_currentMoveID].crawlAngle;
+      m_app->setServoAngle(m_moveSequence[m_currentMoveID].crawlAngle);
+      m_servoStartTime = m_app->getSystemTimeInMillis();
       m_moveSequence[m_currentMoveID].moveInit = true;
   }
   bool allMotorsAtTarget = true;
@@ -104,8 +109,8 @@ void Robot::executeGoToPosition() {
           m_app->run(axis);
       }
   }
-  
-  if(allMotorsAtTarget) {
+  long servoRunTime = m_app->getSystemTimeInMillis() - m_servoStartTime;
+  if(allMotorsAtTarget && servoRunTime >= 1000) {
     m_app->msleep(100);
     m_currentMoveID++;
   }

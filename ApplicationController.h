@@ -50,6 +50,7 @@ public:
     virtual void setCurrentPosition(MOTOR motor, long position) = 0;
     virtual long currentPosition(MOTOR motor) = 0;
     virtual float speed(MOTOR motor) = 0;
+    virtual void setServoAngle(int angle) = 0;
 
 protected:
     MACHINE_STATE m_machineState;

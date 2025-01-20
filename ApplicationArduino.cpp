@@ -1,10 +1,11 @@
 #include "ApplicationArduino.h"
 #include "Button.h"
 #if defined(ARDUINO) && ARDUINO >= 100
-    #include "Arduino.h"
-    #include "AccelStepper.h"
+    #include <Arduino.h>
+    #include <AccelStepper.h>
+    #include <Servo.h>
 #else
-    #include "WProgram.h"
+    #include <WProgram.h>
 #endif
 
 #include <stdio.h>
@@ -26,6 +27,8 @@ ApplicationArduino::ApplicationArduino()
     const int limitY = 10;
     const int limitZ = 11;
 
+    const int servoPin=13;
+
     m_machineState = MACHINE_STATE::MACHINE_INIT;
     setMachineState(MACHINE_STATE::MACHINE_WAIT_COMMAND);
     
@@ -44,6 +47,10 @@ ApplicationArduino::ApplicationArduino()
 
     pinMode(enPin, OUTPUT);
     digitalWrite(enPin, LOW);
+
+    m_servo = new Servo();
+    m_servo->attach(servoPin);
+    m_servo->write(0);
 }
 int ApplicationArduino::printf(const char *fmt, ...) {
     char buffer[256];
@@ -120,4 +127,8 @@ long ApplicationArduino::currentPosition(MOTOR motor) {
 
 float ApplicationArduino::speed(MOTOR motor) {
   return m_listStepper[motor]->speed();
+}
+
+void ApplicationArduino::setServoAngle(int angle) {
+  m_servo->write(angle);
 }

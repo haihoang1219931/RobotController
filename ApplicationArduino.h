@@ -4,6 +4,7 @@
 #include "ApplicationController.h"
 
 class AccelStepper;
+class Servo;
 class ApplicationArduino : public ApplicationController
 {
 public:
@@ -24,10 +25,12 @@ public:
     void setCurrentPosition(MOTOR motor, long position) override;
     long currentPosition(MOTOR motor) override;
     float speed(MOTOR motor) override;
+    void setServoAngle(int angle) override;
 
 private:
 	int m_buttonPin[BUTTON_ID::BTN_MAX];
   AccelStepper* m_listStepper[MOTOR_MAX];
+  Servo* m_servo;
 };
 
 #endif // APPLICATIONARDUINO_H
