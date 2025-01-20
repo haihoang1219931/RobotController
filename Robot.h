@@ -31,13 +31,19 @@ public:
     void executeGohome();
     void executeGoToPosition();
     void executeRotateAngle();
+    void calculateRobotArm(float x, float y, float a1, float a2, float* q1, float* q2);
 private:
     ApplicationController* m_app;
     int m_numberMove = 0;
     int m_currentMoveID = 0;
+    float m_distanceToChessBoard;
+    float m_chessBoardSquareLength;
+    float m_crawlLength;
+    float m_armLength[MOTOR::MOTOR_MAX];
     MoveLocation m_moveSequence[MOTOR_MAX_SEQUENCE];
     MOTOR m_motorID;
     ROBOT_STATE m_state;
+
     int m_servoAngle;
     long m_servoStartTime;
 };

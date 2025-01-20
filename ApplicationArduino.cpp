@@ -53,12 +53,12 @@ ApplicationArduino::ApplicationArduino()
     m_servo->write(0);
 }
 int ApplicationArduino::printf(const char *fmt, ...) {
-    char buffer[256];
+    char m_buffer[256];
     va_list args;
     va_start(args, fmt);
-    int rc = vsprintf(buffer, fmt, args);
+    int rc = vsprintf(m_buffer, fmt, args);
     va_end(args);
-    Serial.print(buffer);
+    Serial.print(m_buffer);
     return rc;
 }
 void ApplicationArduino::msleep(int millis) {
@@ -82,7 +82,7 @@ void ApplicationArduino::checkInput(){
 
 int ApplicationArduino::readSerial(char* output, int length) {
   long start = this->getSystemTimeInMillis();
-  String command = Serial.readString();// read the incoming data as string  
+  String command = Serial.readString();// read the incoming data as string
   command.toCharArray(output,command.length());
   if(length > command.length())
     output[command.length()] = 0;

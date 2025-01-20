@@ -55,8 +55,23 @@ void ApplicationController::executeCommand(char* command) {
   if(command[0] == 'h') {
     m_robot->goHome();
   } else if(command[0] == 'p'){
-    m_robot->goToPosition(1,0,1,0);
+    if(strlen(command)<9) {
+      this->printf("Mission Params: p [startCol][startRow][stopCol][stopRow][a/n][c/n][promote piece]\r\n");
+      return;
+    }
+    int startCol = command[2]-'0';
+    int startRow = command[3]-'0';
+    int stopCol = command[4]-'0';
+    int stopRow = command[5]-'0';
+    bool attack = command[6] == 'a';
+    bool castle = command[7] == 'c';
+    char promote = command[8];
+    m_robot->goToPosition(startCol, startRow, stopCol, stopRow, attack, castle, promote);
   } else  if(command[0] == 'r') {
+    if(strlen(command)<12) {
+      this->printf("Mission Params: r[motor:0-3] [position:0000-9999] [speed:0000-9999]\r\n");
+      return;
+    }
     int motorID = command[1]-'0';
     char angleStr[16];
     angleStr[0] = command[3];

@@ -1,11 +1,17 @@
 #include "Robot.h"
 #include "Button.h"
 #include "ApplicationController.h"
+#include <math.h>
 Robot::Robot(ApplicationController* app) :
     m_app(app),
     m_state(ROBOT_INIT)
 {
-
+    m_distanceToChessBoard = 50.0f; // mm
+    m_chessBoardSquareLength = 25.0f; // mm
+    m_crawlLength = 140.0f;
+    m_armLength[MOTOR::MOTOR_BASE] = (129.0f);
+    m_armLength[MOTOR::MOTOR_ARM1] = (139.0f);
+    m_armLength[MOTOR::MOTOR_ARM2] = (139.0f);
 }
 
 void Robot::setState(ROBOT_STATE newState) {
@@ -72,6 +78,34 @@ void Robot::executeGohome() {
 }
     
 void Robot::goToPosition(int startCol, int startRow, int stopCol, int stopRow, bool attack, bool castle, char promote) {
+  m_app->printf("Go to Pos [%d,%d] to [%d,%d] attack[%s] castle[%s] promote[%c]\r\n",
+                  startCol, startRow, stopCol, stopRow, attack?"yes":"no", castle?"yes":"no", promote);
+
+  float xRobotToCurrentPos = (startCol-4) * m_chessBoardSquareLength;
+  float yRobotToCurrentPos = startRow * m_chessBoardSquareLength + m_distanceToChessBoard;
+  float dRobotToCurrentPos = sqrt(xRobotToCurrentPos*xRobotToCurrentPos+yRobotToCurrentPos*yRobotToCurrentPos);
+  float robotToCurrentPosBaseAngle = atanf(xRobotToCurrentPos/yRobotToCurrentPos);
+
+  float robotToCurrentPosAngleArm1;
+  float robotToCurrentPosAngleArm2;
+  calculateRobotArm(dRobotToCurrentPos,m_crawlLength - m_armLength[MOTOR::MOTOR_BASE],
+          m_armLength[MOTOR::MOTOR_ARM1],m_armLength[MOTOR::MOTOR_ARM2],
+          &robotToCurrentPosAngleArm1,&robotToCurrentPosAngleArm2);
+  float xRobotToTargetPos = (stopCol-4) * m_chessBoardSquareLength;
+  float yRobotToTargetPos = stopRow * m_chessBoardSquareLength + m_distanceToChessBoard;
+  float dRobotToTargetPos = sqrt(xRobotToTargetPos*xRobotToTargetPos+yRobotToTargetPos*yRobotToTargetPos);
+  float robotToTargetPosAngle = atanf(xRobotToTargetPos/yRobotToTargetPos);
+
+  float robotToTargetPosAngleArm1;
+  float robotToTargetPosAngleArm2;
+  calculateRobotArm(dRobotToTargetPos,m_crawlLength - m_armLength[MOTOR::MOTOR_BASE],
+          m_armLength[MOTOR::MOTOR_ARM1],m_armLength[MOTOR::MOTOR_ARM2],
+          &robotToTargetPosAngleArm1,&robotToTargetPosAngleArm2);
+  m_app->printf("ARMAngle Base[%d] arm1[%d] arm2[%d]\r\n",
+      (int)(robotToCurrentPosBaseAngle*180/M_PI),
+      (int)(robotToCurrentPosAngleArm1*180/M_PI),
+      (int)(robotToCurrentPosAngleArm2*180/M_PI));
+  return;
   m_moveSequence[0] = {false,{0,0,0},100};
   m_moveSequence[1] = {false,{0,300,600},100};
   m_moveSequence[2] = {false,{0,300,600},0};
@@ -132,4 +166,9 @@ void Robot::executeRotateAngle() {
       m_app->setMachineState(MACHINE_WAIT_COMMAND);
     }
   }
+}
+
+void Robot::calculateRobotArm(float x, float y, float a1, float a2, float* q1, float* q2) {
+    *q2 = -acos(x*x + y*y -a1*a1-a2*a2/(2*a1*a2));
+    *q1 = atan(y/x) + atan(a2*sin(*q2)/(a1+a2*cos(*q2)));
 }
