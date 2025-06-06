@@ -1,9 +1,11 @@
+#include "HardwareSerial.h"
 #include "ApplicationArduino.h"
 #include "Button.h"
 #if defined(ARDUINO) && ARDUINO >= 100
     #include <Arduino.h>
     #include <AccelStepper.h>
     #include <Servo.h>
+    #include "DC_driver.h"
 #else
     #include <WProgram.h>
 #endif
@@ -11,23 +13,27 @@
 #include <stdio.h>
 #include <stdarg.h>
 
+const int enPin=8;
+const int stepXPin = 2; //X.STEP
+const int dirXPin = 5; // X.DIR
+const int stepYPin = 3; //Y.STEP
+const int dirYPin = 6; // Y.DIR
+const int stepZPin = 4; //Z.STEP
+const int dirZPin = 7; // Z.DIR
+
+const int limitX = 9;
+const int limitY = 10;
+const int limitZ = 11;
+
+const int servoPin=13;
+
+const int dcIN1=42;
+const int dcIN2=44;
+volatile char m_buffer[128];
 ApplicationArduino::ApplicationArduino()
 {
-    Serial.begin(115200);
-    this->printf("ApplicationArduino constructor\r\n");
-    const int enPin=8;
-    const int stepXPin = 2; //X.STEP
-    const int dirXPin = 5; // X.DIR
-    const int stepYPin = 3; //Y.STEP
-    const int dirYPin = 6; // Y.DIR
-    const int stepZPin = 4; //Z.STEP
-    const int dirZPin = 7; // Z.DIR
-
-    const int limitX = 9;
-    const int limitY = 10;
-    const int limitZ = 11;
-
-    const int servoPin=13;
+    Serial.begin(38400);
+    this->printf("ApplicationArduino constructor\r\n");    
 
     m_machineState = MACHINE_STATE::MACHINE_INIT;
     setMachineState(MACHINE_STATE::MACHINE_WAIT_COMMAND);
@@ -38,27 +44,25 @@ ApplicationArduino::ApplicationArduino()
 
     pinMode(m_buttonPin[BTN_BASE], INPUT_PULLUP);
     pinMode(m_buttonPin[BTN_ARM1], INPUT_PULLUP);
-    pinMode(m_buttonPin[BTN_ARM2], INPUT_PULLUP);
     
-
-    m_listStepper[MOTOR_BASE] = new AccelStepper(AccelStepper::FULL2WIRE, stepXPin, dirXPin);
-    m_listStepper[MOTOR_ARM1] = new AccelStepper(AccelStepper::FULL2WIRE, stepYPin, dirYPin);
-    m_listStepper[MOTOR_ARM2] = new AccelStepper(AccelStepper::FULL2WIRE, stepZPin, dirZPin);
-
     pinMode(enPin, OUTPUT);
-    digitalWrite(enPin, LOW);
+    digitalWrite(enPin, HIGH);
+
+    m_listStepper[MOTOR_BASE] = new AccelStepper(AccelStepper::DRIVER, stepXPin, dirXPin);
+    m_listStepper[MOTOR_ARM1] = new AccelStepper(AccelStepper::DRIVER, stepYPin, dirYPin);
 
     m_servo = new Servo();
+    m_dcDriver = new DC_driver(dcIN1, dcIN2, 0); 
     m_servo->attach(servoPin);
     m_servo->write(0);
 }
 int ApplicationArduino::printf(const char *fmt, ...) {
-    char m_buffer[256];
+    
     va_list args;
     va_start(args, fmt);
     int rc = vsprintf(m_buffer, fmt, args);
     va_end(args);
-    Serial.print(m_buffer);
+    Serial.print((const char*)m_buffer);
     return rc;
 }
 void ApplicationArduino::msleep(int millis) {
@@ -79,22 +83,74 @@ void ApplicationArduino::checkInput(){
 		updateButtonState(btnID, digitalRead(m_buttonPin[btnID]) == LOW);
 	}
 }
-
+// #define READBYTE
 int ApplicationArduino::readSerial(char* output, int length) {
-  long start = this->getSystemTimeInMillis();
+  // long start = this->getSystemTimeInMillis();
+#ifndef READBYTE
   String command = Serial.readString();// read the incoming data as string
-  command.toCharArray(output,command.length());
-  if(length > command.length())
-    output[command.length()] = 0;
+  if(command.length()>0) {
+    Serial.print(command);
+    // command.getBytes(output,command.length(),0);
+    for(int i=0; i< command.length(); i++) {
+      output[i] = command.charAt(i);
+      Serial.print(output[i],HEX);
+      Serial.print(" ");
+    }
+    Serial.print("\n");
+  }
   return command.length();
+#else
+  int numBytes = Serial.readBytes(output,length);
+  if(numBytes>0) {
+    for(int i=0; i< numBytes; i++) {
+      Serial.print(output[i],HEX);
+      Serial.print(" ");
+    }
+    Serial.print("\n");
+  }
+  return numBytes;
+#endif
 }
 
 void ApplicationArduino::setMaxSpeed(MOTOR motor, float speed) {
-  m_listStepper[motor]->setMaxSpeed(speed);
+  switch(motor){
+    case MOTOR::MOTOR_BASE:
+    case MOTOR::MOTOR_ARM1: {
+      m_listStepper[motor]->setMaxSpeed(speed);
+    }
+    break;
+    case MOTOR::MOTOR_ARM2:{
+      
+    }
+    break;
+    case MOTOR::MOTOR_ARM3:{
+
+    }
+    break;
+    case MOTOR::MOTOR_MAX: break;
+    default: break;
+  }
 }
 
 void ApplicationArduino::setSpeed(MOTOR motor, float speed) {
-  m_listStepper[motor]->setSpeed(speed);
+  switch(motor){
+    case MOTOR::MOTOR_BASE:
+    case MOTOR::MOTOR_ARM1: {
+      m_listStepper[motor]->setSpeed(speed);
+    }
+    break;
+    case MOTOR::MOTOR_ARM2:{
+      
+    }
+    break;
+    case MOTOR::MOTOR_ARM3:{
+      m_dcDriver->analogMove(speed>0?true:false, speed);
+    }
+    break;
+    case MOTOR::MOTOR_MAX: break;
+    default: break;
+  }
+  
 }
 
 void ApplicationArduino::setAcceleration(MOTOR motor, float acceleration) {
@@ -122,13 +178,22 @@ void ApplicationArduino::setCurrentPosition(MOTOR motor, long position) {
 }
 
 long ApplicationArduino::currentPosition(MOTOR motor) {
+  // this->printf("MOTOR[%d] [%ld]\r\n",motor,m_listStepper[motor]->currentPosition());
   return m_listStepper[motor]->currentPosition();
 }
 
 float ApplicationArduino::speed(MOTOR motor) {
   return m_listStepper[motor]->speed();
 }
+float ApplicationArduino::maxSpeed(MOTOR motor) {
+  return m_listStepper[motor]->maxSpeed();
+}
 
 void ApplicationArduino::setServoAngle(int angle) {
   m_servo->write(angle);
+}
+void ApplicationArduino::enableStepper(bool enable) {
+  this->printf("%s Stepper\r\n",enable?"ENABLE":"DISABLE");
+  digitalWrite(enPin, enable?LOW:HIGH);
+  setMachineState(MACHINE_EXECUTE_COMMAND_DONE);
 }

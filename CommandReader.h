@@ -10,7 +10,6 @@ public:
 private:
     ApplicationController* m_app;
     int m_incomingByte;
-    char m_command[256];
 };
 
 #endif // COMMANDREADER_H

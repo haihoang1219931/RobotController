@@ -8,19 +8,22 @@ enum MACHINE_STATE {
     MACHINE_INIT,
     MACHINE_WAIT_COMMAND,
     MACHINE_EXECUTE_COMMAND,
+    MACHINE_EXECUTE_COMMAND_DONE,
 };
 
 enum BUTTON_ID {
-    BTN_BASE,
-    BTN_ARM1,
-    BTN_ARM2,
+    BTN_BASE=0,
+    BTN_ARM1=1,
+    BTN_ARM2=2,
+    BTN_ARM3=3,
     BTN_MAX,
 };
 
 enum MOTOR{
-    MOTOR_BASE,
-    MOTOR_ARM1,
-    MOTOR_ARM2,
+    MOTOR_BASE=0,
+    MOTOR_ARM1=1,
+    MOTOR_ARM2=2,
+    MOTOR_ARM3=3,
     MOTOR_MAX,
 } ;
 
@@ -50,13 +53,16 @@ public:
     virtual void setCurrentPosition(MOTOR motor, long position) = 0;
     virtual long currentPosition(MOTOR motor) = 0;
     virtual float speed(MOTOR motor) = 0;
+    virtual float maxSpeed(MOTOR motor) = 0;
     virtual void setServoAngle(int angle) = 0;
+    virtual void enableStepper(bool enable) = 0;
 
-protected:
+public:
     MACHINE_STATE m_machineState;
     Button* m_listButton[BUTTON_ID::BTN_MAX];
     Robot* m_robot;
     CommandReader* m_commandReader;
+    int m_comCommandID = 0;
 };
 
 #endif // APPLICATIONCONTROLLER_H

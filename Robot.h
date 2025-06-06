@@ -14,7 +14,7 @@ enum ROBOT_STATE {
 
 typedef struct {
     bool moveInit;
-    float armAngle[MOTOR::MOTOR_MAX];
+    long armAngle[MOTOR::MOTOR_MAX];
     int crawlAngle;
 } MoveLocation;
 
@@ -27,19 +27,25 @@ public:
     void setState(ROBOT_STATE newState);
     void goHome();
     void goToPosition(int startCol, int startRow, int stopCol, int stopRow, bool attack = false, bool castle = false, char promote = 0);
-    void rotateAngle(MOTOR motorID, long angle, long speed);
+    void ablsoluteAngle(long angleBase, long angleArm1, long angleArm2, long angleServo);
+    void rotateAngle(MOTOR motorID, long angle, float speed);
     void executeGohome();
     void executeGoToPosition();
     void executeRotateAngle();
-    void calculateRobotArm(float x, float y, float a1, float a2, float* q1, float* q2);
+    void calculateRobotArm(float x, float y, float z, float L, float M, float N, float* q1, float* q2, float* q3);
 private:
     ApplicationController* m_app;
     int m_numberMove = 0;
     int m_currentMoveID = 0;
     float m_distanceToChessBoard;
     float m_chessBoardSquareLength;
+    float m_crawlHeight;
+    float m_chessHeight;
     float m_crawlLength;
     float m_armLength[MOTOR::MOTOR_MAX];
+    float m_armHomeSpeed[MOTOR::MOTOR_MAX];
+    float m_armRatio[MOTOR::MOTOR_MAX];
+    long m_armMaxPosition[MOTOR::MOTOR_MAX];
     MoveLocation m_moveSequence[MOTOR_MAX_SEQUENCE];
     MOTOR m_motorID;
     ROBOT_STATE m_state;

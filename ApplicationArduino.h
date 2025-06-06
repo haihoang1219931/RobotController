@@ -5,6 +5,7 @@
 
 class AccelStepper;
 class Servo;
+class DC_driver;
 class ApplicationArduino : public ApplicationController
 {
 public:
@@ -25,12 +26,14 @@ public:
     void setCurrentPosition(MOTOR motor, long position) override;
     long currentPosition(MOTOR motor) override;
     float speed(MOTOR motor) override;
+    float maxSpeed(MOTOR motor) override;
     void setServoAngle(int angle) override;
-
+    void enableStepper(bool enable) override;
 private:
 	int m_buttonPin[BUTTON_ID::BTN_MAX];
-  AccelStepper* m_listStepper[MOTOR_MAX];
+  AccelStepper* m_listStepper[2];
   Servo* m_servo;
+  DC_driver* m_dcDriver;
 };
 
 #endif // APPLICATIONARDUINO_H
