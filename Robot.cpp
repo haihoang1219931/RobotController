@@ -16,10 +16,15 @@ Robot::Robot(ApplicationController* app) :
     m_armLength[MOTOR::MOTOR_ARM1] = (139.0f);
     m_armHomeSpeed[MOTOR::MOTOR_BASE] = -1000.0f;
     m_armHomeSpeed[MOTOR::MOTOR_ARM1] = -100.0f;
+    m_armHomeSpeed[MOTOR::MOTOR_ARM2] = 15.0f;
+    m_armHomeSpeed[MOTOR::MOTOR_ARM3] = 1.0f;
     m_armRatio[MOTOR::MOTOR_BASE] = 14.0f*4.50f;
     m_armRatio[MOTOR::MOTOR_ARM1] = 2.0f;
+    m_armRatio[MOTOR::MOTOR_ARM2] = 1.0f;
+    m_armRatio[MOTOR::MOTOR_ARM3] = 1.0f;
     m_armMaxPosition[MOTOR::MOTOR_BASE] = (long)(120.0f*14.0f*4.5*200.0f/360.0f);
     m_armMaxPosition[MOTOR::MOTOR_ARM1] = (long)(270.0f*2.0f*200.0f/360.0f);
+    m_armMaxPosition[MOTOR::MOTOR_ARM2] = 100.0f;
 }
 
 void Robot::setState(ROBOT_STATE newState) {
@@ -168,7 +173,6 @@ void Robot::executeGoToPosition() {
       }
       // control servo
       m_servoAngle = m_moveSequence[m_currentMoveID].crawlAngle;
-      m_app->setServoAngle(m_moveSequence[m_currentMoveID].crawlAngle);
       m_servoStartTime = m_app->getSystemTimeInMillis();
       m_moveSequence[m_currentMoveID].moveInit = true;
   }

@@ -74,9 +74,9 @@ void ApplicationController::executeCommand(char* command) {
       }
     }
   } else if(command[0] == 'e') {
-    this->enableStepper(true);
+    this->enableEngine(true);
   } else if(command[0] == 'd') {
-    this->enableStepper(false);
+    this->enableEngine(false);
   } else if(command[0] == 'h') {
     m_robot->goHome();
   } else if(command[0] == 'a') {

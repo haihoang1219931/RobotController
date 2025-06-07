@@ -9,6 +9,7 @@ class Servo_driver: public Servo
     Servo_driver(int pin);
     void moveTo(int position);
     void setSpeed(float speed);
+    float speed();
     void setCurrentPosition(int position);
     int currentPosition();
     void runSpeed();

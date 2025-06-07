@@ -54,8 +54,7 @@ public:
     virtual long currentPosition(MOTOR motor) = 0;
     virtual float speed(MOTOR motor) = 0;
     virtual float maxSpeed(MOTOR motor) = 0;
-    virtual void setServoAngle(int angle) = 0;
-    virtual void enableStepper(bool enable) = 0;
+    virtual void enableEngine(bool enable) = 0;
 
 public:
     MACHINE_STATE m_machineState;

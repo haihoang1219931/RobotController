@@ -22,6 +22,10 @@ void Servo_driver::setSpeed(float speed) {
   m_timerStart = false;
 }
 
+float Servo_driver::speed(){
+  return m_speed;
+}
+
 void Servo_driver::setCurrentPosition(int position) {
   m_currentPosition = position;
 }

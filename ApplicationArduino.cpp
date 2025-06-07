@@ -4,7 +4,7 @@
 #if defined(ARDUINO) && ARDUINO >= 100
     #include <Arduino.h>
     #include <AccelStepper.h>
-    #include <Servo.h>
+    #include "Servo_driver.h"
     #include "DC_driver.h"
 #else
     #include <WProgram.h>
@@ -25,10 +25,10 @@ const int limitX = 9;
 const int limitY = 10;
 const int limitZ = 11;
 
-const int servoPin=13;
+const int servoPin = 45;
 
-const int dcIN1=42;
-const int dcIN2=44;
+const int dcIN1 = 42;
+const int dcIN2 = 44;
 volatile char m_buffer[128];
 ApplicationArduino::ApplicationArduino()
 {
@@ -51,13 +51,10 @@ ApplicationArduino::ApplicationArduino()
     m_listStepper[MOTOR_BASE] = new AccelStepper(AccelStepper::DRIVER, stepXPin, dirXPin);
     m_listStepper[MOTOR_ARM1] = new AccelStepper(AccelStepper::DRIVER, stepYPin, dirYPin);
 
-    m_servo = new Servo();
-    m_dcDriver = new DC_driver(dcIN1, dcIN2, 0); 
-    m_servo->attach(servoPin);
-    m_servo->write(0);
+    m_servoDriver = new Servo_driver(servoPin);
+    m_dcDriver = new DC_driver(dcIN1, dcIN2);
 }
 int ApplicationArduino::printf(const char *fmt, ...) {
-    
     va_list args;
     va_start(args, fmt);
     int rc = vsprintf(m_buffer, fmt, args);
@@ -140,17 +137,16 @@ void ApplicationArduino::setSpeed(MOTOR motor, float speed) {
     }
     break;
     case MOTOR::MOTOR_ARM2:{
-      
+      m_servoDriver->setSpeed(speed);
     }
     break;
     case MOTOR::MOTOR_ARM3:{
-      m_dcDriver->analogMove(speed>0?true:false, speed);
+      m_dcDriver->setSpeed(speed);
     }
     break;
     case MOTOR::MOTOR_MAX: break;
     default: break;
   }
-  
 }
 
 void ApplicationArduino::setAcceleration(MOTOR motor, float acceleration) {
@@ -174,25 +170,76 @@ void ApplicationArduino::runSpeed(MOTOR motor) {
 }
 
 void ApplicationArduino::setCurrentPosition(MOTOR motor, long position) {
-  m_listStepper[motor]->setCurrentPosition(position);
+  switch(motor){
+    case MOTOR::MOTOR_BASE:
+    case MOTOR::MOTOR_ARM1: {
+      m_listStepper[motor]->setCurrentPosition(position);
+    }
+    break;
+    case MOTOR::MOTOR_ARM2:{
+      m_servoDriver->setCurrentPosition(position);
+    }
+    break;
+    case MOTOR::MOTOR_ARM3:
+    case MOTOR::MOTOR_MAX: break;
+    default: break;
+  }
 }
 
 long ApplicationArduino::currentPosition(MOTOR motor) {
-  // this->printf("MOTOR[%d] [%ld]\r\n",motor,m_listStepper[motor]->currentPosition());
-  return m_listStepper[motor]->currentPosition();
+  long currentPos = 0;
+  switch(motor){
+    case MOTOR::MOTOR_BASE:
+    case MOTOR::MOTOR_ARM1: {
+      currentPos = m_listStepper[motor]->currentPosition();
+    }
+    break;
+    case MOTOR::MOTOR_ARM2:{
+      currentPos = m_servoDriver->currentPosition();
+    }
+    break;
+    case MOTOR::MOTOR_ARM3:
+    case MOTOR::MOTOR_MAX: break;
+    default: break;
+  }
+  return currentPos;
 }
 
 float ApplicationArduino::speed(MOTOR motor) {
-  return m_listStepper[motor]->speed();
+  float speed = 0;
+  switch(motor){
+    case MOTOR::MOTOR_BASE:
+    case MOTOR::MOTOR_ARM1: {
+      speed = m_listStepper[motor]->speed();
+    }
+    break;
+    case MOTOR::MOTOR_ARM2:{
+      speed = m_servoDriver->speed();
+    }
+    break;
+    case MOTOR::MOTOR_ARM3:
+    case MOTOR::MOTOR_MAX: break;
+    default: break;
+  }
+  return speed;
 }
 float ApplicationArduino::maxSpeed(MOTOR motor) {
-  return m_listStepper[motor]->maxSpeed();
+  float maxSpeed = 0;
+  switch(motor){
+    case MOTOR::MOTOR_BASE:
+    case MOTOR::MOTOR_ARM1: {
+      maxSpeed = m_listStepper[motor]->maxSpeed();
+    }
+    break;
+    case MOTOR::MOTOR_ARM2:
+    case MOTOR::MOTOR_ARM3:
+    case MOTOR::MOTOR_MAX:
+    default: break;
+  }
+  return maxSpeed;
 }
 
-void ApplicationArduino::setServoAngle(int angle) {
-  m_servo->write(angle);
-}
-void ApplicationArduino::enableStepper(bool enable) {
+void ApplicationArduino::enableEngine(bool enable) {
   this->printf("%s Stepper\r\n",enable?"ENABLE":"DISABLE");
   digitalWrite(enPin, enable?LOW:HIGH);
   setMachineState(MACHINE_EXECUTE_COMMAND_DONE);

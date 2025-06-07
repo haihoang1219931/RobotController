@@ -1,4 +1,4 @@
-#define DEBUG
+// #define DEBUG
 #ifndef DEBUG
 #include "ApplicationArduino.h"
 
@@ -140,7 +140,27 @@ void loop() {
 //       }
 //     }
 
+// #ifndef DEBUG_DC
+// #include "DC_driver.h"
+// #define IN1	42
+// #define IN2	44
+// #define IN3	5
+// #define IN4	4
+// #define MAX_SPEED 150 //từ 0-255
+// #define MIN_SPEED 0
 
+// DC_driver* dcDriver = new DC_driver(IN1,IN2);
+// void setup()
+// {
+//   dcDriver->setSpeed(50);
+//   dcDriver->setRuntime(5000);
+// }
+
+// void loop()
+// {
+//   dcDriver->runSpeed();
+// }
+// #else
 // #define IN1	42
 // #define IN2	44
 // #define IN3	5
@@ -182,6 +202,8 @@ void loop() {
 // 	delay(2000);//tiến 2 s
 	
 // }
+// #endif
+
 // #define DEBUG_SERVO
 // #ifndef DEBUG_SERVO
 // #include <Arduino.h>
