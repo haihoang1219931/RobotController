@@ -15,6 +15,7 @@ enum ROBOT_STATE {
 typedef struct {
     bool moveInit;
     long armAngle[MOTOR::MOTOR_MAX];
+    float armSpeed[MOTOR::MOTOR_MAX];
 } MoveLocation;
 
 class ApplicationController;

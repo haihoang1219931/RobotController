@@ -66,7 +66,27 @@ void Robot::goHome() {
 }
 
 void Robot::ablsoluteAngle(long angleBase, long angleArm1, long angleArm2, long angleServo) {
-  m_moveSequence[0] = {false,{angleBase,angleArm1,angleArm2,angleServo}};
+  float moveTime = 0;
+  long armAngle[MOTOR::MOTOR_MAX] = {angleBase,angleArm1,angleArm2,angleServo};
+  for(int motor = 0; motor < MOTOR::MOTOR_MAX; motor ++) {
+    float angleToMove = fabs((float)(armAngle[motor] - m_app->currentPosition(motor)));
+    float maxSpeed = fabs((float)(m_armHomeSpeed[motor]));
+    if(angleToMove/maxSpeed > moveTime) moveTime = angleToMove/maxSpeed;
+    Serial.print("Motor[");
+    Serial.print(motor);
+    Serial.print("]");
+    Serial.print(angleToMove);
+    Serial.print(" ");
+    Serial.print(maxSpeed);
+    Serial.print(" ");
+    Serial.println(moveTime);
+  }
+  m_moveSequence[0].moveInit = false;
+  for(int motor = 0; motor < MOTOR::MOTOR_MAX; motor ++) {
+    float angleToMove = fabs((float)(armAngle[motor] - m_app->currentPosition(motor)));
+    m_moveSequence[0].armAngle[motor] = armAngle[motor];
+    m_moveSequence[0].armSpeed[motor] = angleToMove/moveTime;
+  }
   m_numberMove = 1;
   m_currentMoveID = 0;
 
@@ -151,8 +171,8 @@ void Robot::executeGoToPosition() {
           m_app->printf("goto motor[%d] %d/%ld\r\n",
           motor,currentPos,m_moveSequence[m_currentMoveID].armAngle[motor]);
           m_app->setTargetPos(motor,m_moveSequence[m_currentMoveID].armAngle[motor]);
-          m_app->setMaxSpeed(motor, fabs(m_armHomeSpeed[motor])*(m_app->currentPosition(motor) < m_moveSequence[m_currentMoveID].armAngle[motor] ? 10.0f:-10.0f));
-          m_app->setSpeed(motor, fabs(m_armHomeSpeed[motor])*(m_app->currentPosition(motor) < m_moveSequence[m_currentMoveID].armAngle[motor] ? 1.0f:-1.0f));
+          m_app->setMaxSpeed(motor, fabs(m_moveSequence[m_currentMoveID].armSpeed[motor])*(m_app->currentPosition(motor) < m_moveSequence[m_currentMoveID].armAngle[motor] ? 10.0f:-10.0f));
+          m_app->setSpeed(motor, fabs(m_moveSequence[m_currentMoveID].armSpeed[motor])*(m_app->currentPosition(motor) < m_moveSequence[m_currentMoveID].armAngle[motor] ? 1.0f:-1.0f));
           Serial.println(m_app->speed(motor));
           Serial.println(m_moveSequence[m_currentMoveID].armAngle[motor]);
       }
