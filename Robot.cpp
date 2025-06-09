@@ -81,6 +81,7 @@ void Robot::ablsoluteAngle(long angleBase, long angleArm1, long angleArm2, long 
     Serial.print(" ");
     Serial.println(moveTime);
   }
+  moveTime = pow(2, (int)(log(moveTime)));
   m_moveSequence[0].moveInit = false;
   for(int motor = 0; motor < MOTOR::MOTOR_MAX; motor ++) {
     float angleToMove = fabs((float)(armAngle[motor] - m_app->currentPosition(motor)));
