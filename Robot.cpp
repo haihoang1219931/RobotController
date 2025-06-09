@@ -51,25 +51,22 @@ void Robot::loop() {
   }
 }
 void Robot::goHome() {
-  m_app->printf("GO HOME");
+  m_app->printf("GO HOME\r\n");
   for(int i=0; i< MOTOR_MAX; i++)
       m_app->printf("MAX POS[%d] %d\r\n",i,m_armMaxPosition[i]);
-  for(unsigned int axis=0; axis < (unsigned int)MOTOR::MOTOR_MAX; axis++) {
-    m_app->setCurrentPosition(axis, 0);
-    m_app->setMaxSpeed(axis,m_armHomeSpeed[axis]);
-    m_app->setSpeed(axis,m_armHomeSpeed[axis]);
+  for(unsigned int motor=0; motor < (unsigned int)MOTOR::MOTOR_MAX; motor++) {
+    m_app->setHomePosition(motor);
+    m_app->setMaxSpeed(motor,m_armHomeSpeed[motor]);
+    m_app->setSpeed(motor,m_armHomeSpeed[motor]);
+    m_app->printf("MOTOR[%d] POS[%ld] \r\n",motor,m_app->currentPosition(motor)); 
   }
-  m_app->printf("Current POS at[%ld] [%ld] [%ld]\r\n",
-      m_app->currentPosition(0),
-      m_app->currentPosition(1),
-      m_app->currentPosition(2));
   setState(ROBOT_GO_HOME);
   m_app->setMachineState(MACHINE_EXECUTE_COMMAND);
   m_app->msleep(100);
 }
 
 void Robot::ablsoluteAngle(long angleBase, long angleArm1, long angleArm2, long angleServo) {
-  m_moveSequence[0] = {false,{angleBase,angleArm1,angleArm2},angleServo};
+  m_moveSequence[0] = {false,{angleBase,angleArm1,angleArm2,angleServo}};
   m_numberMove = 1;
   m_currentMoveID = 0;
 
@@ -88,23 +85,20 @@ void Robot::rotateAngle(MOTOR motorID, long angle, float speed) {
 
 void Robot::executeGohome() {
   bool allMotorsAtHome = true;
-  for(unsigned int button = 0; button < BUTTON_ID::BTN_MAX; button ++) {
-    if(m_app->buttonState(button) == BUTTON_STATE::BUTTON_NOMAL) {
+  for(unsigned int motor = 0; motor < MOTOR::MOTOR_MAX; motor ++) {
+    if(!m_app->isMotorHomed(motor)) {
       allMotorsAtHome = false;
-      m_app->runSpeed(button);
+      m_app->goHome(motor);
     }
   }
-  // m_app->printf("ALL MOTOR ARE HOME at[%ld] [%ld] [%ld]\r\n",
-  //     m_app->currentPosition(0),
-  //     m_app->currentPosition(1),
-  //     m_app->currentPosition(2));
+  
   if(allMotorsAtHome) {
-    m_app->printf("ALL MOTOR ARE HOME at[%ld] [%ld] [%ld]\r\n",
-      m_app->currentPosition(0),
-      m_app->currentPosition(1),
-      m_app->currentPosition(2));
-    for(unsigned int button = 0; button < BUTTON_ID::BTN_MAX; button ++) {
-      m_app->setCurrentPosition(button, 0);
+    // for(unsigned int motor = 0; motor < MOTOR::MOTOR_MAX; motor ++) {
+    //   m_app->printf("MOTOR[%d] home at[%ld]\r\n",
+    //     motor,m_app->currentPosition(motor));
+    // }
+    for(unsigned int motor = 0; motor < MOTOR::MOTOR_MAX; motor ++) {
+      m_app->setHomePosition(motor);
     }
     m_app->setMachineState(MACHINE_EXECUTE_COMMAND_DONE);
   }
@@ -139,20 +133,12 @@ void Robot::goToPosition(int startCol, int startRow, int stopCol, int stopRow, b
       (int)(curAngleArm2*180.0f/M_PI),
       (int)(curAngleArm3*180.0f/M_PI));
   return;
-  m_moveSequence[0] = {false,{0,0,0},100};
-  m_moveSequence[1] = {false,{0,300,600},100};
-  m_moveSequence[2] = {false,{0,300,600},0};
-  m_moveSequence[3] = {false,{0,300,450},0};
-  m_moveSequence[4] = {false,{0,900,300},0};
-  m_moveSequence[5] = {false,{0,900,300},100};
-  m_moveSequence[6] = {false,{0,900,100},100};
-  m_moveSequence[7] = {false,{0,0,0},100};
   m_numberMove = 8;
   m_currentMoveID = 0;
 
-  for(unsigned int axis=0; axis < (unsigned int)MOTOR::MOTOR_MAX; axis++) {
-    m_app->setMaxSpeed(axis, 2000.0);
-    m_app->setAcceleration(axis, 500.0);
+  for(unsigned int motor=0; motor < (unsigned int)MOTOR::MOTOR_MAX; motor++) {
+    m_app->setMaxSpeed(motor, 2000.0);
+    m_app->setAcceleration(motor, 500.0);
   }
 
   setState(ROBOT_EXECUTE_SEQUENCE);
@@ -160,40 +146,34 @@ void Robot::goToPosition(int startCol, int startRow, int stopCol, int stopRow, b
 }
 void Robot::executeGoToPosition() {
   if(!m_moveSequence[m_currentMoveID].moveInit) {
-      for(unsigned int axis=0; axis < (unsigned int)MOTOR::MOTOR_MAX; axis++) {
-          long currentPos = m_app->currentPosition(axis);
-          m_app->printf("goto motor[%d] %d/%d\r\n",
-          axis,(int)m_moveSequence[m_currentMoveID].armAngle[axis],currentPos);
-          
-          m_app->setTargetPos(axis,m_moveSequence[m_currentMoveID].armAngle[axis]);
-          m_app->setMaxSpeed(axis, fabs(m_armHomeSpeed[axis])*(m_app->currentPosition(axis) < m_moveSequence[m_currentMoveID].armAngle[axis] ? 10:-10));
-          m_app->setSpeed(axis, fabs(m_armHomeSpeed[axis])*(m_app->currentPosition(axis) < m_moveSequence[m_currentMoveID].armAngle[axis] ? 1:-1));
-          Serial.println(m_app->speed(axis));
-          Serial.println(m_app->maxSpeed(axis));
+      for(unsigned int motor=0; motor < (unsigned int)MOTOR::MOTOR_MAX; motor++) {
+          long currentPos = m_app->currentPosition(motor);
+          m_app->printf("goto motor[%d] %d/%ld\r\n",
+          motor,currentPos,m_moveSequence[m_currentMoveID].armAngle[motor]);
+          m_app->setTargetPos(motor,m_moveSequence[m_currentMoveID].armAngle[motor]);
+          m_app->setMaxSpeed(motor, fabs(m_armHomeSpeed[motor])*(m_app->currentPosition(motor) < m_moveSequence[m_currentMoveID].armAngle[motor] ? 10.0f:-10.0f));
+          m_app->setSpeed(motor, fabs(m_armHomeSpeed[motor])*(m_app->currentPosition(motor) < m_moveSequence[m_currentMoveID].armAngle[motor] ? 1.0f:-1.0f));
+          Serial.println(m_app->speed(motor));
+          Serial.println(m_moveSequence[m_currentMoveID].armAngle[motor]);
       }
-      // control servo
-      m_servoAngle = m_moveSequence[m_currentMoveID].crawlAngle;
-      m_servoStartTime = m_app->getSystemTimeInMillis();
       m_moveSequence[m_currentMoveID].moveInit = true;
   }
   bool allMotorsAtTarget = true;
-  for(unsigned int axis=0; axis < (unsigned int)MOTOR::MOTOR_MAX; axis++) {
-      if(m_app->distanceToGo(axis) != 0 && m_app->currentPosition(axis) < m_armMaxPosition[axis]){
+  for(unsigned int motor=0; motor < (unsigned int)MOTOR::MOTOR_MAX; motor++) {
+      if(!m_app->isMoveDone(motor)){
           allMotorsAtTarget = false;
-          m_app->runSpeed(axis);
+          m_app->runSpeed(motor);
       }
   }
-  long servoRunTime = m_app->getSystemTimeInMillis() - m_servoStartTime;
-  if(allMotorsAtTarget && servoRunTime >= 1000) {
+  if(allMotorsAtTarget) {
     m_app->msleep(100);
     m_currentMoveID++;
   }
 
   if(m_currentMoveID >= m_numberMove) {
-    // goHome();
-    for(unsigned int axis=0; axis < (unsigned int)MOTOR::MOTOR_MAX; axis++) {
+    for(unsigned int motor=0; motor < (unsigned int)MOTOR::MOTOR_MAX; motor++) {
       m_app->printf("goto done motor[%d] %d/%d\r\n",
-          axis,(int)m_moveSequence[m_currentMoveID].armAngle[axis],(int)m_app->currentPosition(axis));
+          motor,(int)m_moveSequence[m_currentMoveID].armAngle[motor],(int)m_app->currentPosition(motor));
     }
     m_app->setMachineState(MACHINE_EXECUTE_COMMAND_DONE);
   }
@@ -204,7 +184,7 @@ void Robot::executeRotateAngle() {
     m_app->printf("MOTOR[%d] at limit inverse speed\r\n", m_motorID);
     m_app->setMachineState(MACHINE_EXECUTE_COMMAND_DONE);
   } else {
-    if(m_app->distanceToGo(m_motorID) != 0) {
+    if(!m_app->isMoveDone(m_motorID)) {
       m_app->runSpeed(m_motorID);
     } else {
       m_app->printf("MOTOR[%d] reached[%ld]\r\n", m_motorID, m_app->currentPosition(m_motorID));

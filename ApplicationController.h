@@ -14,8 +14,6 @@ enum MACHINE_STATE {
 enum BUTTON_ID {
     BTN_BASE=0,
     BTN_ARM1=1,
-    BTN_ARM2=2,
-    BTN_ARM3=3,
     BTN_MAX,
 };
 
@@ -47,11 +45,14 @@ public:
     virtual void setSpeed(MOTOR motor, float speed) = 0;
     virtual void setAcceleration(MOTOR motor, float acceleration) = 0;
     virtual void setTargetPos(MOTOR motor, long target) = 0;
-    virtual long distanceToGo(MOTOR motor) = 0;
+    virtual bool isMoveDone(MOTOR motor) = 0;
     virtual void run(MOTOR motor) = 0;
     virtual void runSpeed(MOTOR motor) = 0;
     virtual void setCurrentPosition(MOTOR motor, long position) = 0;
     virtual long currentPosition(MOTOR motor) = 0;
+    virtual bool isMotorHomed(MOTOR motor) = 0;
+    virtual void setHomePosition(MOTOR motor) = 0;
+    virtual void goHome(MOTOR motor) = 0;
     virtual float speed(MOTOR motor) = 0;
     virtual float maxSpeed(MOTOR motor) = 0;
     virtual void enableEngine(bool enable) = 0;

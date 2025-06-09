@@ -15,7 +15,6 @@ enum ROBOT_STATE {
 typedef struct {
     bool moveInit;
     long armAngle[MOTOR::MOTOR_MAX];
-    int crawlAngle;
 } MoveLocation;
 
 class ApplicationController;

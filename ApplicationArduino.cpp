@@ -40,7 +40,6 @@ ApplicationArduino::ApplicationArduino()
     
     m_buttonPin[BTN_BASE] = limitX;
     m_buttonPin[BTN_ARM1] = limitY;
-    m_buttonPin[BTN_ARM2] = limitZ;
 
     pinMode(m_buttonPin[BTN_BASE], INPUT_PULLUP);
     pinMode(m_buttonPin[BTN_ARM1], INPUT_PULLUP);
@@ -78,6 +77,7 @@ void ApplicationArduino::checkInput(){
 	for(unsigned int btnID = BTN_BASE; btnID< BTN_MAX; btnID++) {
     pinMode(m_buttonPin[btnID], INPUT_PULLUP);
 		updateButtonState(btnID, digitalRead(m_buttonPin[btnID]) == LOW);
+    // this->printf("button[%d] %s\r\n",btnID, digitalRead(m_buttonPin[btnID]) == LOW ? "pressed" : "normal");
 	}
 }
 // #define READBYTE
@@ -150,23 +150,73 @@ void ApplicationArduino::setSpeed(MOTOR motor, float speed) {
 }
 
 void ApplicationArduino::setAcceleration(MOTOR motor, float acceleration) {
-  m_listStepper[motor]->setAcceleration(acceleration);
+  // m_listStepper[motor]->setAcceleration(acceleration);
 }
 
 void ApplicationArduino::setTargetPos(MOTOR motor, long target) {
-  m_listStepper[motor]->moveTo(target);
+  switch(motor){
+    case MOTOR::MOTOR_BASE:
+    case MOTOR::MOTOR_ARM1: {
+      m_listStepper[motor]->moveTo(target);
+    }
+    break;
+    case MOTOR::MOTOR_ARM2:{
+      m_servoDriver->moveTo(target);
+    }
+    break;
+    case MOTOR::MOTOR_ARM3: {
+      m_dcDriver->setRuntime(target);
+    }
+    break;
+    case MOTOR::MOTOR_MAX: break;
+    default: break;
+  }
 }
 
-long ApplicationArduino::distanceToGo(MOTOR motor) {
-  return m_listStepper[motor]->distanceToGo();
+bool ApplicationArduino::isMoveDone(MOTOR motor) {
+  bool moveDone = false;
+  switch(motor){
+    case MOTOR::MOTOR_BASE:
+    case MOTOR::MOTOR_ARM1: {
+      moveDone = m_listStepper[motor]->distanceToGo() == 0;
+    }
+    break;
+    case MOTOR::MOTOR_ARM2:{
+      moveDone = m_servoDriver->isFinished();
+    }
+    break;
+    case MOTOR::MOTOR_ARM3: {
+      moveDone = m_dcDriver->isFinished();
+    }
+    break;
+    case MOTOR::MOTOR_MAX: break;
+    default: break;
+  }
+  return moveDone;
 }
 
 void ApplicationArduino::run(MOTOR motor) {
-  m_listStepper[motor]->run();
+  // m_listStepper[motor]->run();
 }
 
 void ApplicationArduino::runSpeed(MOTOR motor) {
-  m_listStepper[motor]->runSpeed();
+  switch(motor){
+    case MOTOR::MOTOR_BASE:
+    case MOTOR::MOTOR_ARM1: {
+      m_listStepper[motor]->runSpeed();
+    }
+    break;
+    case MOTOR::MOTOR_ARM2:{
+      m_servoDriver->runSpeed();
+    }
+    break;
+    case MOTOR::MOTOR_ARM3: {
+      m_dcDriver->runSpeed();
+    }
+    break;
+    case MOTOR::MOTOR_MAX: break;
+    default: break;
+  }
 }
 
 void ApplicationArduino::setCurrentPosition(MOTOR motor, long position) {
@@ -198,11 +248,31 @@ long ApplicationArduino::currentPosition(MOTOR motor) {
       currentPos = m_servoDriver->currentPosition();
     }
     break;
-    case MOTOR::MOTOR_ARM3:
+    case MOTOR::MOTOR_ARM3: {
+      currentPos = m_dcDriver->currentTime();
+    }
+    break;
     case MOTOR::MOTOR_MAX: break;
     default: break;
   }
   return currentPos;
+}
+
+void ApplicationArduino::goHome(MOTOR motor) {
+  switch(motor){
+    case MOTOR::MOTOR_BASE:
+    case MOTOR::MOTOR_ARM1: {
+      m_listStepper[motor]->runSpeed();
+    }
+    break;
+    case MOTOR::MOTOR_ARM2:{
+      m_servoDriver->fastMoveToTarget(100);
+    }
+    break;
+    case MOTOR::MOTOR_ARM3:
+    case MOTOR::MOTOR_MAX: break;
+    default: break;
+  }
 }
 
 float ApplicationArduino::speed(MOTOR motor) {
@@ -237,6 +307,49 @@ float ApplicationArduino::maxSpeed(MOTOR motor) {
     default: break;
   }
   return maxSpeed;
+}
+
+bool ApplicationArduino::isMotorHomed(MOTOR motor) {
+  bool motorHomed = true;
+  switch(motor){
+    case MOTOR::MOTOR_BASE: {
+      motorHomed = buttonState(BTN_BASE) != BUTTON_STATE::BUTTON_NOMAL;
+    }
+    break;
+    case MOTOR::MOTOR_ARM1: {
+      motorHomed = buttonState(BTN_ARM1) != BUTTON_STATE::BUTTON_NOMAL;
+    }
+    break;
+    case MOTOR::MOTOR_ARM2: {
+      motorHomed = m_servoDriver->isFinished();
+    }
+    break;
+    case MOTOR::MOTOR_ARM3: {
+      motorHomed = m_dcDriver->isFinished();
+    }
+    break;
+    case MOTOR::MOTOR_MAX:
+    default: break;
+  }
+  return motorHomed;
+}
+
+void ApplicationArduino::setHomePosition(MOTOR motor) {
+  switch(motor){
+    case MOTOR::MOTOR_BASE:
+    case MOTOR::MOTOR_ARM1:
+      m_listStepper[motor]->setCurrentPosition(0);
+    break;
+    case MOTOR::MOTOR_ARM2: {
+      m_servoDriver->setCurrentPosition(100);
+    }
+    break;
+    case MOTOR::MOTOR_ARM3: {      
+    }
+    break;
+    case MOTOR::MOTOR_MAX:
+    default: break;
+  }
 }
 
 void ApplicationArduino::enableEngine(bool enable) {

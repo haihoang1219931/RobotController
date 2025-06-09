@@ -11,6 +11,8 @@ DC_driver::DC_driver(byte in1, byte in2)
 {
   m_in1 = in1;
   m_in2 = in2;
+  m_currentTime = 0;
+  m_startTime = 0;
 }
 
 void DC_driver::setRuntime(int runTime) {
@@ -23,8 +25,12 @@ void DC_driver::setSpeed(float speed) {
   m_state = DC_INIT;
 }
 
+long DC_driver::currentTime() {
+  return m_currentTime - m_startTime;
+}
+
 bool DC_driver::isFinished() {
-  return m_state == DC_DONE;
+  return m_state == DC_DONE || m_startTime == 0;
 }
 
 void DC_driver::runSpeed() {
@@ -39,8 +45,8 @@ void DC_driver::runSpeed() {
     }
     break;
     case DC_EXECUTE: {
-      long currentTime = millis();
-      if(currentTime - m_startTime > m_runTime) {
+      m_currentTime = millis();
+      if(m_currentTime - m_startTime > m_runTime) {
         digitalWrite(m_in1, LOW);
 	      digitalWrite(m_in2, LOW);
         m_state = DC_DONE;

@@ -5,6 +5,7 @@
 ApplicationArduino* app;
 void setup() {
   app = new ApplicationArduino();
+  delay(1000);
 }
 void loop() {
   app->checkInput();
