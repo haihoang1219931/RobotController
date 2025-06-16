@@ -114,17 +114,17 @@ void ApplicationController::executeCommand(char* command) {
     long angleStepper = atoi(angleStr);
     m_robot->ablsoluteAngle(angleBase,angleArm1,angleArm2,angleStepper);
   } else if(command[0] == 'p'){
-    if(strlen(command)<9) {
-      this->printf("Mission Params: p [startCol][startRow][stopCol][stopRow][a/n][c/n][promote piece]\r\n");
+    if(strlen(command)<16) {
+      this->printf("Mission Params: p [startCol] [startRow] [stopCol] [stopRow] [a/n][c/n][promote piece]\r\n");
       return;
     }
-    int startCol = command[2]-'0';
-    int startRow = command[3]-'0';
-    int stopCol = command[4]-'0';
-    int stopRow = command[5]-'0';
-    bool attack = command[6] == 'a';
-    bool castle = command[7] == 'c';
-    char promote = command[8];
+    int startCol = (command[2]-'0')*10+(command[3]-'0');
+    int startRow = (command[5]-'0')*10+(command[6]-'0');
+    int stopCol = (command[8]-'0')*10+(command[9]-'0');
+    int stopRow = (command[11]-'0')*10+(command[12]-'0');
+    bool attack = command[13] == 'a';
+    bool castle = command[14] == 'c';
+    char promote = command[15];
     m_robot->goToPosition(startCol, startRow, stopCol, stopRow, attack, castle, promote);
   } else  if(command[0] == 'r') {
     if(strlen(command)<12) {

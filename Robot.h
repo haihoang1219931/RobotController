@@ -32,7 +32,9 @@ public:
     void executeGohome();
     void executeGoToPosition();
     void executeRotateAngle();
-    void calculateRobotArm(float x, float y, float z, float L, float M, float N, float* q1, float* q2, float* q3);
+    void calculateRobotArm(float x, float y, float a1, float a2, float* q1, float* q2);
+    void resetMoveSequene();
+    void appendMoveSequence(long* armAngle,int angleCount);
 private:
     ApplicationController* m_app;
     int m_numberMove = 0;
@@ -42,7 +44,6 @@ private:
     float m_crawlHeight;
     float m_chessHeight;
     float m_crawlLength;
-    float m_armLength[MOTOR::MOTOR_MAX];
     float m_armHomeSpeed[MOTOR::MOTOR_MAX];
     float m_armRatio[MOTOR::MOTOR_MAX];
     long m_armMaxPosition[MOTOR::MOTOR_MAX];

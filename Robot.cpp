@@ -1,3 +1,4 @@
+#include "Arduino.h"
 #include "HardwareSerial.h"
 #include "Robot.h"
 #include "Button.h"
@@ -12,14 +13,12 @@ Robot::Robot(ApplicationController* app) :
     m_crawlLength = 38.0f;
     m_crawlHeight = 132.0f;
     m_chessHeight = 24.0f;
-    m_armLength[MOTOR::MOTOR_BASE] = (130.0f);
-    m_armLength[MOTOR::MOTOR_ARM1] = (139.0f);
     m_armHomeSpeed[MOTOR::MOTOR_BASE] = -1000.0f;
-    m_armHomeSpeed[MOTOR::MOTOR_ARM1] = -100.0f;
+    m_armHomeSpeed[MOTOR::MOTOR_ARM1] = -50.0f;
     m_armHomeSpeed[MOTOR::MOTOR_ARM2] = 15.0f;
     m_armHomeSpeed[MOTOR::MOTOR_ARM3] = 1.0f;
-    m_armRatio[MOTOR::MOTOR_BASE] = 14.0f*4.50f;
-    m_armRatio[MOTOR::MOTOR_ARM1] = 2.0f;
+    m_armRatio[MOTOR::MOTOR_BASE] = 14.0f*4.50f*200.0f/360.0f;
+    m_armRatio[MOTOR::MOTOR_ARM1] = 2.0f*200.0f/360.0f;
     m_armRatio[MOTOR::MOTOR_ARM2] = 1.0f;
     m_armRatio[MOTOR::MOTOR_ARM3] = 1.0f;
     m_armMaxPosition[MOTOR::MOTOR_BASE] = (long)(120.0f*14.0f*4.5*200.0f/360.0f);
@@ -64,10 +63,14 @@ void Robot::goHome() {
   m_app->setMachineState(MACHINE_EXECUTE_COMMAND);
   m_app->msleep(100);
 }
+void Robot::resetMoveSequene() {
+  m_numberMove = 0;
+  m_currentMoveID = 0;
+}
 
-void Robot::ablsoluteAngle(long angleBase, long angleArm1, long angleArm2, long angleServo) {
+void Robot::appendMoveSequence(long* armAngle,int angleCount) {
+  if(m_numberMove >= MOTOR_MAX_SEQUENCE) return;
   float moveTime = 0;
-  long armAngle[MOTOR::MOTOR_MAX] = {angleBase,angleArm1,angleArm2,angleServo};
   for(int motor = 0; motor < MOTOR::MOTOR_MAX; motor ++) {
     float angleToMove = fabs((float)(armAngle[motor] - m_app->currentPosition(motor)));
     float maxSpeed = fabs((float)(m_armHomeSpeed[motor]));
@@ -82,15 +85,18 @@ void Robot::ablsoluteAngle(long angleBase, long angleArm1, long angleArm2, long 
     Serial.println(moveTime);
   }
   moveTime = pow(2, (int)(log(moveTime)));
-  m_moveSequence[0].moveInit = false;
+  m_moveSequence[m_numberMove].moveInit = false;
   for(int motor = 0; motor < MOTOR::MOTOR_MAX; motor ++) {
     float angleToMove = fabs((float)(armAngle[motor] - m_app->currentPosition(motor)));
-    m_moveSequence[0].armAngle[motor] = armAngle[motor];
-    m_moveSequence[0].armSpeed[motor] = angleToMove/moveTime;
+    m_moveSequence[m_numberMove].armAngle[motor] = armAngle[motor];
+    m_moveSequence[m_numberMove].armSpeed[motor] = angleToMove/moveTime;
   }
-  m_numberMove = 1;
-  m_currentMoveID = 0;
-
+  m_numberMove++;
+}
+void Robot::ablsoluteAngle(long angleBase, long angleArm1, long angleArm2, long angleServo) {
+  long armAngle[MOTOR::MOTOR_MAX] = {angleBase,angleArm1,angleArm2,angleServo};
+  resetMoveSequene();
+  appendMoveSequence(armAngle,MOTOR::MOTOR_MAX);
   setState(ROBOT_EXECUTE_SEQUENCE);
   m_app->setMachineState(MACHINE_EXECUTE_COMMAND);
 }
@@ -114,10 +120,6 @@ void Robot::executeGohome() {
   }
   
   if(allMotorsAtHome) {
-    // for(unsigned int motor = 0; motor < MOTOR::MOTOR_MAX; motor ++) {
-    //   m_app->printf("MOTOR[%d] home at[%ld]\r\n",
-    //     motor,m_app->currentPosition(motor));
-    // }
     for(unsigned int motor = 0; motor < MOTOR::MOTOR_MAX; motor ++) {
       m_app->setHomePosition(motor);
     }
@@ -128,40 +130,36 @@ void Robot::executeGohome() {
 void Robot::goToPosition(int startCol, int startRow, int stopCol, int stopRow, bool attack, bool castle, char promote) {
   m_app->printf("Go to Pos [%d,%d] to [%d,%d] attack[%s] castle[%s] promote[%c]\r\n",
                   startCol, startRow, stopCol, stopRow, attack?"yes":"no", castle?"yes":"no", promote);
-
-  float xCurPos = ((float)startCol-4.0f+0.5f) * m_chessBoardSquareLength;
-  float yCurPos = ((float)startRow+0.5f) * m_chessBoardSquareLength + m_distanceToChessBoard;
-  
-  float curAngleArm1;
-  float curAngleArm2;
-  float curAngleArm3;
-  // calculateRobotArm(float x, float y, float z, float L, float M, float N, float* q1, float* q2, float* q3);
-  calculateRobotArm(xCurPos, yCurPos, m_crawlHeight + m_chessHeight - m_armLength[MOTOR::MOTOR_BASE],
-          m_armLength[MOTOR::MOTOR_ARM1],m_armLength[MOTOR::MOTOR_ARM2],m_crawlLength,
-          &curAngleArm1,&curAngleArm2,&curAngleArm3);
-
-  float xTgtPos = ((float)stopCol-4.0f+0.5f) * m_chessBoardSquareLength;
-  float yTgtPos = ((float)stopRow+0.5f) * m_chessBoardSquareLength + m_distanceToChessBoard;
-  float tgtAngleArm1;
-  float tgtAngleArm2;
-  float tgtAngleArm3;
-  // calculateRobotArm(float x, float y, float z, float L, float M, float N, float* q1, float* q2, float* q3);
-  calculateRobotArm(xTgtPos, yTgtPos, m_crawlHeight + m_chessHeight - m_armLength[MOTOR::MOTOR_BASE],
-          m_armLength[MOTOR::MOTOR_ARM1],m_armLength[MOTOR::MOTOR_ARM2],m_crawlLength,
-          &tgtAngleArm1,&tgtAngleArm2,&tgtAngleArm3);
-  m_app->printf("ARMAngle Base[%d] arm1[%d] arm2[%d]\r\n",
-      (int)(curAngleArm1*180.0f/M_PI),
-      (int)(curAngleArm2*180.0f/M_PI),
-      (int)(curAngleArm3*180.0f/M_PI));
-  return;
-  m_numberMove = 8;
-  m_currentMoveID = 0;
-
-  for(unsigned int motor=0; motor < (unsigned int)MOTOR::MOTOR_MAX; motor++) {
-    m_app->setMaxSpeed(motor, 2000.0);
-    m_app->setAcceleration(motor, 500.0);
-  }
-
+  int centerCol = 10;
+  int centerRow = 0;
+  float squareLength = 20.0f;
+  float xPos = (float)(startCol-centerCol) * squareLength;
+  float yPos = (float)(startRow-centerRow) * squareLength;
+  float upAngle = 45.0f/180.0f*PI;
+  float a1 = 47.6f + 228.0f;
+  float a2Sin = 55.2f;
+  float a2Cos = 50.1f + 84.3f*cos(upAngle)+21.8f+14.4f;
+  float a2 = (float)sqrt(a2Sin*a2Sin + a2Cos*a2Cos);
+  float q2Offset = atan(a2Sin/a2Cos);
+  float q1 = 0;
+  float q2 = 0;
+  m_app->printf("xPos[%d]\r\n",(int)xPos);
+  m_app->printf("yPos[%d]\r\n",(int)yPos);
+  m_app->printf("a1[%d]\r\n",(int)a1);
+  m_app->printf("a2[%d]\r\n",(int)a2);
+  calculateRobotArm(xPos, yPos, a1, a2, &q1, &q2);
+  m_app->printf("arm1Angle[%d] arm2Angle[%d]=[%d] q2Offset[%d]\r\n",
+  (int)(q1/PI*180.0f),
+  (int)((q2)/PI*180.0f),
+  (int)((PI-q2-q2Offset)/PI*180.0f),
+  (int)(q2Offset/PI*180.0f));
+  long armAngle[MOTOR::MOTOR_MAX] = {
+    (long)(q1/PI*180.0f*m_armRatio[MOTOR_BASE]),
+    (long)((PI-q2-q2Offset)/PI*180.0f*m_armRatio[MOTOR_ARM1]),
+    (long)(upAngle/PI*180.0f*m_armRatio[MOTOR_ARM2]),
+    0};
+  resetMoveSequene();
+  appendMoveSequence(armAngle,MOTOR::MOTOR_MAX);
   setState(ROBOT_EXECUTE_SEQUENCE);
   m_app->setMachineState(MACHINE_EXECUTE_COMMAND);
 }
@@ -184,6 +182,8 @@ void Robot::executeGoToPosition() {
       if(!m_app->isMoveDone(motor)){
           allMotorsAtTarget = false;
           m_app->runSpeed(motor);
+      }else{
+        // m_app->printf("MOTOR[%d] pos move done\r\n",motor);
       }
   }
   if(allMotorsAtTarget) {
@@ -214,19 +214,10 @@ void Robot::executeRotateAngle() {
   }
 }
 
-void Robot::calculateRobotArm(float x, float y, float z, float L, float M, float N, float* q1, float* q2, float* q3) {
-  float R = sqrt(x*x+y*y);
-  float s = R - N;
-  float Q = sqrt(s*s + z*z);
-  float f = atan2(z, s);
-  float g = acosf((L*L + Q*Q - M*M) / (2*L*Q));
-  float a = f + g;
-  float b = acos(( M*M + L*L - Q*Q) / (2*L*M));
-  float d = atan2 (x, y);
-  m_app->printf("x[%d] y[%d] z[%d] L[%d] M[%d] N[%d] R[%d] Q[%d] f[%d] g[%d]\r\n", 
-                (int)x, (int)y, (int)z, (int)L, (int)M, (int)N, 
-                (int)R,int(Q),(int)(f*M_PI/180.0f),(int)(g*M_PI/180.0f));
-  *q1 = d;
-  *q2 = a;
-  *q3 = b;
+void Robot::calculateRobotArm(float x, float y, float a1, float a2, float* p1, float* p2) {
+  *p2 = acos((x*x+y*y-a1*a1-a2*a2)/(2*a1*a2));
+  *p1 = atan(y/x) - atan((a2*sin(*p2))/(a1+a2*cos(*p2)));
+  *p1 =  *p1 < 0?*p1+PI:*p1;
+  m_app->printf("x[%d] y[%d] a1[%d] a2[%d] q1[%d] q2[%d]\r\n", 
+                (int)x,(int)y,(int)a1,(int)a2,(int)(*p1/M_PI*180.0f),(int)(*p2/M_PI*180.0f));
 }
