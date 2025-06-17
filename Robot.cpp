@@ -75,21 +75,22 @@ void Robot::appendMoveSequence(long* armAngle,int angleCount) {
     float angleToMove = fabs((float)(armAngle[motor] - m_app->currentPosition(motor)));
     float maxSpeed = fabs((float)(m_armHomeSpeed[motor]));
     if(angleToMove/maxSpeed > moveTime) moveTime = angleToMove/maxSpeed;
-    Serial.print("Motor[");
-    Serial.print(motor);
-    Serial.print("]");
-    Serial.print(angleToMove);
-    Serial.print(" ");
-    Serial.print(maxSpeed);
-    Serial.print(" ");
-    Serial.println(moveTime);
+    
   }
-  moveTime = pow(2, (int)(log(moveTime)));
+  moveTime = pow(2, (int)(log(moveTime)+1));
   m_moveSequence[m_numberMove].moveInit = false;
   for(int motor = 0; motor < MOTOR::MOTOR_MAX; motor ++) {
     float angleToMove = fabs((float)(armAngle[motor] - m_app->currentPosition(motor)));
     m_moveSequence[m_numberMove].armAngle[motor] = armAngle[motor];
     m_moveSequence[m_numberMove].armSpeed[motor] = angleToMove/moveTime;
+    Serial.print("Motor[");
+    Serial.print(motor);
+    Serial.print("]");
+    Serial.print(m_moveSequence[m_numberMove].armAngle[motor]);
+    Serial.print(" ");
+    Serial.print(m_moveSequence[m_numberMove].armSpeed[motor]);
+    Serial.print(" ");
+    Serial.println(moveTime);
   }
   m_numberMove++;
 }
@@ -167,8 +168,8 @@ void Robot::executeGoToPosition() {
   if(!m_moveSequence[m_currentMoveID].moveInit) {
       for(unsigned int motor=0; motor < (unsigned int)MOTOR::MOTOR_MAX; motor++) {
           long currentPos = m_app->currentPosition(motor);
-          m_app->printf("goto motor[%d] %d/%ld\r\n",
-          motor,currentPos,m_moveSequence[m_currentMoveID].armAngle[motor]);
+          m_app->printf("goto motor[%d] %d/%d\r\n",
+          motor,(int)currentPos,(int)m_moveSequence[m_currentMoveID].armAngle[motor]);
           m_app->setTargetPos(motor,m_moveSequence[m_currentMoveID].armAngle[motor]);
           m_app->setMaxSpeed(motor, fabs(m_moveSequence[m_currentMoveID].armSpeed[motor])*(m_app->currentPosition(motor) < m_moveSequence[m_currentMoveID].armAngle[motor] ? 10.0f:-10.0f));
           m_app->setSpeed(motor, fabs(m_moveSequence[m_currentMoveID].armSpeed[motor])*(m_app->currentPosition(motor) < m_moveSequence[m_currentMoveID].armAngle[motor] ? 1.0f:-1.0f));
@@ -194,7 +195,7 @@ void Robot::executeGoToPosition() {
   if(m_currentMoveID >= m_numberMove) {
     for(unsigned int motor=0; motor < (unsigned int)MOTOR::MOTOR_MAX; motor++) {
       m_app->printf("goto done motor[%d] %d/%d\r\n",
-          motor,(int)m_moveSequence[m_currentMoveID].armAngle[motor],(int)m_app->currentPosition(motor));
+          motor,(int)(m_moveSequence[m_currentMoveID].armAngle[motor]),(int)(m_app->currentPosition(motor)));
     }
     m_app->setMachineState(MACHINE_EXECUTE_COMMAND_DONE);
   }
