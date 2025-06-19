@@ -43,10 +43,13 @@ int Servo_driver::currentPosition() {
 
 bool Servo_driver::isFinished() {
   return m_state == SERVO_DONE;
+  // return true;
 }
 
 void Servo_driver::runSpeed() {
   long currentTime = millis();
+  // Serial.print("Servo State:");
+  // Serial.println(m_state);
   switch(m_state) {
     case SERVO_INIT:{
       if(!attached()) attach(m_pin);
@@ -58,7 +61,7 @@ void Servo_driver::runSpeed() {
     case SERVO_EXECUTE:{
       long timeElapsed = currentTime - m_startTime;
       long nextPos = (long)((float)m_startPosition + m_speed * (float)timeElapsed/1000.0f);
-      if(m_direction * nextPos < m_direction * m_targetPosition) {
+      if(m_direction * nextPos <= m_direction * m_targetPosition) {
         // Serial.print("dir:");
         // Serial.println(m_direction);
         // Serial.print("timeElapsed:");
@@ -71,9 +74,11 @@ void Servo_driver::runSpeed() {
         // Serial.println(m_targetPosition);
         write((int)nextPos);
         m_currentPosition = nextPos;
-      } else {
-        m_state = SERVO_DONE;
+        if(m_direction * nextPos >= m_direction * m_targetPosition){
+          m_state = SERVO_DONE;
+        }
       }
+      
     }
     break;
     case SERVO_DONE:{

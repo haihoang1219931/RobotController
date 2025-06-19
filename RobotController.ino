@@ -216,10 +216,19 @@ void loop() {
 //   servoDriver->setCurrentPosition(55);
 //   servoDriver->setSpeed(15.0f);
 //   servoDriver->moveTo(100);
+//   Serial.println("Ready");
+//   delay(1000);
 // }
 // void loop() {
-  
-//   servoDriver->runSpeed();
+//   // if(!servoDriver->isFinished()) 
+//   {
+//     servoDriver->runSpeed();
+//     Serial.println("Runspeed");
+//   } 
+//   // else {
+//   //   Serial.println("Done");
+//   // }
+//   delay(1000);
 // }
 // #else
 // #include <Arduino.h>

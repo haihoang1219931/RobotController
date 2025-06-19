@@ -30,7 +30,8 @@ long DC_driver::currentTime() {
 }
 
 bool DC_driver::isFinished() {
-  return m_state == DC_DONE || m_startTime == 0;
+  // return m_state == DC_DONE || m_startTime == 0;
+  return true;
 }
 
 void DC_driver::runSpeed() {
