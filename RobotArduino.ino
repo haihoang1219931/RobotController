@@ -1,6 +1,6 @@
 // #define DEBUG
 #ifndef DEBUG
-#include "ApplicationArduino.h"
+#include "SAL/ApplicationArduino.h"
 
 ApplicationArduino* app;
 void setup() {
@@ -140,7 +140,7 @@ void loop() {
 //         Serial.println(incomingByte, DEC);
 //       }
 //     }
-
+// #define DEBUG_DC
 // #ifndef DEBUG_DC
 // #include "DC_driver.h"
 // #define IN1	42
@@ -151,57 +151,48 @@ void loop() {
 // #define MIN_SPEED 0
 
 // DC_driver* dcDriver = new DC_driver(IN1,IN2);
+
 // void setup()
 // {
-//   dcDriver->setSpeed(50);
-//   dcDriver->setRuntime(5000);
+//   int lastValue = 0;
+//   Serial.begin(38400);
+//   dcDriver->setSpeed(1000);
+//   dcDriver->setCurrentPosition(500);
+//   dcDriver->moveTo(lastValue);
+//   Serial.println("===========Start");
+//   while(1) {
+//     if(dcDriver->isFinished()){
+//       lastValue = 500 - lastValue;
+//       dcDriver->moveTo(lastValue);
+//       // break;
+//     } else {
+//       dcDriver->runSpeed();
+//     }
+//     // delay(1000);
+//   }
+//   Serial.println("Finished========");
 // }
 
 // void loop()
 // {
-//   dcDriver->runSpeed();
+  
 // }
 // #else
-// #define IN1	42
-// #define IN2	44
-// #define IN3	5
-// #define IN4	4
-// #define MAX_SPEED 150 //từ 0-255
-// #define MIN_SPEED 0
-// void setup()
-// {
-// 	pinMode(IN1, OUTPUT);
-// 	pinMode(IN2, OUTPUT);
-// 	pinMode(IN3, OUTPUT);
-// 	pinMode(IN4, OUTPUT);
-// }
- 
-// void motor_1_Dung() {
-// 	digitalWrite(IN1, LOW);
-// 	digitalWrite(IN2, LOW);
-// }
- 
-// void motor_1_Tien(int speed) { //speed: từ 0 - MAX_SPEED
-// 	speed = constrain(speed, MIN_SPEED, MAX_SPEED);//đảm báo giá trị nằm trong một khoảng từ 0 - MAX_SPEED - http://arduino.vn/reference/constrain
-// 	digitalWrite(IN1, HIGH);// chân này không có PWM
-// 	analogWrite(IN2, 255 - speed);
-// }
- 
-// void motor_1_Lui(int speed) {
-// 	speed = constrain(speed, MIN_SPEED, MAX_SPEED);//đảm báo giá trị nằm trong một khoảng từ 0 - MAX_SPEED - http://arduino.vn/reference/constrain
-// 	digitalWrite(IN1, LOW);// chân này không có PWM
-// 	analogWrite(IN2, speed);
-// }
+// #include <Arduino.h>
+// int speedPin = 3;
+// int dirPin1 = 4;
+// int dirPin2 = 5;
+// void setup() {
+//   pinMode(speedPin, OUTPUT);
+//   pinMode(dirPin1, OUTPUT);
+//   pinMode(dirPin2, OUTPUT);
 
-// void loop()
-// {
-// 	motor_1_Tien(MAX_SPEED); // motor 1 tiến
-// 	delay(2000);//tiến 5 s
-//   motor_1_Dung();
-// 	delay(1000);//dừng 1s
-// 	motor_1_Lui(MAX_SPEED); //motor 2 lùi
-// 	delay(2000);//tiến 2 s
-	
+//   analogWrite(speedPin,255);
+//   digitalWrite(dirPin1,LOW);
+//   digitalWrite(dirPin2,HIGH);
+// }
+// void loop() {
+
 // }
 // #endif
 

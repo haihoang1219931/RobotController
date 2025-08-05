@@ -2,7 +2,9 @@
 #include "Button.h"
 #include "Robot.h"
 #include "CommandReader.h"
-#include "Arduino.h"
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
 ApplicationController::ApplicationController()
 {
     for(int i=0;i< BUTTON_ID::BTN_MAX; i++) {
@@ -147,6 +149,6 @@ void ApplicationController::executeCommand(char* command) {
     speedStr[3] = command[11];
     speedStr[4] = 0;
     float speed = atof(speedStr);
-    m_robot->rotateAngle(motorID, angle, speed);
+    m_robot->rotateAngle((MOTOR)motorID, angle, speed);
   }
 }

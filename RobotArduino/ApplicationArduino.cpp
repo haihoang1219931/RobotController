@@ -40,9 +40,11 @@ ApplicationArduino::ApplicationArduino()
     
     m_buttonPin[BTN_BASE] = limitX;
     m_buttonPin[BTN_ARM1] = limitY;
+    m_buttonPin[BTN_ARM3] = limitZ;
 
     pinMode(m_buttonPin[BTN_BASE], INPUT_PULLUP);
     pinMode(m_buttonPin[BTN_ARM1], INPUT_PULLUP);
+    pinMode(m_buttonPin[BTN_ARM3], INPUT_PULLUP);
     
     pinMode(enPin, OUTPUT);
     digitalWrite(enPin, HIGH);
@@ -165,7 +167,7 @@ void ApplicationArduino::setTargetPos(MOTOR motor, long target) {
     }
     break;
     case MOTOR::MOTOR_ARM3: {
-      m_dcDriver->setRuntime(target);
+      m_dcDriver->moveTo(target);
     }
     break;
     case MOTOR::MOTOR_MAX: break;
@@ -230,7 +232,10 @@ void ApplicationArduino::setCurrentPosition(MOTOR motor, long position) {
       m_servoDriver->setCurrentPosition(position);
     }
     break;
-    case MOTOR::MOTOR_ARM3:
+    case MOTOR::MOTOR_ARM3: {
+      m_dcDriver->currentPosition();
+    }
+    break;
     case MOTOR::MOTOR_MAX: break;
     default: break;
   }
@@ -249,7 +254,7 @@ long ApplicationArduino::currentPosition(MOTOR motor) {
     }
     break;
     case MOTOR::MOTOR_ARM3: {
-      currentPos = m_dcDriver->currentTime();
+      currentPos = m_dcDriver->currentPosition();
     }
     break;
     case MOTOR::MOTOR_MAX: break;
@@ -269,7 +274,10 @@ void ApplicationArduino::goHome(MOTOR motor) {
       m_servoDriver->fastMoveToTarget(100);
     }
     break;
-    case MOTOR::MOTOR_ARM3:
+    case MOTOR::MOTOR_ARM3: {
+      m_dcDriver->runSpeed(true);
+    }
+    break;
     case MOTOR::MOTOR_MAX: break;
     default: break;
   }
@@ -325,7 +333,7 @@ bool ApplicationArduino::isMotorHomed(MOTOR motor) {
     }
     break;
     case MOTOR::MOTOR_ARM3: {
-      motorHomed = m_dcDriver->isFinished();
+      motorHomed = buttonState(BTN_ARM3) != BUTTON_STATE::BUTTON_NOMAL;
     }
     break;
     case MOTOR::MOTOR_MAX:
@@ -345,6 +353,8 @@ void ApplicationArduino::setHomePosition(MOTOR motor) {
     }
     break;
     case MOTOR::MOTOR_ARM3: {      
+      m_dcDriver->setCurrentPosition(0);
+      m_dcDriver->moveTo(5000);
     }
     break;
     case MOTOR::MOTOR_MAX:
@@ -356,4 +366,19 @@ void ApplicationArduino::enableEngine(bool enable) {
   this->printf("%s Stepper\r\n",enable?"ENABLE":"DISABLE");
   digitalWrite(enPin, enable?LOW:HIGH);
   setMachineState(MACHINE_EXECUTE_COMMAND_DONE);
+}
+
+void ApplicationArduino::stop(MOTOR motor) {
+  switch(motor){
+    case MOTOR::MOTOR_BASE:
+    case MOTOR::MOTOR_ARM1:
+    case MOTOR::MOTOR_ARM2:
+    break;
+    case MOTOR::MOTOR_ARM3: {      
+      m_dcDriver->stop();
+    }
+    break;
+    case MOTOR::MOTOR_MAX:
+    default: break;
+  }
 }

@@ -31,6 +31,7 @@ public:
   float speed(MOTOR motor) override;
   float maxSpeed(MOTOR motor) override;
   void enableEngine(bool enable) override;
+  void stop(MOTOR motor) override;
 private:
 	int m_buttonPin[BUTTON_ID::BTN_MAX];
   AccelStepper* m_listStepper[2];

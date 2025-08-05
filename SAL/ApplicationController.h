@@ -14,6 +14,7 @@ enum MACHINE_STATE {
 enum BUTTON_ID {
     BTN_BASE=0,
     BTN_ARM1=1,
+    BTN_ARM3=2,
     BTN_MAX,
 };
 
@@ -56,6 +57,7 @@ public:
     virtual float speed(MOTOR motor) = 0;
     virtual float maxSpeed(MOTOR motor) = 0;
     virtual void enableEngine(bool enable) = 0;
+    virtual void stop(MOTOR motor) = 0;
 
 public:
     MACHINE_STATE m_machineState;
