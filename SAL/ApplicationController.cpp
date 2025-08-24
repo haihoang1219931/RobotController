@@ -145,13 +145,9 @@ void ApplicationController::executeCommand(char* command) {
         setMachineState(MACHINE_EXECUTE_COMMAND);
         m_robot->goToPosition(steps,2);
     }
-    else if(command[0] == 't' &&
-            command[1] == '3' ) {
-        executeSequence(0,0,0,0,true,false,'c');
-    }
-    else if(command[0] == 't' &&
-            command[1] == '4' ) {
-        executeSequence(7,7,0,0,true,false,'c');
+    else if(command[0] == 'c' && strlen(command)>=3) {
+        executeSequence(command[2]-'0',command[1]-'0',
+                0,0,true,false,'c');
     }
     //  else if(command[0] == 'a') {
     //    if(strlen(command)<21) {
@@ -284,6 +280,6 @@ void ApplicationController::executeSequence(
     m_robot->goToPosition(armAngle,2);
 //    appendMoveSequence(armAngle,MOTOR::MOTOR_MAX);
   }
-
-  setMachineState(MACHINE_EXECUTE_COMMAND);
+  if(m_machineState != MACHINE_EXECUTE_COMMAND)
+    setMachineState(MACHINE_EXECUTE_COMMAND);
 }

@@ -11,7 +11,8 @@ Motor::Motor(Robot* robot, int motorID):
 }
 void Motor::initPlan(int targetStep, int stepTime, int direction, bool isGoHome)
 {
-    m_direction = isGoHome?-1:(targetStep>m_currStep?1:-1);
+    m_direction = isGoHome?-1:(targetStep>m_currStep?
+                                   1:(targetStep==m_currStep?0:-1));
     m_startStep = m_currStep;
     m_targetStep = targetStep;
     m_stepTime = stepTime;

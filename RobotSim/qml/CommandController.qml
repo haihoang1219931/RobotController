@@ -89,22 +89,21 @@ Item {
                     mainProcess.executeCommand("t2");
                 }
             }
-
-            Button {
-                width: 40
-                height: 40
-                text: "T3"
-                onClicked: {
-                    mainProcess.executeCommand("t3");
-                }
-            }
-
-            Button {
-                width: 40
-                height: 40
-                text: "T4"
-                onClicked: {
-                    mainProcess.executeCommand("t4");
+            GridView {
+                id: view
+                width: 320
+                height: 320
+                clip: true
+                model: 64
+                cellWidth: 40
+                cellHeight: 40
+                delegate: Button {
+                    width: 40
+                    height: 40
+                    text: "C"+ (index-index%8)/8+""+index%8
+                    onClicked: {
+                        mainProcess.executeCommand(text.toLowerCase());
+                    }
                 }
             }
         }
