@@ -96,7 +96,6 @@ void Robot::goToPosition(int* stepList, int numMotor)
 //    m_app->printf("minScale[%d]\r\n",minScale);
     for(int i=0; i< numMotor; i++){
         listTimeStep[i] = round((float)(minScale * maxStep) / listSteps[i]);
-        listTimeStep[i] = 1;
         m_app->printf("M[%d] [%d %d = %d] ",
                i,listSteps[i],listTimeStep[i],listSteps[i]*listTimeStep[i]);
     }
@@ -118,49 +117,6 @@ void Robot::executeGoToPosition() {
         setState(ROBOT_EXECUTE_DONE);
     }
 }
-//void Robot::goToPosition(int startCol, int startRow, int stopCol, int stopRow, bool attack, bool castle, char promote) {
-//  m_app->printf("Go to Pos [%d,%d] to [%d,%d] attack[%s] castle[%s] promote[%c]\r\n",
-//                  startCol, startRow, stopCol, stopRow, attack?"yes":"no", castle?"yes":"no", promote);
-//  int centerCol = 10;
-//  int centerRow = 0;
-//  float squareLength = 20.0f;
-//  float captureAngles[8] = {0.0f,0.0f,2000.0f,2000.0f,2000.0f,2000.0f,0.0f,0.0f};
-//  float upAngles[8] = {100.0f,55.0f,55.0f,100.0f,100.0f,55.0f,55.0f,100.0f};
-//  int positionRow[8] = {startRow,startRow,startRow,startRow,stopRow,stopRow,stopRow,stopRow};
-//  int positionCol[8] = {startCol,startCol,startCol,startCol,stopCol,stopCol,stopCol,stopCol};
-//  resetMoveSequene();
-//  for(int seqStep = 0; seqStep < 8; seqStep++) {
-//    float xPos = (float)(positionCol[seqStep]-centerCol) * squareLength;
-//    float yPos = (float)(positionRow[seqStep]-centerRow) * squareLength;
-//    float upAngle = (upAngles[seqStep] - 55.0f)/180.0f*PI;
-//    float a1 = 47.6f + 228.0f;
-//    float a2Sin = 55.2f;
-//    float a2Cos = 50.1f + 84.3f*cos(upAngle)+21.8f+14.4f;
-//    float a2 = (float)sqrt(a2Sin*a2Sin + a2Cos*a2Cos);
-//    float q2Offset = atan(a2Sin/a2Cos);
-//    float q1 = 0;
-//    float q2 = 0;
-//    m_app->printf("xPos[%d]\r\n",(int)xPos);
-//    m_app->printf("yPos[%d]\r\n",(int)yPos);
-//    m_app->printf("a1[%d]\r\n",(int)a1);
-//    m_app->printf("a2[%d]\r\n",(int)a2);
-//    calculateRobotArm(xPos, yPos, a1, a2, &q1, &q2);
-//    m_app->printf("arm1Angle[%d] arm2Angle[%d]=[%d] arm3Angle[%d] q2Offset[%d]\r\n",
-//    (int)(q1/PI*180.0f),
-//    (int)((q2)/PI*180.0f),
-//    (int)((PI-q2-q2Offset)/PI*180.0f),
-//    (int)(upAngles[seqStep]),
-//    (int)(q2Offset/PI*180.0f));
-//    long armAngle[MOTOR::MOTOR_MAX] = {
-//      (long)(q1/PI*180.0f*m_armRatio[MOTOR_BASE]),
-//      (long)((PI-q2-q2Offset)/PI*180.0f*m_armRatio[MOTOR_ARM1]),
-//      (long)(upAngles[seqStep]*m_armRatio[MOTOR_ARM2]),
-//      (long)(captureAngles[seqStep])};
-//    appendMoveSequence(armAngle,MOTOR::MOTOR_MAX);
-//  }
-//  setState(ROBOT_EXECUTE_SEQUENCE);
-//  m_app->setMachineState(MACHINE_EXECUTE_COMMAND);
-//}
 
 long Robot::elapsedTime()
 {

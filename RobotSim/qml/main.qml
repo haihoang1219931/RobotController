@@ -78,11 +78,43 @@ ApplicationWindow {
             height: 600
             border.color: "red"
             color: "transparent"
+            Canvas {
+                id: cvsPathPlan
+                z: chessBoard.z + 1
+                anchors.fill: parent
+                property var currPos
+                property var prevPos
+                function clearCanvas() {
+                    var ctx = getContext("2d");
+                    ctx.clearRect(0, 0, width, height);
+                    requestPaint();
+                }
+
+                onPaint: {
+                    var ctx = getContext("2d");
+
+                    ctx.strokeStyle = "blue";
+                    ctx.lineWidth = 1;
+
+                    ctx.beginPath();
+                    if(typeof prevPos !== "undefined") {
+                        ctx.moveTo(prevPos.x, prevPos.y);
+                    }
+                    if(typeof currPos !== "undefined") {
+                        ctx.lineTo(currPos.x, currPos.y);
+                    }
+                    ctx.stroke();
+
+                }
+            }
+
             ChessBoard {
+                id: chessBoard
                 x: parent.width/2+command.chessBoardPosX
                 y: command.chessBoardPosY
                 width: command.chessBoardWidth
                 height: command.chessBoardWidth
+                visible: command.showChessBoard
             }
             Robot {
                 id: robot
@@ -118,6 +150,23 @@ ApplicationWindow {
             chessBoardPosX: mainProcess.chessBoardInfo[0]
             chessBoardPosY: mainProcess.chessBoardInfo[1]
             chessBoardWidth: mainProcess.chessBoardInfo[2]
+            onAngle1Changed: {
+                var pos = robot.getPosition();
+                if(typeof cvsPathPlan.currPos == "undefined") {
+                    console.log("First");
+                    cvsPathPlan.currPos = Qt.point(pos.x + robot.x, pos.y + robot.y);
+                    cvsPathPlan.prevPos = Qt.point(pos.x + robot.x, pos.y + robot.y);
+                } else {
+                    console.log("Second");
+                    cvsPathPlan.prevPos = cvsPathPlan.currPos;
+                    cvsPathPlan.currPos = Qt.point(pos.x + robot.x, pos.y + robot.y);
+                }
+                cvsPathPlan.requestPaint();
+//                console.log("["+cvsPathPlan.currPos.x + "," +cvsPathPlan.currPos.y+"]");
+            }
+            onPathClearClicked: {
+                cvsPathPlan.clearCanvas();
+            }
         }
     }
 

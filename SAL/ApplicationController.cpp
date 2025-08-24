@@ -23,8 +23,8 @@ ApplicationController::ApplicationController()
     m_armLength[3] = 84;
     m_armLength[4] = 22+14;
     m_upAngle = 0;
-    m_chessBoardPosX = 0;
-    m_chessBoardPosY = 0;
+    m_chessBoardPosX = 30;
+    m_chessBoardPosY = 50;
     m_chessBoardSize = 32*8;
 }
 

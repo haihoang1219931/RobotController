@@ -19,8 +19,31 @@ Item {
     property alias chessBoardPosX: spbChessBoardPosX.value
     property alias chessBoardPosY: spbChessBoardPosY.value
     property alias chessBoardWidth: spbChessBoardWidth.value
+    property alias showChessBoard: cbxChessBoard.checked
+
+    signal pathClearClicked()
+
     Column {
         spacing: 10
+        Row {
+            spacing: 10
+            CheckBox {
+                id: cbxChessBoard
+                width: 200
+                height: 40
+                text: "Chess Board"
+                checked: true
+            }
+            Button {
+                width: 100
+                height: 40
+                text: "Clear path"
+                onClicked: {
+                    root.pathClearClicked()
+                }
+            }
+        }
+
         Row {
             spacing: 10
             Button {

@@ -13,6 +13,10 @@ Item {
     property int arm4Width: 200
     property int arm5Width: 200
     property real grabberAngle: 0
+    function getPosition() {
+        var globalPos = item.mapFromItem(capture,capture.width/2,capture.height/2);
+        return globalPos;
+    }
 
     RobotArm {
         width: arm1Width
@@ -38,6 +42,17 @@ Item {
                         armAngle: angle5
                         borderColor: "green"
                         anchors.left: parent.right
+                        Rectangle{
+                            id: capture
+                            y: -height/2+parent.height/2
+                            width: 30
+                            height: 30
+                            radius: height/2
+                            border.color: "red"
+                            color: "transparent"
+                            anchors.left: parent.right
+                            anchors.leftMargin: -height/2
+                        }
                     }
                 }
             }
