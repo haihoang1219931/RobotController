@@ -54,11 +54,12 @@
 #include <QQmlContext>
 #include "RobotSim/MainProcess.h"
 
+#define QML_ROBOT
+#ifdef QML_ROBOT
 int main(int argc, char *argv[])
 {
     QGuiApplication app(argc, argv);
     QQmlApplicationEngine engine;
-    QCoreApplication::setAttribute(Qt::AA_UseSoftwareOpenGL);
     qmlRegisterType<VideoRender>("diy", 1, 0, "VideoRender");
     qmlRegisterType<MainProcess>("diy", 1, 0, "MainProcess");
     engine.load(QUrl(QStringLiteral("qrc:/qml/main.qml")));
@@ -66,3 +67,30 @@ int main(int argc, char *argv[])
             return -1;
     return app.exec();
 }
+#else
+int main(int argc, char *argv[]) {
+    printf("Hello\r\n");
+    int numMotor = argc - 1;
+    int listSteps[12];
+    int listTimeStep[12];
+    int maxStep = 0;
+    int minStep = 0;
+
+    for(int i=0; i< numMotor; i++){
+        listSteps[i] = atoi(argv[i+1]);
+        if(listSteps[i] > maxStep) maxStep = listSteps[i];
+        if(minStep == 0) minStep = listSteps[i];
+        else if(listSteps[i] < minStep) minStep = listSteps[i];
+    }
+//    printf("minStep[%d] maxStep[%d]\r\n",
+//           minStep,maxStep);
+    int minScale = (int)pow(10,1+(int)log10((double)maxStep));
+//    printf("minScale[%d]\r\n",minScale);
+    for(int i=0; i< numMotor; i++){
+        listTimeStep[i] = round((float)(minScale * maxStep) / listSteps[i]);
+//        printf("M[%d] [%d %d = %d] ",
+//               i,listSteps[i],listTimeStep[i],listSteps[i]*listTimeStep[i]);
+    }
+    return 0;
+}
+#endif

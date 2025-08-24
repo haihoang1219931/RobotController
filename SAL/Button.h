@@ -11,14 +11,14 @@ class ApplicationController;
 class Button
 {
 public:
-    Button(ApplicationController* app, int buttonID);
+    Button(ApplicationController* app);
     void checkState();
     void setPressed(bool pressed);
     BUTTON_STATE buttonState();
     long holdingTime();
+
 private:
     ApplicationController* m_app;
-    int m_buttonID;
     bool m_buttonSignalHigh;
     long m_buttonSignalHighStartTime;
     long m_buttonSignalHighTime;

@@ -6,11 +6,14 @@ Item {
     property real angle2: 0
     property real angle3: 0
     property real angle4: 0
+    property real angle5: 0
     property int arm1Width: 300
     property int arm2Width: 200
     property int arm3Width: 200
     property int arm4Width: 200
+    property int arm5Width: 200
     property real grabberAngle: 0
+
     RobotArm {
         width: arm1Width
         armAngle: angle1
@@ -19,34 +22,25 @@ Item {
             width: arm2Width
             armAngle: angle2
             anchors.left: parent.right
-            anchors.leftMargin: -height
             borderColor: "white"
             RobotArm {
                 width: arm3Width
                 armAngle: angle3
-                borderColor: "green"
+                borderColor: "white"
                 anchors.left: parent.right
-                anchors.leftMargin: -height
-                Grabber {
+                RobotArm {
                     width: arm4Width
                     armAngle: angle4
-                    grabberAngle: item.grabberAngle
-                    borderColor: "black"
+                    borderColor: "green"
                     anchors.left: parent.right
-                    anchors.leftMargin: -height
+                    RobotArm {
+                        width: arm5Width
+                        armAngle: angle5
+                        borderColor: "green"
+                        anchors.left: parent.right
+                    }
                 }
             }
-        }
-    }
-
-    Timer {
-        running: true
-        interval: 30
-        repeat: true
-        onTriggered: {
-//            angle1 ++
-//            angle2 ++
-//            angle4 ++
         }
     }
 }

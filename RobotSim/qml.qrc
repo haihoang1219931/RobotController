@@ -6,5 +6,7 @@
         <file>qml/RobotArm.qml</file>
         <file>qml/Grabber.qml</file>
         <file>qml/ChessSupport.js</file>
+        <file>qml/CommandController.qml</file>
+        <file>qml/Command.qml</file>
     </qresource>
 </RCC>

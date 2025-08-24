@@ -55,16 +55,75 @@ import diy 1.0
 ApplicationWindow {
     id: wroot
     visible: true
-    width: 1280
+    width: 1400
     height: 780
     title: qsTr("Chess Simulator")
-
-    Rectangle {
-        id: rectangle
-        anchors.fill: parent
-        color: "#84af40"
+    color: "gray"
+    MainProcess{
+        id: mainProcess
+//        onListAngleChanged: {
+//            command.angle1 = listAngle[0];
+//            command.angle2 = listAngle[1];
+//        }
     }
+
+    Row {
+        anchors.top: parent.top
+        anchors.left: parent.left
+        anchors.topMargin: 20
+        anchors.leftMargin: 20
+        spacing: 20
+        Rectangle {
+            width: 600
+            height: 600
+            border.color: "red"
+            color: "transparent"
+            ChessBoard {
+                x: parent.width/2+command.chessBoardPosX
+                y: command.chessBoardPosY
+                width: command.chessBoardWidth
+                height: command.chessBoardWidth
+            }
+            Robot {
+                id: robot
+                x: parent.width/2
+                y: -5
+                arm1Width: command.arm1Length
+                arm2Width: command.arm2Length
+                arm3Width: command.arm3Length
+                arm4Width: parseInt(command.arm4Length * Math.cos(command.upAngle/180.0*Math.PI))
+                arm5Width: command.arm5Length
+                angle1: 180-command.angle1
+                angle2: command.angle2-90
+                angle3: command.angle3-90
+                angle4: command.angle4
+                angle5: command.angle5
+            }
+        }
+        CommandController{
+            id: command
+            width: 500
+            height: 300
+            arm1Length: mainProcess.listArmLength[0]
+            arm2Length: mainProcess.listArmLength[1]
+            arm3Length: mainProcess.listArmLength[2]
+            arm4Length: mainProcess.listArmLength[3]
+            arm5Length: mainProcess.listArmLength[4]
+            angle1: mainProcess.listAngle[0]
+            angle2: mainProcess.listAngle[1]
+            angle3: 0
+            angle4: 0
+            angle5: 0
+            upAngle: mainProcess.listAngle[2]
+            chessBoardPosX: mainProcess.chessBoardInfo[0]
+            chessBoardPosY: mainProcess.chessBoardInfo[1]
+            chessBoardWidth: mainProcess.chessBoardInfo[2]
+        }
+    }
+
     Component.onCompleted: {
         console.log("GUI started");
+        console.log("mainProcess:"+mainProcess);
+        console.log("mainProcess.listArmLength:"+mainProcess.listArmLength[0]);
     }
 }

@@ -43,16 +43,16 @@ Item {
                         }
                     }
                 }
-                Rectangle {
-                    anchors.verticalCenter: parent.verticalCenter
-                    anchors.horizontalCenter: parent.horizontalCenter
-                    color: "transparent"
-                    border.color: modelData.suggest?"gray":"transparent"
-                    border.width: 10
-                    width: ChessSupport.isOppositeSide(repeaterChessPiece.model[index],chessClicked)?parent.width:20
-                    height: ChessSupport.isOppositeSide(repeaterChessPiece.model[index],chessClicked)?parent.height:20
-                    radius: width/2
-                }
+//                Rectangle {
+//                    anchors.verticalCenter: parent.verticalCenter
+//                    anchors.horizontalCenter: parent.horizontalCenter
+//                    color: "transparent"
+//                    border.color: modelData.suggest?"gray":"transparent"
+//                    border.width: 10
+//                    width: ChessSupport.isOppositeSide(repeaterChessPiece.model[index],chessClicked)?parent.width:20
+//                    height: ChessSupport.isOppositeSide(repeaterChessPiece.model[index],chessClicked)?parent.height:20
+//                    radius: width/2
+//                }
             }
         }
     }
