@@ -22,11 +22,12 @@ public:
     void getChessBoardParams(float* listParam, int* numParam);
     void executeCommand(char* command);
     void setMachineState(MACHINE_STATE machineState);
-    void calculateRobotArm(float x, float y,
+    void inverseKinematic(float x, float y,
                            float a1, float a2,float* p1, float* p2);
     void executeSequence(int startCol, int startRow,
                          int stopCol, int stopRow,
                          bool attack, bool castle, char promote);
+    void calculateJoints(int targetCol, int targetRow, float upAngleInDegree, int* jointSteps);
     virtual int printf(const char *fmt, ...) = 0;
     virtual void msleep(int millis) = 0;
     virtual long getSystemTime() = 0;

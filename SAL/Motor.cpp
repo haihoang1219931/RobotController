@@ -47,7 +47,6 @@ void Motor::executePlan()
     }
         break;
     case MOTOR_DONE: break;
-    default: break;
     }
 }
 

@@ -137,7 +137,7 @@ void ApplicationController::executeCommand(char* command) {
             steps[i] = (int)(angles[i]*m_motorScale[i]);
         }
         setMachineState(MACHINE_EXECUTE_COMMAND);
-        m_robot->goToPosition(steps,2);
+        m_robot->goToPosition(steps,3);
     }
     else if(command[0] == 't' &&
             command[1] == '2' ) {
@@ -147,7 +147,7 @@ void ApplicationController::executeCommand(char* command) {
     }
     else if(command[0] == 'c' && strlen(command)>=3) {
         executeSequence(command[2]-'0',command[1]-'0',
-                0,0,true,false,'c');
+                0,7,true,false,'c');
     }
     //  else if(command[0] == 'a') {
     //    if(strlen(command)<21) {
@@ -221,7 +221,7 @@ void ApplicationController::executeCommand(char* command) {
     //    m_robot->rotateAngle((MOTOR)motorID, angle, speed);
     //  }
 }
-void ApplicationController::calculateRobotArm(float x, float y, float a1, float a2, float* p1, float* p2)
+void ApplicationController::inverseKinematic(float x, float y, float a1, float a2, float* p1, float* p2)
 {
   *p2 = acos((x*x+y*y-a1*a1-a2*a2)/(2*a1*a2));
   *p1 = atan(y/x) - atan((a2*sin(*p2))/(a1+a2*cos(*p2)));
@@ -231,28 +231,16 @@ void ApplicationController::calculateRobotArm(float x, float y, float a1, float 
                (int)(*p1/M_PI*180.0f),(int)(*p2/M_PI*180.0f));
 }
 
-void ApplicationController::executeSequence(
-        int startCol, int startRow,
-        int stopCol, int stopRow,
-        bool attack, bool castle, char promote) {
-  this->printf("Go to Pos [%d,%d] to [%d,%d] attack[%s] castle[%s] promote[%c]\r\n",
-                  startCol, startRow, stopCol, stopRow, attack?"yes":"no", castle?"yes":"no", promote);
-  int centerCol = 0;
-  int centerRow = 0;
-  float squareLength = m_chessBoardSize/8;
-  float captureAngles[8] = {0.0f,0.0f,2000.0f,2000.0f,2000.0f,2000.0f,0.0f,0.0f};
-  float upAngles[8] = {55.0f,55.0f,55.0f,100.0f,100.0f,55.0f,55.0f,100.0f};
-  int positionRow[8] = {startRow,startRow,startRow,startRow,stopRow,stopRow,stopRow,stopRow};
-  int positionCol[8] = {startCol,startCol,startCol,startCol,stopCol,stopCol,stopCol,stopCol};
-//  resetMoveSequene();
-//  for(int seqStep = 0; seqStep < 8; seqStep++)
-  {
-    int seqStep = 0;
-    float yPos = (float)(positionCol[seqStep]-centerCol) * squareLength
+void ApplicationController::calculateJoints(int targetCol, int targetRow, float upAngleInDegree, int* jointSteps)
+{
+    int centerCol = 0;
+    int centerRow = 0;
+    float squareLength = m_chessBoardSize/8;
+    float yPos = (float)(targetCol-centerCol) * squareLength
             + squareLength/2 + m_chessBoardPosX;
-    float xPos = (float)(positionRow[seqStep]-centerRow) * squareLength
+    float xPos = (float)(targetRow-centerRow) * squareLength
             + squareLength/2 + m_chessBoardPosY;
-    float upAngle = (upAngles[seqStep] - 55.0f)/180.0f*PI;
+    float upAngle = (upAngleInDegree - 55.0f)/180.0f*PI;
     float a1 = m_armLength[0];
     float a2Cos = m_armLength[1];
     float a2Sin = m_armLength[2] + m_armLength[3]*cos(upAngle)+m_armLength[4];
@@ -264,22 +252,38 @@ void ApplicationController::executeSequence(
     this->printf("yPos[%d]\r\n",(int)yPos);
     this->printf("a1[%d]\r\n",(int)a1);
     this->printf("a2[%d]\r\n",(int)a2);
-    calculateRobotArm(xPos, yPos, a1, a2, &q1, &q2);
+    inverseKinematic(xPos, yPos, a1, a2, &q1, &q2);
     this->printf("arm1Angle[%d]=[%d] arm2Angle[%d]=[%d] arm3Angle[%d] q2Offset[%d]\r\n",
     (int)(q1/M_PI*180.0f),
     (int)((M_PI/2 + q1)/M_PI*180.0f),
     (int)((q2)/M_PI*180.0f),
     (int)((M_PI/2 - q2 + q2Offset)/M_PI*180.0f),
-    (int)(upAngles[seqStep]),
+    (int)(upAngleInDegree),
     (int)(q2Offset/M_PI*180.0f));
-    int armAngle[MAX_MOTOR] = {
-      (int)((M_PI/2 + q1)/M_PI*180.0f*m_motorScale[0]),
-      (int)((M_PI/2 - q2 + q2Offset)/M_PI*180.0f*m_motorScale[1]),
-      (int)(upAngles[seqStep]*m_motorScale[2]),
-      (int)(captureAngles[seqStep])};
-    m_robot->goToPosition(armAngle,2);
-//    appendMoveSequence(armAngle,MOTOR::MOTOR_MAX);
+    jointSteps[0] = (int)((M_PI/2 + q1)/M_PI*180.0f*m_motorScale[0]);
+    jointSteps[1] = (int)((M_PI/2 - q2 + q2Offset)/M_PI*180.0f*m_motorScale[1]);
+    jointSteps[2] = (int)(upAngleInDegree*m_motorScale[2]);
+}
+
+void ApplicationController::executeSequence(
+        int startCol, int startRow,
+        int stopCol, int stopRow,
+        bool attack, bool castle, char promote) {
+  this->printf("Go to Pos [%d,%d] to [%d,%d] attack[%s] castle[%s] promote[%c]\r\n",
+                  startCol, startRow, stopCol, stopRow, attack?"yes":"no", castle?"yes":"no", promote);
+
+  float upAngles[8] = {55.0f,55.0f,100.0f,100.0f,100.0f,55.0f,55.0f,100.0f};
+  int positionRow[8] = {startRow,startRow,startRow,startRow,stopRow,stopRow,stopRow,stopRow};
+  int positionCol[8] = {startCol,startCol,startCol,startCol,stopCol,stopCol,stopCol,stopCol};
+  int captureStep[8] = {0,0,1000,1000,1000,1000,0,0};
+  int jointSteps[MAX_MOTOR];
+  m_robot->resetMoveSequene();
+  for(int seqStep = 0; seqStep < 3; seqStep++)
+  {
+    calculateJoints(positionCol[seqStep], positionRow[seqStep], upAngles[seqStep],jointSteps);
+    m_robot->appendMove(jointSteps,captureStep[seqStep]);
   }
+  m_robot->moveSequence(3);
   if(m_machineState != MACHINE_EXECUTE_COMMAND)
     setMachineState(MACHINE_EXECUTE_COMMAND);
 }

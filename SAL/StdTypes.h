@@ -5,6 +5,7 @@
 #define uint8_t unsigned char
 #endif
 
+#define MAX_MOVE_SEQUENCE 20
 #define MAX_BUTTON 12
 #define MAX_MOTOR 12
 #define MAX_COMMAND_LENGTH 256
@@ -29,7 +30,6 @@ typedef enum {
     MOTOR_LIMIT_MAX,
 }MOTOR_LIMIT_TYPE;
 
-
 typedef enum{
     ROBOT_INIT,
     ROBOT_EXECUTE_GO_HOME,
@@ -38,11 +38,23 @@ typedef enum{
     ROBOT_EXECUTE_DONE,
 }ROBOT_STATE;
 
+typedef enum{
+    ROBOT_MOVE_INIT,
+    ROBOT_MOVE_EXECUTE,
+    ROBOT_MOVE_CAPTURE,
+    ROBOT_MOVE_DONE,
+}ROBOT_SEQUENCE_STATE;
+
 typedef enum {
     MACHINE_INIT,
     MACHINE_WAIT_COMMAND,
     MACHINE_EXECUTE_COMMAND,
     MACHINE_EXECUTE_COMMAND_DONE,
 }MACHINE_STATE;
+
+typedef enum {
+    MOTION_JOINT_SPACE,
+    MOTION_CARTESION_SPACE,
+}MOTION_SPACES;
 
 #endif // STDTYPES_H

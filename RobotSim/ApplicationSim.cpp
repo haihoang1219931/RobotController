@@ -4,6 +4,8 @@
 #include <stdio.h>
 #include <stdarg.h>
 #ifdef __linux__
+#include <time.h>
+#include <string.h>
 #elif _WIN32
 #include <time.h>
 #include <windows.h>

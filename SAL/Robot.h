@@ -3,6 +3,11 @@
 
 #include "StdTypes.h"
 
+typedef struct {
+    int jointSteps[MAX_MOTOR];
+    int captureStep;
+} Move;
+
 class ApplicationController;
 class Motor;
 class Robot
@@ -14,8 +19,15 @@ public:
     void goHome();
     void executeGohome();
     int getNumMotor();
-    void goToPosition(int* stepList, int numMotor);
+    void goToPosition(int* stepList, int numMotor, MOTION_SPACES motionSpace = MOTION_JOINT_SPACE);
     void executeGoToPosition();
+    void resetMoveSequene();
+    void appendMove(int* jointSteps, int captureStep);
+    void moveSequence(int numMotor);
+    void executeMoveSequence();
+    void initMove();
+    void gotoTarget();
+    void capture();
     long elapsedTime();
     void moveStep(int motorID);
     bool isLimitReached(int motorID,
@@ -25,7 +37,12 @@ public:
 private:
     ApplicationController* m_app;
     Motor* m_motorList[MAX_MOTOR];
+    Motor* m_capture;
     ROBOT_STATE m_state;
+    ROBOT_SEQUENCE_STATE m_sequenceState;
+    Move m_moveSequence[MAX_MOVE_SEQUENCE];
+    int m_curMove;
+    int m_numMove;
     int m_numMotor;
     int m_executeNumMotor;
     long m_startTime;
