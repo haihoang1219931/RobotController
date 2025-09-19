@@ -35,7 +35,7 @@ Item {
                 RobotArm {
                     width: arm4Width
                     armAngle: angle4
-                    borderColor: "green"
+                    borderColor: "red"
                     anchors.left: parent.right
                     RobotArm {
                         width: arm5Width

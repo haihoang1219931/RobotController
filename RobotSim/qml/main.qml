@@ -153,11 +153,9 @@ ApplicationWindow {
             onAngle1Changed: {
                 var pos = robot.getPosition();
                 if(typeof cvsPathPlan.currPos == "undefined") {
-                    console.log("First");
                     cvsPathPlan.currPos = Qt.point(pos.x + robot.x, pos.y + robot.y);
                     cvsPathPlan.prevPos = Qt.point(pos.x + robot.x, pos.y + robot.y);
                 } else {
-                    console.log("Second");
                     cvsPathPlan.prevPos = cvsPathPlan.currPos;
                     cvsPathPlan.currPos = Qt.point(pos.x + robot.x, pos.y + robot.y);
                 }

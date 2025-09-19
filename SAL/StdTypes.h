@@ -12,8 +12,8 @@
 #define MAX_PARAMS_CHESSBOARD 4
 
 
-#ifndef PI
-#define PI M_1_PI
+#ifndef M_PI
+#define M_PI 3.14159265358979323846
 #endif
 
 typedef enum {

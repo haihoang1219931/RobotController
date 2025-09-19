@@ -147,7 +147,7 @@ void ApplicationController::executeCommand(char* command) {
     }
     else if(command[0] == 'c' && strlen(command)>=3) {
         executeSequence(command[2]-'0',command[1]-'0',
-                0,7,true,false,'c');
+                7,0,true,false,'c');
     }
     //  else if(command[0] == 'a') {
     //    if(strlen(command)<21) {
@@ -225,7 +225,7 @@ void ApplicationController::inverseKinematic(float x, float y, float a1, float a
 {
   *p2 = acos((x*x+y*y-a1*a1-a2*a2)/(2*a1*a2));
   *p1 = atan(y/x) - atan((a2*sin(*p2))/(a1+a2*cos(*p2)));
-  *p1 =  *p1 < 0?*p1+PI:*p1;
+  *p1 =  *p1 < 0?*p1+M_PI:*p1;
   this->printf("x[%d] y[%d] a1[%d] a2[%d] q1[%d] q2[%d]\r\n",
                 (int)x,(int)y,(int)a1,(int)a2,
                (int)(*p1/M_PI*180.0f),(int)(*p2/M_PI*180.0f));
@@ -240,7 +240,7 @@ void ApplicationController::calculateJoints(int targetCol, int targetRow, float 
             + squareLength/2 + m_chessBoardPosX;
     float xPos = (float)(targetRow-centerRow) * squareLength
             + squareLength/2 + m_chessBoardPosY;
-    float upAngle = (upAngleInDegree - 55.0f)/180.0f*PI;
+    float upAngle = (upAngleInDegree)/180.0f*M_PI;
     float a1 = m_armLength[0];
     float a2Cos = m_armLength[1];
     float a2Sin = m_armLength[2] + m_armLength[3]*cos(upAngle)+m_armLength[4];
@@ -251,7 +251,7 @@ void ApplicationController::calculateJoints(int targetCol, int targetRow, float 
     this->printf("xPos[%d]\r\n",(int)xPos);
     this->printf("yPos[%d]\r\n",(int)yPos);
     this->printf("a1[%d]\r\n",(int)a1);
-    this->printf("a2[%d]\r\n",(int)a2);
+    this->printf("a2[%d] cos[%.02f] upAngle[%.02f] upAngleInDegree[%.02f] PI[%f]\r\n",(int)a2,upAngle,cos(upAngle),upAngleInDegree,M_PI);
     inverseKinematic(xPos, yPos, a1, a2, &q1, &q2);
     this->printf("arm1Angle[%d]=[%d] arm2Angle[%d]=[%d] arm3Angle[%d] q2Offset[%d]\r\n",
     (int)(q1/M_PI*180.0f),
@@ -272,13 +272,14 @@ void ApplicationController::executeSequence(
   this->printf("Go to Pos [%d,%d] to [%d,%d] attack[%s] castle[%s] promote[%c]\r\n",
                   startCol, startRow, stopCol, stopRow, attack?"yes":"no", castle?"yes":"no", promote);
 
-  float upAngles[8] = {55.0f,55.0f,100.0f,100.0f,100.0f,55.0f,55.0f,100.0f};
-  int positionRow[8] = {startRow,startRow,startRow,startRow,stopRow,stopRow,stopRow,stopRow};
-  int positionCol[8] = {startCol,startCol,startCol,startCol,stopCol,stopCol,stopCol,stopCol};
+  float upAngles[8] = {45.0f,0.0f,45.0f,45.0f,0.0f,45.0f};
+  int positionRow[8] = {startRow,startRow,startRow,stopRow,stopRow,stopRow};
+  int positionCol[8] = {startCol,startCol,startCol,stopCol,stopCol,stopCol};
   int captureStep[8] = {0,0,1000,1000,1000,1000,0,0};
   int jointSteps[MAX_MOTOR];
   m_robot->resetMoveSequene();
-  for(int seqStep = 0; seqStep < 3; seqStep++)
+  int numStep = 6;
+  for(int seqStep = 0; seqStep < numStep; seqStep++)
   {
     calculateJoints(positionCol[seqStep], positionRow[seqStep], upAngles[seqStep],jointSteps);
     m_robot->appendMove(jointSteps,captureStep[seqStep]);
