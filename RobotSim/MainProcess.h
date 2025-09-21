@@ -11,6 +11,7 @@
 class MainProcess : public QThread
 {
     Q_OBJECT
+    Q_PROPERTY(float captureStep READ captureStep NOTIFY captureStepChanged)
     Q_PROPERTY(QVariantList listAngle READ listAngle NOTIFY listAngleChanged)
     Q_PROPERTY(QVariantList listArmLength READ listArmLength NOTIFY listArmLengthChanged)
     Q_PROPERTY(QVariantList chessBoardInfo READ chessBoardInfo NOTIFY chessBoardInfoChanged)
@@ -18,18 +19,21 @@ public:
     explicit MainProcess(QThread *parent = nullptr);
     ~MainProcess();
 
+    float captureStep();
     QVariantList listAngle();
     QVariantList listArmLength();
     QVariantList chessBoardInfo();
     void syncRobot();
 
 public Q_SLOTS:
+    void setCaptureStep(float captureStep);
     void setListAngle(int motorID, float angle);
     void setListArmLength(int motorID, float length);
     void setChessBoardInfo(float posX, float posY, float size);
 
 Q_SIGNALS:
     void readyToUpdate();
+    void captureStepChanged();
     void listAngleChanged();
     void listArmLengthChanged();
     void chessBoardInfoChanged();
@@ -57,6 +61,7 @@ private:
     bool m_pause = false;
     ApplicationSim* m_application;
     VideoRender* m_render = nullptr;
+    float m_captureStep;
     QVariantList m_listAngle;
     QVariantList m_listArmLength;
     QVariantList m_chessBoardInfo;

@@ -45,8 +45,8 @@ Item {
                         Rectangle{
                             id: capture
                             y: -height/2+parent.height/2
-                            width: 30
-                            height: 30
+                            width: height
+                            height: 30 - grabberAngle/10
                             radius: height/2
                             border.color: "red"
                             color: "transparent"

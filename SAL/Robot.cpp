@@ -140,13 +140,14 @@ bool Robot::isLimitReached(int motorID,
     return m_app->isLimitReached(motorID,limitType);
 }
 
-void Robot::getCurrentPosition(int* listCurrentStep, int* numMotor)
+void Robot::getCurrentPosition(int* listCurrentStep, int* numMotor, float* captureStep)
 {
     *numMotor = MAX_MOTOR;
     for(int i=0; i< MAX_MOTOR; i++)
     {
         listCurrentStep[i] = m_motorList[i]->currentStep();
     }
+    *captureStep = m_capture->currentStep();
 }
 
 Motor* Robot::getMotor(int motorID)
@@ -262,15 +263,15 @@ void Robot::gotoTarget()
 void Robot::capture()
 {
     bool captureDone = true;
-//    m_app->printf("Cap Time[%d] P[%d] T[%d]\r\n",
-//                  m_elapsedTime,
-//                  m_capture->currentStep(),
-//                  m_capture->targetStep());
-//    if(!m_capture->isFinishExecution())
-//    {
-//        m_capture->executePlan();
-//        captureDone = false;
-//    }
+    m_app->printf("Cap Time[%d] P[%d] T[%d]\r\n",
+                  m_elapsedTime,
+                  m_capture->currentStep(),
+                  m_capture->targetStep());
+    if(!m_capture->isFinishExecution())
+    {
+        m_capture->executePlan();
+        captureDone = false;
+    }
     if(captureDone) {
         if(m_curMove < m_numMove-1) {
             m_curMove++;

@@ -130,6 +130,7 @@ ApplicationWindow {
                 angle3: command.angle3-90
                 angle4: command.angle4
                 angle5: command.angle5
+                grabberAngle: command.grabberAngle
             }
         }
         CommandController{
@@ -147,6 +148,7 @@ ApplicationWindow {
             angle4: 0
             angle5: 0
             upAngle: mainProcess.listAngle[2]
+            grabberAngle: mainProcess.captureStep
             chessBoardPosX: mainProcess.chessBoardInfo[0]
             chessBoardPosY: mainProcess.chessBoardInfo[1]
             chessBoardWidth: mainProcess.chessBoardInfo[2]

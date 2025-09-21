@@ -66,11 +66,11 @@ MACHINE_STATE ApplicationController::stateMachine() {
     return m_machineState;
 }
 
-void ApplicationController::getCurrentPosition(float* listAngles, int* numMotor)
+void ApplicationController::getCurrentPosition(float* listAngles, int* numMotor, float* captureStep)
 {
     if(m_robot == NULL) return;
     int listCurrentStep[MAX_MOTOR];
-    m_robot->getCurrentPosition(listCurrentStep,numMotor);
+    m_robot->getCurrentPosition(listCurrentStep,numMotor,captureStep);
     for(int i = 0; i < *numMotor; i++) {
         listAngles[i] = (int)((float)listCurrentStep[i]/m_motorScale[i]);
     }
@@ -275,7 +275,7 @@ void ApplicationController::executeSequence(
   float upAngles[8] = {45.0f,0.0f,45.0f,45.0f,0.0f,45.0f};
   int positionRow[8] = {startRow,startRow,startRow,stopRow,stopRow,stopRow};
   int positionCol[8] = {startCol,startCol,startCol,stopCol,stopCol,stopCol};
-  int captureStep[8] = {0,0,1000,1000,1000,1000,0,0};
+  int captureStep[8] = {0,100,100,100,0,0,0,0};
   int jointSteps[MAX_MOTOR];
   m_robot->resetMoveSequene();
   int numStep = 6;

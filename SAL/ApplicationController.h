@@ -17,7 +17,7 @@ public:
     void checkAllButtonState();
 //    int buttonState(BUTTON_ID buttonID);
     MACHINE_STATE stateMachine();
-    void getCurrentPosition(float* listCurrentStep, int* numMotor);
+    void getCurrentPosition(float* listCurrentStep, int* numMotor, float* captureStep);
     void getCurrentArmLength(float* listCurrentArmLength, int* numArm);
     void getChessBoardParams(float* listParam, int* numParam);
     void executeCommand(char* command);

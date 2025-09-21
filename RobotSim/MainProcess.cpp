@@ -68,9 +68,10 @@ void MainProcess::syncRobot()
     }
 
     float listAngle[MAX_MOTOR];
+    float captureStep;
     int numMotor;
     printf("numMotor[%d]\r\n",numMotor);
-    m_application->getCurrentPosition(listAngle,&numMotor);
+    m_application->getCurrentPosition(listAngle,&numMotor,&captureStep);
     for(int i=0; i< numMotor; i++)
     {
         m_listAngle[i] = listAngle[i];
@@ -138,19 +139,26 @@ void MainProcess::executeCommand(QString command)
 void MainProcess::updateRobotStep()
 {
     float listSteps[MAX_MOTOR];
+    float captureStep;
     int numMotor;
     for(int i=0; i< MAX_MOTOR; i++){
         listSteps[i] = 0;
     }
-    m_application->getCurrentPosition(listSteps,&numMotor);
+    m_application->getCurrentPosition(listSteps,&numMotor,&captureStep);
     for(int i=0; i< numMotor; i++){
         setListAngle(i,listSteps[i]);
     }
+    setCaptureStep(captureStep);
 }
 
 void MainProcess::changeSleepTime(int sleepTime)
 {
     m_sleepTime = sleepTime;
+}
+
+float MainProcess::captureStep()
+{
+    return m_captureStep;
 }
 
 QVariantList MainProcess::listAngle()
@@ -166,6 +174,12 @@ QVariantList MainProcess::listArmLength()
 QVariantList MainProcess::chessBoardInfo()
 {
     return m_chessBoardInfo;
+}
+
+void MainProcess::setCaptureStep(float captureStep)
+{
+    m_captureStep = captureStep;
+    Q_EMIT captureStepChanged();
 }
 
 void MainProcess::setListAngle(int motorID, float angle)

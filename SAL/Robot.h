@@ -32,7 +32,7 @@ public:
     void moveStep(int motorID);
     bool isLimitReached(int motorID,
                         MOTOR_LIMIT_TYPE limitType);
-    void getCurrentPosition(int* listCurrentStep, int* numMotor);
+    void getCurrentPosition(int* listCurrentStep, int* numMotor, float* captureStep);
     Motor* getMotor(int motorID);
 private:
     ApplicationController* m_app;

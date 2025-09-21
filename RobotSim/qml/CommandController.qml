@@ -16,6 +16,7 @@ Item {
     property alias angle4: cmd4.angle
     property alias angle5: cmd5.angle
     property alias upAngle: sldArmAngle.value
+    property alias grabberAngle: sldCaptureAngle.value
     property alias chessBoardPosX: spbChessBoardPosX.value
     property alias chessBoardPosY: spbChessBoardPosY.value
     property alias chessBoardWidth: spbChessBoardWidth.value
@@ -206,6 +207,28 @@ Item {
                 width: 40
                 height: 40
                 text: Number(sldArmAngle.value).toFixed(2)
+                verticalAlignment: Text.AlignVCenter
+            }
+        }
+        Row {
+            spacing: 10
+            Label {
+                width: 100
+                height: 40
+                text: "Capture Angle"
+                verticalAlignment: Text.AlignVCenter
+            }
+            Slider {
+                id: sldCaptureAngle
+                width: 300
+                height: 40
+                from: 0
+                to: 100
+            }
+            Label {
+                width: 40
+                height: 40
+                text: Number(sldCaptureAngle.value).toFixed(2)
                 verticalAlignment: Text.AlignVCenter
             }
         }
