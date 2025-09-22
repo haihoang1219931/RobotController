@@ -156,7 +156,7 @@ Item {
             }
             SpinBox {
                 id: spbChessBoardPosX
-                from: -100
+                from: -500
                 to: 100
             }
             SpinBox {

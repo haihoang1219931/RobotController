@@ -23,9 +23,10 @@ ApplicationController::ApplicationController()
     m_armLength[3] = 84;
     m_armLength[4] = 22+14;
     m_upAngle = 0;
-    m_chessBoardPosX = 30;
-    m_chessBoardPosY = 50;
     m_chessBoardSize = 32*8;
+    m_chessBoardPosX = -30-m_chessBoardSize/2;
+    m_chessBoardPosY = 50;
+
 }
 
 ApplicationController::~ApplicationController() {
@@ -278,7 +279,7 @@ void ApplicationController::executeSequence(
   int captureStep[8] = {0,100,100,100,0,0,0,0};
   int jointSteps[MAX_MOTOR];
   m_robot->resetMoveSequene();
-  int numStep = 6;
+  int numStep = 1;
   for(int seqStep = 0; seqStep < numStep; seqStep++)
   {
     calculateJoints(positionCol[seqStep], positionRow[seqStep], upAngles[seqStep],jointSteps);
