@@ -22,8 +22,9 @@ public:
     void getChessBoardParams(float* listParam, int* numParam);
     void executeCommand(char* command);
     void setMachineState(MACHINE_STATE machineState);
-    void inverseKinematic(float x, float y,
+    bool inverseKinematic(float x, float y,
                            float a1, float a2,float* p1, float* p2);
+    void forwardKinematic(float a1, float a2, float p1, float p2, float* x, float* y);
     void executeSequence(int startCol, int startRow,
                          int stopCol, int stopRow,
                          bool attack, bool castle, char promote);
@@ -64,6 +65,7 @@ public:
     float m_chessBoardPosX;
     float m_chessBoardPosY;
     float m_chessBoardSize;
+    float m_scale;
 };
 
 #endif // APPLICATIONCONTROLLER_H

@@ -17,15 +17,16 @@ ApplicationController::ApplicationController()
     m_motorScale[0] = 1.0f*1.0f;
     m_motorScale[1] =  1.0f*1.0f;
     m_motorScale[2] =  1.0f*1.0f;
-    m_armLength[0] = 47 + 228;
-    m_armLength[1] = 55;
-    m_armLength[2] = 50;
-    m_armLength[3] = 84;
-    m_armLength[4] = 22+14;
+    m_scale = 2;
+    m_armLength[0] = 115;
+    m_armLength[1] = 25;
+    m_armLength[2] = 18;
+    m_armLength[3] = 40;
+    m_armLength[4] = 13;
     m_upAngle = 0;
-    m_chessBoardSize = 32*8;
-    m_chessBoardPosX = -30-m_chessBoardSize/2;
-    m_chessBoardPosY = 50;
+    m_chessBoardSize = 13*8;
+    m_chessBoardPosX = 13-m_chessBoardSize/2;
+    m_chessBoardPosY = 46;
 
 }
 
@@ -82,16 +83,16 @@ void ApplicationController::getCurrentArmLength(float* listCurrentArmLength, int
     if(m_robot == NULL) return;
     *numArm = 5;
     for(int i = 0; i < *numArm; i++) {
-        listCurrentArmLength[i] = m_armLength[i];
+        listCurrentArmLength[i] = m_armLength[i] * m_scale;
     }
 }
 
 void ApplicationController::getChessBoardParams(float* listParam, int* numParam)
 {
     *numParam = 3;
-    listParam[0] = m_chessBoardPosX;
-    listParam[1] = m_chessBoardPosY;
-    listParam[2] = m_chessBoardSize;
+    listParam[0] = m_chessBoardPosX * m_scale;
+    listParam[1] = m_chessBoardPosY * m_scale;
+    listParam[2] = m_chessBoardSize * m_scale;
 }
 
 void ApplicationController::setMachineState(MACHINE_STATE machineState) {
@@ -222,15 +223,26 @@ void ApplicationController::executeCommand(char* command) {
     //    m_robot->rotateAngle((MOTOR)motorID, angle, speed);
     //  }
 }
-void ApplicationController::inverseKinematic(float x, float y, float a1, float a2, float* p1, float* p2)
+bool ApplicationController::inverseKinematic(float x, float y, float a1, float a2, float* p1, float* p2)
 {
+  if(sqrtf(x*x+y*y) > fabs(a1+a2) || sqrtf(x*x+y*y) < fabs(a1-a2)) return false;
   *p2 = acos((x*x+y*y-a1*a1-a2*a2)/(2*a1*a2));
   *p1 = atan(y/x) - atan((a2*sin(*p2))/(a1+a2*cos(*p2)));
   *p1 =  *p1 < 0?*p1+M_PI:*p1;
   this->printf("x[%d] y[%d] a1[%d] a2[%d] q1[%d] q2[%d]\r\n",
                 (int)x,(int)y,(int)a1,(int)a2,
                (int)(*p1/M_PI*180.0f),(int)(*p2/M_PI*180.0f));
+  return true;
 }
+
+void ApplicationController::forwardKinematic(float a1, float a2, float p1, float p2, float* x, float* y) {
+    *x = a1 * cos(p1) + a2 * cos(p1 + p2);
+    *y = a1 * sin(p1) + a2 * sin(p1 + p2);
+    this->printf("x[%d] y[%d] a1[%d] a2[%d] q1[%d] q2[%d]\r\n",
+                  (int)*x,(int)*y,(int)a1,(int)a2,
+                 (int)(p1/M_PI*180.0f),(int)(p2/M_PI*180.0f));
+}
+
 
 void ApplicationController::calculateJoints(int targetCol, int targetRow, float upAngleInDegree, int* jointSteps)
 {
@@ -245,24 +257,30 @@ void ApplicationController::calculateJoints(int targetCol, int targetRow, float 
     float a1 = m_armLength[0];
     float a2Cos = m_armLength[1];
     float a2Sin = m_armLength[2] + m_armLength[3]*cos(upAngle)+m_armLength[4];
-    float a2 = (float)sqrt(a2Sin*a2Sin + a2Cos*a2Cos);
-    float q2Offset = atan(a2Sin/a2Cos);
+    float a2 = (float)sqrt(a2Sin*a2Sin + a2Cos*a2Cos - 2*a2Cos*a2Sin*cos(130.0f*M_PI/180.0f));
+    float q2Offset = acosf((a2Sin*a2Sin + a2*a2 - a2Cos*a2Cos)/(2*a2*a2Sin));
     float q1 = 0;
     float q2 = 0;
+    this->printf("squareLength[%d] half[%d]\r\n",(int)squareLength,
+                 (int)(squareLength/2));
     this->printf("xPos[%d]\r\n",(int)xPos);
     this->printf("yPos[%d]\r\n",(int)yPos);
     this->printf("a1[%d]\r\n",(int)a1);
     this->printf("a2[%d] cos[%.02f] upAngle[%.02f] upAngleInDegree[%.02f] PI[%f]\r\n",(int)a2,upAngle,cos(upAngle),upAngleInDegree,M_PI);
     inverseKinematic(xPos, yPos, a1, a2, &q1, &q2);
+
+    float xPosFK = 0, yPosFK = 0;
+    forwardKinematic(a1,a2,q1,q2,&xPosFK,&yPosFK);
+    if(xPosFK*xPos < 0 || yPosFK * yPos < 0) q1 = q1 - M_PI;
     this->printf("arm1Angle[%d]=[%d] arm2Angle[%d]=[%d] arm3Angle[%d] q2Offset[%d]\r\n",
     (int)(q1/M_PI*180.0f),
     (int)((M_PI/2 + q1)/M_PI*180.0f),
     (int)((q2)/M_PI*180.0f),
-    (int)((M_PI/2 - q2 + q2Offset)/M_PI*180.0f),
+    (int)((M_PI - q2 - q2Offset)/M_PI*180.0f),
     (int)(upAngleInDegree),
     (int)(q2Offset/M_PI*180.0f));
     jointSteps[0] = (int)((M_PI/2 + q1)/M_PI*180.0f*m_motorScale[0]);
-    jointSteps[1] = (int)((M_PI/2 - q2 + q2Offset)/M_PI*180.0f*m_motorScale[1]);
+    jointSteps[1] = (int)((M_PI - q2 - q2Offset)/M_PI*180.0f*m_motorScale[1]);
     jointSteps[2] = (int)(upAngleInDegree*m_motorScale[2]);
 }
 
@@ -273,7 +291,7 @@ void ApplicationController::executeSequence(
   this->printf("Go to Pos [%d,%d] to [%d,%d] attack[%s] castle[%s] promote[%c]\r\n",
                   startCol, startRow, stopCol, stopRow, attack?"yes":"no", castle?"yes":"no", promote);
 
-  float upAngles[8] = {45.0f,0.0f,45.0f,45.0f,0.0f,45.0f};
+  float upAngles[8] = {0.0f,0.0f,45.0f,45.0f,0.0f,45.0f};
   int positionRow[8] = {startRow,startRow,startRow,stopRow,stopRow,stopRow};
   int positionCol[8] = {startCol,startCol,startCol,stopCol,stopCol,stopCol};
   int captureStep[8] = {0,100,100,100,0,0,0,0};
