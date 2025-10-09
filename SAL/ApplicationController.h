@@ -5,6 +5,7 @@
 
 class Button;
 class Robot;
+class ChessBoard;
 class CommandReader;
 
 class ApplicationController
@@ -28,7 +29,7 @@ public:
     void executeSequence(int startCol, int startRow,
                          int stopCol, int stopRow,
                          bool attack, bool castle, char promote);
-    void calculateJoints(int targetCol, int targetRow, float upAngleInDegree, int* jointSteps);
+    void calculateJoints(float xPos, float yPos, float upAngleInDegree, int* jointSteps);
     virtual int printf(const char *fmt, ...) = 0;
     virtual void msleep(int millis) = 0;
     virtual long getSystemTime() = 0;
@@ -56,15 +57,12 @@ public:
     MACHINE_STATE m_machineState;
     Button* m_buttonList[MAX_BUTTON];
     Robot* m_robot;
+    ChessBoard* m_chessBoard;
     CommandReader* m_commandReader;
     int m_comCommandID = 0;
     int m_appTimer;
     float m_motorScale[MAX_MOTOR];
     float m_armLength[MAX_MOTOR];
-    float m_upAngle;
-    float m_chessBoardPosX;
-    float m_chessBoardPosY;
-    float m_chessBoardSize;
     float m_scale;
 };
 

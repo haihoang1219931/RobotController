@@ -3,7 +3,7 @@
 MainProcess::MainProcess(QThread *parent) :
     QThread(parent),
     m_stopped(false),
-    m_sleepTime(500),
+    m_sleepTime(30),
     m_thread(nullptr)
 {
     m_application = new ApplicationSim(this);
@@ -101,16 +101,8 @@ void MainProcess::run() {
             m_pauseCond->wait(m_mutex); // in this place, your thread will stop to execute until someone calls resume
         m_mutex->unlock();
         m_application->loop();
-//        m_application->printf(".");
-//        Q_EMIT readyToUpdate();
-//        Q_EMIT robotChanged(
-//                    m_application->motorPosition(MOTOR::MOTOR_ARM1),
-//                    m_application->motorPosition(MOTOR::MOTOR_ARM2),
-//                    m_application->motorPosition(MOTOR::MOTOR_ARM3),
-//                    m_application->motorPosition(MOTOR::MOTOR_CAP));
         m_application->msleep(m_sleepTime);
         updateRobotStep();
-//        m_application->printf("APP time[%ld]\r\n",m_application->getSystemTime());
     }
     m_application->printf("Exit\r\n");
 }
@@ -149,6 +141,8 @@ void MainProcess::updateRobotStep()
         setListAngle(i,listSteps[i]);
     }
     setCaptureStep(captureStep);
+    Q_EMIT listAngleChanged();
+    Q_EMIT listArmLengthChanged();
 }
 
 void MainProcess::changeSleepTime(int sleepTime)
@@ -185,13 +179,11 @@ void MainProcess::setCaptureStep(float captureStep)
 void MainProcess::setListAngle(int motorID, float angle)
 {
     m_listAngle[motorID] = angle;
-    Q_EMIT listAngleChanged();
 }
 
 void MainProcess::setListArmLength(int motorID, float length)
 {
     m_listArmLength[motorID] = length;
-    Q_EMIT listArmLengthChanged();
 }
 
 void MainProcess::setChessBoardInfo(float posX, float posY, float size)

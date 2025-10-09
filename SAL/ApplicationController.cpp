@@ -1,6 +1,7 @@
 #include "ApplicationController.h"
 #include "Button.h"
 #include "Robot.h"
+#include "ChessBoard.h"
 #include "CommandReader.h"
 #include <stdio.h>
 #include <string.h>
@@ -13,6 +14,7 @@ ApplicationController::ApplicationController()
     }
     m_commandReader = new CommandReader(this);
     m_robot = new Robot(this,3);
+
     m_appTimer = 0;
     m_motorScale[0] = 1.0f*1.0f;
     m_motorScale[1] =  1.0f*1.0f;
@@ -23,10 +25,7 @@ ApplicationController::ApplicationController()
     m_armLength[2] = 18;
     m_armLength[3] = 40;
     m_armLength[4] = 13;
-    m_upAngle = 0;
-    m_chessBoardSize = 13*8;
-    m_chessBoardPosX = 13-m_chessBoardSize/2;
-    m_chessBoardPosY = 46;
+    m_chessBoard = new ChessBoard(13-13*8/2,46,13);
 
 }
 
@@ -90,9 +89,9 @@ void ApplicationController::getCurrentArmLength(float* listCurrentArmLength, int
 void ApplicationController::getChessBoardParams(float* listParam, int* numParam)
 {
     *numParam = 3;
-    listParam[0] = m_chessBoardPosX * m_scale;
-    listParam[1] = m_chessBoardPosY * m_scale;
-    listParam[2] = m_chessBoardSize * m_scale;
+    listParam[0] = m_chessBoard->getChessBoardPosX() * m_scale;
+    listParam[1] = m_chessBoard->getChessBoardPosY() * m_scale;
+    listParam[2] = m_chessBoard->getChessBoardSize() * m_scale;
 }
 
 void ApplicationController::setMachineState(MACHINE_STATE machineState) {
@@ -225,34 +224,27 @@ void ApplicationController::executeCommand(char* command) {
 }
 bool ApplicationController::inverseKinematic(float x, float y, float a1, float a2, float* p1, float* p2)
 {
-  if(sqrtf(x*x+y*y) > fabs(a1+a2) || sqrtf(x*x+y*y) < fabs(a1-a2)) return false;
-  *p2 = acos((x*x+y*y-a1*a1-a2*a2)/(2*a1*a2));
-  *p1 = atan(y/x) - atan((a2*sin(*p2))/(a1+a2*cos(*p2)));
-  *p1 =  *p1 < 0?*p1+M_PI:*p1;
-  this->printf("x[%d] y[%d] a1[%d] a2[%d] q1[%d] q2[%d]\r\n",
-                (int)x,(int)y,(int)a1,(int)a2,
-               (int)(*p1/M_PI*180.0f),(int)(*p2/M_PI*180.0f));
-  return true;
+    if(sqrtf(x*x+y*y) > fabs(a1+a2) || sqrtf(x*x+y*y) < fabs(a1-a2)) return false;
+    *p2 = acos((x*x+y*y-a1*a1-a2*a2)/(2*a1*a2));
+    *p1 = atan(y/x) - atan((a2*sin(*p2))/(a1+a2*cos(*p2)));
+    *p1 =  *p1 < 0?*p1+M_PI:*p1;
+    this->printf("x[%d] y[%d] a1[%d] a2[%d] q1[%d] q2[%d]\r\n",
+                 (int)x,(int)y,(int)a1,(int)a2,
+                 (int)(*p1/M_PI*180.0f),(int)(*p2/M_PI*180.0f));
+    return true;
 }
 
 void ApplicationController::forwardKinematic(float a1, float a2, float p1, float p2, float* x, float* y) {
     *x = a1 * cos(p1) + a2 * cos(p1 + p2);
     *y = a1 * sin(p1) + a2 * sin(p1 + p2);
     this->printf("x[%d] y[%d] a1[%d] a2[%d] q1[%d] q2[%d]\r\n",
-                  (int)*x,(int)*y,(int)a1,(int)a2,
+                 (int)*x,(int)*y,(int)a1,(int)a2,
                  (int)(p1/M_PI*180.0f),(int)(p2/M_PI*180.0f));
 }
 
 
-void ApplicationController::calculateJoints(int targetCol, int targetRow, float upAngleInDegree, int* jointSteps)
-{
-    int centerCol = 0;
-    int centerRow = 0;
-    float squareLength = m_chessBoardSize/8;
-    float yPos = (float)(targetCol-centerCol) * squareLength
-            + squareLength/2 + m_chessBoardPosX;
-    float xPos = (float)(targetRow-centerRow) * squareLength
-            + squareLength/2 + m_chessBoardPosY;
+void ApplicationController::calculateJoints(float xPos, float yPos, float upAngleInDegree, int* jointSteps)
+{    
     float upAngle = (upAngleInDegree)/180.0f*M_PI;
     float a1 = m_armLength[0];
     float a2Cos = m_armLength[1];
@@ -261,8 +253,6 @@ void ApplicationController::calculateJoints(int targetCol, int targetRow, float 
     float q2Offset = acosf((a2Sin*a2Sin + a2*a2 - a2Cos*a2Cos)/(2*a2*a2Sin));
     float q1 = 0;
     float q2 = 0;
-    this->printf("squareLength[%d] half[%d]\r\n",(int)squareLength,
-                 (int)(squareLength/2));
     this->printf("xPos[%d]\r\n",(int)xPos);
     this->printf("yPos[%d]\r\n",(int)yPos);
     this->printf("a1[%d]\r\n",(int)a1);
@@ -273,12 +263,12 @@ void ApplicationController::calculateJoints(int targetCol, int targetRow, float 
     forwardKinematic(a1,a2,q1,q2,&xPosFK,&yPosFK);
     if(xPosFK*xPos < 0 || yPosFK * yPos < 0) q1 = q1 - M_PI;
     this->printf("arm1Angle[%d]=[%d] arm2Angle[%d]=[%d] arm3Angle[%d] q2Offset[%d]\r\n",
-    (int)(q1/M_PI*180.0f),
-    (int)((M_PI/2 + q1)/M_PI*180.0f),
-    (int)((q2)/M_PI*180.0f),
-    (int)((M_PI - q2 - q2Offset)/M_PI*180.0f),
-    (int)(upAngleInDegree),
-    (int)(q2Offset/M_PI*180.0f));
+                 (int)(q1/M_PI*180.0f),
+                 (int)((M_PI/2 + q1)/M_PI*180.0f),
+                 (int)((q2)/M_PI*180.0f),
+                 (int)((M_PI - q2 - q2Offset)/M_PI*180.0f),
+                 (int)(upAngleInDegree),
+                 (int)(q2Offset/M_PI*180.0f));
     jointSteps[0] = (int)((M_PI/2 + q1)/M_PI*180.0f*m_motorScale[0]);
     jointSteps[1] = (int)((M_PI - q2 - q2Offset)/M_PI*180.0f*m_motorScale[1]);
     jointSteps[2] = (int)(upAngleInDegree*m_motorScale[2]);
@@ -288,22 +278,30 @@ void ApplicationController::executeSequence(
         int startCol, int startRow,
         int stopCol, int stopRow,
         bool attack, bool castle, char promote) {
-  this->printf("Go to Pos [%d,%d] to [%d,%d] attack[%s] castle[%s] promote[%c]\r\n",
-                  startCol, startRow, stopCol, stopRow, attack?"yes":"no", castle?"yes":"no", promote);
+    this->printf("Go to Pos [%d,%d] to [%d,%d] attack[%s] castle[%s] promote[%c]\r\n",
+                 startCol, startRow, stopCol, stopRow, attack?"yes":"no", castle?"yes":"no", promote);
 
-  float upAngles[8] = {0.0f,0.0f,45.0f,45.0f,0.0f,45.0f};
-  int positionRow[8] = {startRow,startRow,startRow,stopRow,stopRow,stopRow};
-  int positionCol[8] = {startCol,startCol,startCol,stopCol,stopCol,stopCol};
-  int captureStep[8] = {0,100,100,100,0,0,0,0};
-  int jointSteps[MAX_MOTOR];
-  m_robot->resetMoveSequene();
-  int numStep = 1;
-  for(int seqStep = 0; seqStep < numStep; seqStep++)
-  {
-    calculateJoints(positionCol[seqStep], positionRow[seqStep], upAngles[seqStep],jointSteps);
-    m_robot->appendMove(jointSteps,captureStep[seqStep]);
-  }
-  m_robot->moveSequence(3);
-  if(m_machineState != MACHINE_EXECUTE_COMMAND)
-    setMachineState(MACHINE_EXECUTE_COMMAND);
+    // Attack: Move piece out -> Move attack piece -> Return to prepare
+    // No attack: Move attack piece -> Return to prepare
+    // Castle: Move king -> Move rook -> Return to prepare
+    // Promote: Move pawn -> Move promote piece -> Return to prepare
+    if(attack) {
+
+    }
+    float upAngles[6] = {45.0f,0.0f,45.0f,45.0f,0.0f,45.0f};
+    int positionRow[6] = {startRow,startRow,startRow,stopRow,stopRow,stopRow};
+    int positionCol[6] = {startCol,startCol,startCol,stopCol,stopCol,stopCol};
+    int captureStep[6] = {0,100,100,100,0,0};
+    int jointSteps[MAX_MOTOR];
+    m_robot->resetMoveSequene();
+    int numStep = 6;
+    for(int seqStep = 0; seqStep < numStep; seqStep++)
+    {
+        Point convertPoint = m_chessBoard->convertPoint(positionRow[seqStep],positionCol[seqStep]);
+        calculateJoints(convertPoint.x, convertPoint.y , upAngles[seqStep],jointSteps);
+        m_robot->appendMove(jointSteps,captureStep[seqStep]);
+    }
+    m_robot->moveSequence(3);
+    if(m_machineState != MACHINE_EXECUTE_COMMAND)
+        setMachineState(MACHINE_EXECUTE_COMMAND);
 }

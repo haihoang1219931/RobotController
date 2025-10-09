@@ -8,5 +8,6 @@
         <file>qml/ChessSupport.js</file>
         <file>qml/CommandController.qml</file>
         <file>qml/Command.qml</file>
+        <file>qml/DropZone.qml</file>
     </qresource>
 </RCC>

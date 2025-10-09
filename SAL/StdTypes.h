@@ -57,4 +57,9 @@ typedef enum {
     MOTION_CARTESION_SPACE,
 }MOTION_SPACES;
 
+typedef struct{
+    float x;
+    float y;
+}Point;
+
 #endif // STDTYPES_H

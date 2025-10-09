@@ -29,7 +29,8 @@ HEADERS += \
     RobotSim/MainProcess.h \
     RobotSim/VideoDisplay/VideoRender.h \
     RobotSim/VideoDisplay/I420Render.h \
-    SAL/StdTypes.h
+    SAL/StdTypes.h \
+    SAL/ChessBoard.h
 
 SOURCES += \
     SAL/Motor.cpp \
@@ -41,7 +42,8 @@ SOURCES += \
     RobotSim/ApplicationSim.cpp \
     RobotSim/MainProcess.cpp \
     RobotSim/VideoDisplay/VideoRender.cpp \
-    RobotSim/VideoDisplay/I420Render.cpp
+    RobotSim/VideoDisplay/I420Render.cpp \
+    SAL/ChessBoard.cpp
 
 RESOURCES += \
     RobotSim/qml.qrc
