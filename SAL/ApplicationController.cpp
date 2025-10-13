@@ -275,33 +275,123 @@ void ApplicationController::calculateJoints(float xPos, float yPos, float upAngl
 }
 
 void ApplicationController::executeSequence(
+        char moveType,
         int startCol, int startRow,
         int stopCol, int stopRow,
-        bool attack, bool castle, char promote) {
-    this->printf("Go to Pos [%d,%d] to [%d,%d] attack[%s] castle[%s] promote[%c]\r\n",
-                 startCol, startRow, stopCol, stopRow, attack?"yes":"no", castle?"yes":"no", promote);
+        char promotePiece) {
+    this->printf("Go to Pos [%d,%d] to [%d,%d] \r\n",
+                 startCol, startRow, stopCol, stopRow);
 
     // Attack: Move piece out -> Move attack piece -> Return to prepare
     // No attack: Move attack piece -> Return to prepare
     // Castle: Move king -> Move rook -> Return to prepare
     // Promote: Move pawn -> Move promote piece -> Return to prepare
-    if(attack) {
+    switch (moveType) {
+    case MOVE_NORMAL:
+        calculateSequenceMoveNormal(startCol, startRow, stopCol, stopRow);
+        break;
+    case MOVE_ATTACK:
+        calculateSequenceAttack(startCol, startRow, stopCol, stopRow);
+        break;
+    case MOVE_PASTPAWN:
+        calculateSequencePastPawn(startCol, startRow, stopCol, stopRow);
+        break;
+    case MOVE_CASTLE:
+        calculateSequenceCastle(startCol, startRow, stopCol, stopRow);
+        break;
+    case MOVE_PROMOTE:
+        calculateSequencePromotePiece(startCol, startRow, stopCol, stopRow, promotePiece);
+        break;
+    }
 
-    }
-    float upAngles[6] = {45.0f,0.0f,45.0f,45.0f,0.0f,45.0f};
-    int positionRow[6] = {startRow,startRow,startRow,stopRow,stopRow,stopRow};
-    int positionCol[6] = {startCol,startCol,startCol,stopCol,stopCol,stopCol};
-    int captureStep[6] = {0,100,100,100,0,0};
-    int jointSteps[MAX_MOTOR];
-    m_robot->resetMoveSequene();
-    int numStep = 6;
-    for(int seqStep = 0; seqStep < numStep; seqStep++)
-    {
-        Point convertPoint = m_chessBoard->convertPoint(positionRow[seqStep],positionCol[seqStep]);
-        calculateJoints(convertPoint.x, convertPoint.y , upAngles[seqStep],jointSteps);
-        m_robot->appendMove(jointSteps,captureStep[seqStep]);
-    }
-    m_robot->moveSequence(3);
     if(m_machineState != MACHINE_EXECUTE_COMMAND)
         setMachineState(MACHINE_EXECUTE_COMMAND);
 }
+void ApplicationController::calculateSequenceMoveNormal(int startCol, int startRow,
+                     int stopCol, int stopRow)
+{
+    m_robot->resetMoveSequene();
+    // append move from start -> stop -> standy
+    Point startPoint = m_chessBoard->convertPoint(startRow,startCol);
+    Point stopPoint = m_chessBoard->convertPoint(stopRow,stopCol);
+
+    float upAngles[6] = {45.0f,0.0f,45.0f,45.0f,0.0f,45.0f};
+    Point position[6] = {startPoint,startPoint,startPoint,stopPoint,stopPoint,stopPoint};
+    int captureStep[6] = {0,100,100,100,0,0};
+    int jointSteps[MAX_MOTOR];
+
+    int numStep = 6;
+    for(int seqStep = 0; seqStep < numStep; seqStep++)
+    {
+        calculateJoints(position[seqStep].x, position[seqStep].y , upAngles[seqStep],jointSteps);
+        m_robot->appendMove(jointSteps,captureStep[seqStep]);
+    }
+
+    jointSteps[0] = 0;
+    jointSteps[1] = 90;
+    jointSteps[2] = 45;
+    m_robot->appendMove(jointSteps,0);
+
+    m_robot->moveSequence(3);
+}
+
+void ApplicationController::calculateSequenceAttack(int startCol, int startRow,
+                     int stopCol, int stopRow)
+{
+    // get free drop point
+    // append move from stop -> drop -> start -> stop -> standby
+    m_chessBoard->getFreeDropPoint();
+}
+
+void ApplicationController::calculateSequencePastPawn(int startCol, int startRow,
+                     int stopCol, int stopRow)
+{
+    // get attack pawn
+    // get free drop point
+    // append move from attack pawn -> drop -> start -> stop -> standby
+    m_chessBoard->getFreeDropPoint();
+}
+
+void ApplicationController::calculateSequencePromotePiece(int startCol, int startRow,
+                     int stopCol, int stopRow, char promotePiece)
+{
+    // if start col equals stop col means attack
+    // if attack => append move attack piece to drop point
+    // append move from start to drop point
+    // append move from promote to stop
+}
+
+void ApplicationController::calculateSequenceCastle(int kingCol, int kingRow,
+                                                    int rookCol, int rookRow)
+{
+
+    // append move king -> new point -> rook -> new point
+    Point standbyPoint = m_chessBoard->getFreeDropPoint();
+    Point kingPoint = m_chessBoard->convertPoint(kingRow,kingCol);
+    Point rookPoint = m_chessBoard->convertPoint(rookRow,rookCol);
+    Point kingNewPoint;
+    Point rookNewPoint;
+    if(kingCol > rookRow) {
+        kingNewPoint = m_chessBoard->convertPoint(kingRow,kingCol-2);
+        rookNewPoint = m_chessBoard->convertPoint(kingRow,kingCol-1);
+    } else {
+        kingNewPoint = m_chessBoard->convertPoint(kingRow,kingCol+2);
+        rookNewPoint = m_chessBoard->convertPoint(kingRow,kingCol+1);
+    }
+    m_robot->resetMoveSequene();
+    float upAngles[7] = {45.0f,0.0f,45.0f,45.0f,0.0f,45.0f,45.0f};
+    Point position[7] = {rookPoint,rookPoint,rookPoint,rookNewPoint,rookNewPoint,rookNewPoint,
+                         kingPoint,kingPoint,kingPoint,kingNewPoint,kingNewPoint,kingNewPoint,};
+    int captureStep[7] = {0,100,100,100,0,0,0};
+    int jointSteps[MAX_MOTOR];
+
+    int numStep = 7;
+    for(int seqStep = 0; seqStep < numStep; seqStep++)
+    {
+        calculateJoints(position[seqStep].x, position[seqStep].y , upAngles[seqStep],jointSteps);
+        m_robot->appendMove(jointSteps,captureStep[seqStep]);
+    }
+
+    m_robot->moveSequence(3);
+}
+

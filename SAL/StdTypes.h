@@ -57,6 +57,14 @@ typedef enum {
     MOTION_CARTESION_SPACE,
 }MOTION_SPACES;
 
+typedef enum {
+    MOVE_NORMAL,
+    MOVE_ATTACK,
+    MOVE_PASTPAWN,
+    MOVE_CASTLE,
+    MOVE_PROMOTE,
+}MOVE_TYPE;
+
 typedef struct{
     float x;
     float y;

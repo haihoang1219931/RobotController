@@ -10,9 +10,9 @@ Grid {
         delegate: Rectangle {
             width: grid.width / grid.columns
             height: grid.height / grid.rows
-            color: "transparent"
-            border.color: "black"
-            border.width: 2
+            color: "gray"
+            border.color: "white"
+            border.width: 1
         }
     }
 }

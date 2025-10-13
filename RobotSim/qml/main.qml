@@ -70,7 +70,7 @@ ApplicationWindow {
     Row {
         anchors.top: parent.top
         anchors.left: parent.left
-        anchors.topMargin: 20
+        anchors.topMargin: 80
         anchors.leftMargin: 20
         spacing: 20
         Rectangle {
@@ -127,7 +127,8 @@ ApplicationWindow {
 
             DropZone {
                 id: dropZoneGuest
-                x: parent.width/2 + command.chessBoardWidth/2 + command.chessBoardWidth / 8 * 2
+                x: parent.width/2 + command.chessBoardPosX +
+                   command.chessBoardWidth + command.chessBoardWidth / 8 * 1
                 y: command.chessBoardPosY
                 width: command.chessBoardWidth / 4
                 height: command.chessBoardWidth

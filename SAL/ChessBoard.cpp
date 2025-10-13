@@ -47,7 +47,7 @@ Point ChessBoard::getFreeDropPoint(uint8_t promotePiece)
         for(int rowId = 0; rowId < 8; rowId ++){
             for(int colId = 0; colId < 8; colId ++){
                 if(m_dropZoneMap[rowId][colId] == 0) {
-
+                    freePoint =
                     break;
                 }
             }
