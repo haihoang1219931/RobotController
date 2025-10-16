@@ -14,12 +14,12 @@ public:
     void setChessBoardSize(float value);
     Point getFreeDropPoint(uint8_t promote = 0);
     Point convertPoint(int row, int col);
-    void updateDropZone(uint8_t piece, int row, int col, bool guestZone);
+    void updateDropZone(uint8_t piece, int row, int col, ZONE_TYPE zone);
     void moveGuestPieceOut(uint8_t piece);
     void promotePiece(uint8_t piece);
 
 private:
-    Point convertDropPoint(int row, int col, bool guestZone);
+    Point convertDropPoint(int row, int col, ZONE_TYPE zone);
 
 private:
     float m_chessBoardPosX;

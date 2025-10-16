@@ -26,10 +26,10 @@ public:
     bool inverseKinematic(float x, float y,
                            float a1, float a2,float* p1, float* p2);
     void forwardKinematic(float a1, float a2, float p1, float p2, float* x, float* y);
-    void executeSequence(char moveType,
+    void executeSequence(MOVE_TYPE moveType,
                          int startCol, int startRow,
                          int stopCol, int stopRow,
-                         char promotePiece);
+                         char promotePiece = 0);
     void calculateSequenceMoveNormal(int startCol, int startRow,
                          int stopCol, int stopRow);
     void calculateSequenceAttack(int startCol, int startRow,
@@ -41,6 +41,10 @@ public:
     void calculateSequenceCastle(int kingCol, int kingRow,
                                  int rookCol, int rookRow);
     void calculateJoints(float xPos, float yPos, float upAngleInDegree, int* jointSteps);
+    void clearSequenceMove();
+    void appendSequenceMove(Point start, Point stop, bool straightMove = false);
+    void appendStandByMove();
+    void initSequenceMove(int numberOfJoints);
     virtual int printf(const char *fmt, ...) = 0;
     virtual void msleep(int millis) = 0;
     virtual long getSystemTime() = 0;

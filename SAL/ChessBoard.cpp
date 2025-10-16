@@ -47,7 +47,7 @@ Point ChessBoard::getFreeDropPoint(uint8_t promotePiece)
         for(int rowId = 0; rowId < 8; rowId ++){
             for(int colId = 0; colId < 8; colId ++){
                 if(m_dropZoneMap[rowId][colId] == 0) {
-                    freePoint =
+                    freePoint = convertPoint(rowId,colId);
                     break;
                 }
             }
@@ -56,7 +56,7 @@ Point ChessBoard::getFreeDropPoint(uint8_t promotePiece)
         for(int rowId = 0; rowId < 8; rowId ++){
             for(int colId = 0; colId < 8; colId ++){
                 if(m_dropZoneMapGuest[rowId][colId] == promotePiece) {
-
+                    freePoint = convertDropPoint(rowId,colId,ZONE_GUEST);
                     break;
                 }
             }
@@ -78,9 +78,9 @@ Point ChessBoard::convertPoint(int row, int col)
     return convertValue;
 }
 
-Point ChessBoard::convertDropPoint(int row, int col, bool guestZone) {
+Point ChessBoard::convertDropPoint(int row, int col, ZONE_TYPE zone) {
     Point convertValue;
-    convertValue.x = guestZone?
+    convertValue.x = zone == ZONE_GUEST?
                 m_chessBoardPosX+8*m_chessBoardRect+m_dropZoneSpace+
                     col*m_chessBoardRect + m_chessBoardRect/2:
                 -(m_chessBoardPosX+4*m_chessBoardRect+m_dropZoneSpace+
@@ -91,9 +91,9 @@ Point ChessBoard::convertDropPoint(int row, int col, bool guestZone) {
     return convertValue;
 }
 
-void ChessBoard::updateDropZone(uint8_t piece, int row, int col, bool guestZone)
+void ChessBoard::updateDropZone(uint8_t piece, int row, int col, ZONE_TYPE zone)
 {
-    if(guestZone) {
+    if(zone == ZONE_GUEST) {
         m_dropZoneMapGuest[row][col] = piece;
     } else {
         m_dropZoneMap[row][col] = piece;

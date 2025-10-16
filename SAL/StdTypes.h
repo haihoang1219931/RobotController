@@ -65,6 +65,11 @@ typedef enum {
     MOVE_PROMOTE,
 }MOVE_TYPE;
 
+typedef enum {
+    ZONE_MACHINE,
+    ZONE_GUEST
+}ZONE_TYPE;
+
 typedef struct{
     float x;
     float y;
