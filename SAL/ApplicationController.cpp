@@ -228,7 +228,7 @@ bool ApplicationController::inverseKinematic(float x, float y, float a1, float a
     *p2 = acos((x*x+y*y-a1*a1-a2*a2)/(2*a1*a2));
     *p1 = atan(y/x) - atan((a2*sin(*p2))/(a1+a2*cos(*p2)));
     *p1 =  *p1 < 0?*p1+M_PI:*p1;
-    this->printf("x[%d] y[%d] a1[%d] a2[%d] q1[%d] q2[%d]\r\n",
+    this->printf("IK: x[%d] y[%d] a1[%d] a2[%d] q1[%d] q2[%d]\r\n",
                  (int)x,(int)y,(int)a1,(int)a2,
                  (int)(*p1/M_PI*180.0f),(int)(*p2/M_PI*180.0f));
     return true;
@@ -237,7 +237,7 @@ bool ApplicationController::inverseKinematic(float x, float y, float a1, float a
 void ApplicationController::forwardKinematic(float a1, float a2, float p1, float p2, float* x, float* y) {
     *x = a1 * cos(p1) + a2 * cos(p1 + p2);
     *y = a1 * sin(p1) + a2 * sin(p1 + p2);
-    this->printf("x[%d] y[%d] a1[%d] a2[%d] q1[%d] q2[%d]\r\n",
+    this->printf("FK: x[%d] y[%d] a1[%d] a2[%d] q1[%d] q2[%d]\r\n",
                  (int)*x,(int)*y,(int)a1,(int)a2,
                  (int)(p1/M_PI*180.0f),(int)(p2/M_PI*180.0f));
 }
@@ -407,7 +407,8 @@ void ApplicationController::appendSequenceMove(Point start, Point stop, bool str
         int numStep = 6;
         for(int seqStep = 0; seqStep < numStep; seqStep++)
         {
-            calculateJoints(position[seqStep].x, position[seqStep].y, upAngles[seqStep], jointSteps);
+            // Inverse axis Oxy -> Oyx
+            calculateJoints(position[seqStep].y, position[seqStep].x, upAngles[seqStep], jointSteps);
             m_robot->appendMove(jointSteps,captureStep[seqStep]);
         }
     }
