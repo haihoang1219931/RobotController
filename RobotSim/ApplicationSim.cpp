@@ -25,6 +25,7 @@ int ApplicationSim::printf(const char *fmt, ...)
     int rc = vsprintf(buffer, fmt, args);
     va_end(args);
     ::printf("%s",buffer);
+    fflush(stdout);
     return rc;
 }
 
@@ -83,10 +84,15 @@ int ApplicationSim::readSerial(char* output, int length)
     int commandLength = strlen(m_command);
     memcpy(output,m_command,strlen(m_command));
     memset(m_command,0x00U, sizeof(m_command));
-    return 0;
+    return commandLength;
 }
 
 int ApplicationSim::getMotorAngle(int motorID)
 {
     return m_robot->getMotor(motorID)->currentStep();
+}
+
+void ApplicationSim::simulateReceivedCommand(char* command, int length)
+{
+    memcpy(m_command,command,length);
 }

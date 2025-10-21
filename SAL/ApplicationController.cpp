@@ -26,7 +26,7 @@ ApplicationController::ApplicationController()
     m_armLength[3] = 40;
     m_armLength[4] = 13;
     m_chessBoard = new ChessBoard(13-13*8/2,46,13);
-
+    m_machineState = MACHINE_WAIT_COMMAND;
 }
 
 ApplicationController::~ApplicationController() {
@@ -58,10 +58,6 @@ void ApplicationController::checkAllButtonState() {
         m_buttonList[i]->checkState();
     }
 }
-
-//int ApplicationController::buttonState(BUTTON_ID buttonID) {
-//    return m_listButton[buttonID]->buttonState();
-//}
 
 MACHINE_STATE ApplicationController::stateMachine() {
     return m_machineState;

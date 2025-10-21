@@ -125,7 +125,7 @@ void MainProcess::updateScreen() {
 }
 void MainProcess::executeCommand(QString command)
 {
-    m_application->executeCommand((char*)command.toStdString().c_str());
+    m_application->simulateReceivedCommand((char*)command.toStdString().c_str(),command.length());
 }
 
 void MainProcess::updateRobotStep()

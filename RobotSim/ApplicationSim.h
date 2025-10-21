@@ -15,9 +15,10 @@ public:
                             MOTOR_LIMIT_TYPE limitType) override;
     int readSerial(char* output, int length) override;
     int getMotorAngle(int motorID);
+    void simulateReceivedCommand(char* command, int length);
 private:
     MainProcess* m_mainProcess;
-    char m_command[MAX_COMMAND_LENGTH];
+    char m_command[MAX_COMMAND_LENGTH];    
 };
 
 #endif // APPLICATIONSIM_H
