@@ -23,7 +23,7 @@ Row {
         id: sldArmAngle
         width: 150
         height: 40
-        from: 0
+        from: -180
         to: 180
         enabled: cbxAngleChangeEnable.checked
     }

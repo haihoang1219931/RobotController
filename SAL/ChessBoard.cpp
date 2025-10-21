@@ -1,13 +1,26 @@
 #include "ChessBoard.h"
 #include <string.h>
+#include <stdio.h>
 
 ChessBoard::ChessBoard(float x, float y, float size):
     m_chessBoardPosX(x),
     m_chessBoardPosY(y),
-    m_chessBoardRect(size)
+    m_chessBoardRect(size),
+    m_dropZoneSpace(size)
 {
     memset(m_dropZoneMap,0,16);
     memset(m_dropZoneMapGuest,0,16);
+//    m_dropZoneMap[0][0] = 'c';
+//    m_dropZoneMap[0][1] = 'c';
+//    m_dropZoneMap[1][0] = 'c';
+//    m_dropZoneMap[1][1] = 'c';
+//    m_dropZoneMap[2][0] = 'c';
+//    m_dropZoneMap[2][1] = 'c';
+
+    m_dropZoneMapGuest[0][0] = 'q';
+    m_dropZoneMapGuest[1][0] = 'r';
+    m_dropZoneMapGuest[2][0] = 'k';
+    m_dropZoneMapGuest[3][0] = 'b';
 }
 
 float ChessBoard::getChessBoardPosX()
@@ -40,27 +53,21 @@ void ChessBoard::setChessBoardSize(float value)
     m_chessBoardRect = value/8;
 }
 
-Point ChessBoard::getFreeDropPoint(uint8_t promotePiece)
+Point ChessBoard::getFreeDropPoint(ZONE_TYPE zone, uint8_t promotePiece)
 {
     Point freePoint;
-    if(promotePiece == 0) {
-        for(int rowId = 0; rowId < 8; rowId ++){
-            for(int colId = 0; colId < 8; colId ++){
-                if(m_dropZoneMap[rowId][colId] == 0) {
-                    freePoint = convertPoint(rowId,colId);
-                    break;
-                }
+    bool foundDropPoint = false;
+    for(int rowId = 0; rowId < 8; rowId ++){
+        for(int colId = 0; colId < 2; colId ++){
+            if(zone == ZONE_MACHINE?
+                    m_dropZoneMap[rowId][colId] == promotePiece:
+                    m_dropZoneMapGuest[rowId][colId] == promotePiece) {
+                freePoint = convertDropPoint(rowId,colId, zone);
+                foundDropPoint = true;
+                break;
             }
         }
-    } else {
-        for(int rowId = 0; rowId < 8; rowId ++){
-            for(int colId = 0; colId < 8; colId ++){
-                if(m_dropZoneMapGuest[rowId][colId] == promotePiece) {
-                    freePoint = convertDropPoint(rowId,colId,ZONE_GUEST);
-                    break;
-                }
-            }
-        }
+        if(foundDropPoint) break;
     }
     return freePoint;
 }
@@ -83,11 +90,15 @@ Point ChessBoard::convertDropPoint(int row, int col, ZONE_TYPE zone) {
     convertValue.x = zone == ZONE_GUEST?
                 m_chessBoardPosX+8*m_chessBoardRect+m_dropZoneSpace+
                     col*m_chessBoardRect + m_chessBoardRect/2:
-                -(m_chessBoardPosX+4*m_chessBoardRect+m_dropZoneSpace+
+                m_chessBoardPosX-(m_dropZoneSpace+
                     (1-col)*m_chessBoardRect + m_chessBoardRect/2);
     convertValue.y = m_chessBoardPosY +
                     row * m_chessBoardRect +
                     m_chessBoardRect/2;
+    printf("Drop[%s] (%d,%d) = [%.02f,%.02f]\r\n",
+           zone == ZONE_GUEST?"Guest":"Machine",
+           row,col,
+           convertValue.x,convertValue.y);
     return convertValue;
 }
 

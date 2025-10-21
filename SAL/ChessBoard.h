@@ -12,7 +12,7 @@ public:
     void setChessBoardPosX(float value);
     void setChessBoardPosY(float value);
     void setChessBoardSize(float value);
-    Point getFreeDropPoint(uint8_t promote = 0);
+    Point getFreeDropPoint(ZONE_TYPE zone, uint8_t promote = 0);
     Point convertPoint(int row, int col);
     void updateDropZone(uint8_t piece, int row, int col, ZONE_TYPE zone);
     void moveGuestPieceOut(uint8_t piece);

@@ -145,10 +145,27 @@ void ApplicationController::executeCommand(char* command) {
         int steps[3] = {0,0,0};
         setMachineState(MACHINE_EXECUTE_COMMAND);
         m_robot->goToPosition(steps,2);
-    }
-    else if(command[0] == 'c' && strlen(command)>=3) {
+    }else if(command[0] == 'c' && strlen(command)>=3) {
         executeSequence(MOVE_NORMAL, command[2]-'0',command[1]-'0',
                 7,0);
+    }else if(command[0] == 'c' && command[1] == 'n' ) {
+        executeSequence(MOVE_CASTLE, 3, 0,
+                0,0);
+    }else if(command[0] == 'c' && command[1] == 'l' ) {
+        executeSequence(MOVE_CASTLE, 3, 0,
+                7,0);
+    }else if(command[0] == 'a' && command[1] == 't' ) {
+        executeSequence(MOVE_ATTACK, 2, 1,
+                6,5);
+    }else if(command[0] == 'p' && command[1] == 'p' ) {
+        executeSequence(MOVE_PASTPAWN, 2, 4,
+                3,5);
+    }else if(command[0] == 'p' && command[1] == 'r' && command[2] == 'a' ) {
+        executeSequence(MOVE_PROMOTE, 2, 6,
+                3, 7, 'q');
+    }else if(command[0] == 'p' && command[1] == 'r' && command[2] == 'n' ) {
+        executeSequence(MOVE_PROMOTE, 2, 6,
+                2, 7);
     }
     //  else if(command[0] == 'a') {
     //    if(strlen(command)<21) {
@@ -324,9 +341,10 @@ void ApplicationController::calculateSequenceAttack(int startCol, int startRow,
 {
     // get free drop point
     // append move from stop -> drop -> start -> stop -> standby
-    Point dropPoint = m_chessBoard->getFreeDropPoint();
+    Point dropPoint = m_chessBoard->getFreeDropPoint(ZONE_MACHINE);
     Point startPoint = m_chessBoard->convertPoint(startRow,startCol);
     Point stopPoint = m_chessBoard->convertPoint(stopRow,stopCol);
+
     clearSequenceMove();
     appendSequenceMove(stopPoint, dropPoint);
     appendSequenceMove(startPoint, stopPoint);
@@ -338,7 +356,7 @@ void ApplicationController::calculateSequencePastPawn(int startCol, int startRow
                      int stopCol, int stopRow)
 {
     // append move from attack pawn -> drop -> start -> stop -> standby
-    Point dropPoint = m_chessBoard->getFreeDropPoint();
+    Point dropPoint = m_chessBoard->getFreeDropPoint(ZONE_MACHINE);
     Point pawnPoint = m_chessBoard->convertPoint(startRow,stopCol);
     Point startPoint = m_chessBoard->convertPoint(startRow,startCol);
     Point stopPoint = m_chessBoard->convertPoint(stopRow,stopCol);
@@ -353,18 +371,19 @@ void ApplicationController::calculateSequencePromotePiece(int startCol, int star
                      int stopCol, int stopRow, char promotePiece)
 {
     // append move from attack piece -> drop -> promote -> stop -> start -> drop -> standby
-    Point promotePiecePoint = m_chessBoard->getFreeDropPoint(promotePiece);
+    Point promotePiecePoint = m_chessBoard->getFreeDropPoint(ZONE_GUEST,promotePiece);
+    Point dropPiecePoint = m_chessBoard->getFreeDropPoint(ZONE_GUEST);
     Point startPoint = m_chessBoard->convertPoint(startRow,startCol);
     Point stopPoint = m_chessBoard->convertPoint(stopRow,stopCol);
 
     clearSequenceMove();
     if(startCol != stopCol){
         // pawn attack piece, move attack piece -> drop
-        Point dropPoint = m_chessBoard->getFreeDropPoint();
+        Point dropPoint = m_chessBoard->getFreeDropPoint(ZONE_MACHINE);
         appendSequenceMove(stopPoint, dropPoint);
     }
     appendSequenceMove(promotePiecePoint, stopPoint);
-    appendSequenceMove(startPoint, stopPoint);
+    appendSequenceMove(startPoint, dropPiecePoint);
     appendStandByMove();
     m_robot->moveSequence(3);
 }
