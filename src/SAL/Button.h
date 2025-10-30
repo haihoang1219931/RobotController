@@ -1,11 +1,11 @@
 #ifndef BUTTON_H
 #define BUTTON_H
 
-enum BUTTON_STATE {
+typedef enum {
     BUTTON_NOMAL,
     BUTTON_PRESS,
     BUTTON_HOLD,
-};
+}BUTTON_STATE;
 
 class ApplicationController;
 class Button

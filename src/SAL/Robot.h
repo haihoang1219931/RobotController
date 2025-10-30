@@ -29,7 +29,8 @@ public:
     void gotoTarget();
     void capture();
     long elapsedTime();
-    void moveStep(int motorID);
+    void initDirection(int motorID, int direction);
+    void moveStep(int motorID, int currentStep, int nextStep);
     bool isLimitReached(int motorID,
                         MOTOR_LIMIT_TYPE limitType);
     void getCurrentPosition(int* listCurrentStep, int* numMotor, float* captureStep);

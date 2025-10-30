@@ -1,6 +1,6 @@
 #include "ApplicationSim.h"
-#include "SAL/Motor.h"
-#include "SAL/Robot.h"
+#include "../src/SAL/Motor.h"
+#include "../src/SAL/Robot.h"
 #include <stdio.h>
 #include <stdarg.h>
 #ifdef __linux__
@@ -15,6 +15,16 @@ ApplicationSim::ApplicationSim(MainProcess* mainProcess):
     m_mainProcess(mainProcess)
 {
     memset(m_command,0x00U, sizeof(m_command));
+}
+
+ApplicationSim::~ApplicationSim()
+{
+
+}
+
+void ApplicationSim::checkInput()
+{
+    // Simulation do nothing here
 }
 
 int ApplicationSim::printf(const char *fmt, ...)
@@ -85,6 +95,16 @@ int ApplicationSim::readSerial(char* output, int length)
     memcpy(output,m_command,strlen(m_command));
     memset(m_command,0x00U, sizeof(m_command));
     return commandLength;
+}
+
+void ApplicationSim::initDirection(int motorID, int direction)
+{
+
+}
+
+void ApplicationSim::moveStep(int motorID, int currentStep, int nextStep)
+{
+
 }
 
 int ApplicationSim::getMotorAngle(int motorID)

@@ -48,6 +48,7 @@
 **
 ****************************************************************************/
 
+#ifndef ARDUINO
 #include <QGuiApplication>
 #include <QLoggingCategory>
 #include <QQmlApplicationEngine>
@@ -93,4 +94,5 @@ int main(int argc, char *argv[]) {
     }
     return 0;
 }
+#endif
 #endif

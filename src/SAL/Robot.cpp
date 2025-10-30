@@ -3,6 +3,13 @@
 #include "ApplicationController.h"
 #include <math.h>
 #include <string.h>
+
+#ifdef abs
+#undef abs
+#endif
+
+#define abs(x) ((x)>0?(x):-(x))
+
 Robot::Robot(ApplicationController* app, int numMotor) :
     m_app(app),
     m_state(ROBOT_INIT),
@@ -129,9 +136,14 @@ long Robot::elapsedTime()
     return m_elapsedTime;
 }
 
-void Robot::moveStep(int motorID)
+void Robot::initDirection(int motorID, int direction)
 {
-//    m_app
+    m_app->initDirection(motorID, direction);
+}
+
+void Robot::moveStep(int motorID, int currentStep, int nextStep)
+{
+    m_app->moveStep(motorID, currentStep, nextStep);
 }
 
 bool Robot::isLimitReached(int motorID,

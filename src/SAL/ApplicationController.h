@@ -15,8 +15,8 @@ public:
     virtual ~ApplicationController();
     
     void loop();
-    void checkAllButtonState();
-//    int buttonState(BUTTON_ID buttonID);
+    void storeButtonState(int btnID, bool pressed);
+    void updateInputState();
     MACHINE_STATE stateMachine();
     void getCurrentPosition(float* listCurrentStep, int* numMotor, float* captureStep);
     void getCurrentArmLength(float* listCurrentArmLength, int* numArm);
@@ -45,28 +45,16 @@ public:
     void appendSequenceMove(Point start, Point stop, bool straightMove = false);
     void appendStandByMove();
     void initSequenceMove(int numberOfJoints);
+    virtual void checkInput() = 0;
     virtual int printf(const char *fmt, ...) = 0;
     virtual void msleep(int millis) = 0;
     virtual long getSystemTime() = 0;
+    virtual void enableEngine(bool enable) = 0;
     virtual bool isLimitReached(int motorID,
                         MOTOR_LIMIT_TYPE limitType) = 0;
     virtual int readSerial(char* output, int length) = 0;
-//    virtual void setMaxSpeed(MOTOR motor, float speed) = 0;
-//    virtual void setSpeed(MOTOR motor, float speed) = 0;
-//    virtual void setAcceleration(MOTOR motor, float acceleration) = 0;
-//    virtual void setTargetPos(MOTOR motor, long target) = 0;
-//    virtual bool isMoveDone(MOTOR motor) = 0;
-//    virtual void run(MOTOR motor) = 0;
-//    virtual void runSpeed(MOTOR motor) = 0;
-//    virtual void setCurrentPosition(MOTOR motor, long position) = 0;
-//    virtual long currentPosition(MOTOR motor) = 0;
-//    virtual bool isMotorHomed(MOTOR motor) = 0;
-//    virtual void setHomePosition(MOTOR motor) = 0;
-//    virtual void goHome(MOTOR motor) = 0;
-//    virtual float speed(MOTOR motor) = 0;
-//    virtual float maxSpeed(MOTOR motor) = 0;
-    virtual void enableEngine(bool enable) = 0;    
-//    virtual void stop(MOTOR motor) = 0;
+    virtual void initDirection(int motorID, int direction) = 0;
+    virtual void moveStep(int motorID, int currentStep, int nextStep) = 0;
 
 public:
     MACHINE_STATE m_machineState;

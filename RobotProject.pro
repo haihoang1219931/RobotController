@@ -20,30 +20,31 @@ CONFIG += c++11
 #win32: LIBS += -lpthread
 
 HEADERS += \
-    SAL/Motor.h \
-    SAL/Robot.h \
-    SAL/Button.h \
-    SAL/ApplicationController.h \
-    SAL/CommandReader.h \
+    src/SAL/Motor.h \
+    src/SAL/Robot.h \
+    src/SAL/Button.h \
+    src/SAL/ApplicationController.h \
+    src/SAL/CommandReader.h \
+    src/SAL/ChessBoard.h \
+    src/SAL/StdTypes.h \
     RobotSim/ApplicationSim.h \
     RobotSim/MainProcess.h \
     RobotSim/VideoDisplay/VideoRender.h \
-    RobotSim/VideoDisplay/I420Render.h \
-    SAL/StdTypes.h \
-    SAL/ChessBoard.h
+    RobotSim/VideoDisplay/I420Render.h
 
 SOURCES += \
-    SAL/Motor.cpp \
     main.cpp \
-    SAL/Robot.cpp \
-    SAL/Button.cpp \
-    SAL/ApplicationController.cpp \
-    SAL/CommandReader.cpp \
+    src/SAL/Motor.cpp \
+    src/SAL/Robot.cpp \
+    src/SAL/Button.cpp \
+    src/SAL/ApplicationController.cpp \
+    src/SAL/CommandReader.cpp \
+    src/SAL/ChessBoard.cpp \
     RobotSim/ApplicationSim.cpp \
     RobotSim/MainProcess.cpp \
     RobotSim/VideoDisplay/VideoRender.cpp \
-    RobotSim/VideoDisplay/I420Render.cpp \
-    SAL/ChessBoard.cpp
+    RobotSim/VideoDisplay/I420Render.cpp
+
 
 RESOURCES += \
     RobotSim/qml.qrc

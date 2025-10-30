@@ -1,9 +1,7 @@
 #ifndef STDTYPES_H
 #define STDTYPES_H
 
-#ifndef uint8_t
-#define uint8_t unsigned char
-#endif
+#include <stdio.h>
 
 #define MAX_MOVE_SEQUENCE 20
 #define MAX_BUTTON 12
@@ -11,6 +9,9 @@
 #define MAX_COMMAND_LENGTH 256
 #define MAX_PARAMS_CHESSBOARD 4
 
+#ifndef uint8_t
+#define uint8_t unsigned char
+#endif
 
 #ifndef M_PI
 #define M_PI 3.14159265358979323846

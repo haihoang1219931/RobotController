@@ -35,7 +35,7 @@ ApplicationController::~ApplicationController() {
 
 void ApplicationController::loop() {
     m_appTimer++;
-    checkAllButtonState();
+    updateInputState();
     switch(m_machineState) {
     case MACHINE_WAIT_COMMAND: {
         m_commandReader->loop();
@@ -53,7 +53,14 @@ void ApplicationController::loop() {
     }
 }
 
-void ApplicationController::checkAllButtonState() {
+
+void ApplicationController::storeButtonState(int btnID, bool pressed)
+{
+    m_buttonList[btnID]->setPressed(pressed);
+}
+
+void ApplicationController::updateInputState() {
+    checkInput();
     for(int i=0;i< MAX_BUTTON; i++) {
         m_buttonList[i]->checkState();
     }

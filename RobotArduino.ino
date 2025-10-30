@@ -1,6 +1,6 @@
 // #define DEBUG
 #ifndef DEBUG
-#include "SAL/ApplicationArduino.h"
+#include "src/ApplicationArduino.h"
 
 ApplicationArduino* app;
 void setup() {
@@ -8,75 +8,74 @@ void setup() {
   delay(1000);
 }
 void loop() {
-  app->checkInput();
   app->loop();
 }
 
 #else
 
-#include <AccelStepper.h>
+// #include <AccelStepper.h>
 
-// Define the stepper motor and the pins that is connected to
-AccelStepper stepper1(1, 2, 5); // (Type of driver: with 2 pins, STEP, DIR)
-float speed =  1000.0f;
-// long maxPosition = (long)270.0f*13.7f*4.5f*200/360.0f;
-long maxPosition = 1000;
-int printf(const char *fmt, ...) {
-    char m_buffer[64];
-    va_list args;
-    va_start(args, fmt);
-    int rc = vsprintf(m_buffer, fmt, args);
-    va_end(args);
-    Serial.print(m_buffer);
-    return rc;
-}
-void setup() {
-  Serial.begin(115200);
-  const int enPin=8;
-  const int stepXPin = 2; //X.STEP
-  const int dirXPin = 5; // X.DIR
-  const int stepYPin = 3; //Y.STEP
-  const int dirYPin = 6; // Y.DIR
-  const int stepZPin = 4; //Z.STEP
-  const int dirZPin = 7; // Z.DIR
+// // Define the stepper motor and the pins that is connected to
+// AccelStepper stepper1(1, 2, 5); // (Type of driver: with 2 pins, STEP, DIR)
+// float speed =  1000.0f;
+// // long maxPosition = (long)270.0f*13.7f*4.5f*200/360.0f;
+// long maxPosition = 1000;
+// int printf(const char *fmt, ...) {
+//     char m_buffer[64];
+//     va_list args;
+//     va_start(args, fmt);
+//     int rc = vsprintf(m_buffer, fmt, args);
+//     va_end(args);
+//     Serial.print(m_buffer);
+//     return rc;
+// }
+// void setup() {
+//   Serial.begin(115200);
+//   const int enPin=8;
+//   const int stepXPin = 2; //X.STEP
+//   const int dirXPin = 5; // X.DIR
+//   const int stepYPin = 3; //Y.STEP
+//   const int dirYPin = 6; // Y.DIR
+//   const int stepZPin = 4; //Z.STEP
+//   const int dirZPin = 7; // Z.DIR
 
-  const int limitX = 9;
-  const int limitY = 10;
-  const int limitZ = 11;
-  // Set maximum speed value for the stepper
+//   const int limitX = 9;
+//   const int limitY = 10;
+//   const int limitZ = 11;
+//   // Set maximum speed value for the stepper
 
-  pinMode(enPin, OUTPUT);
-  digitalWrite(enPin, LOW);
+//   pinMode(enPin, OUTPUT);
+//   digitalWrite(enPin, LOW);
   
-  stepper1.setCurrentPosition(0);
-  stepper1.moveTo(maxPosition);
-  stepper1.setMaxSpeed(speed*2);
-  stepper1.setSpeed(speed);
-  Serial.println("POS");
-}
-bool printStop = true;
-void loop() {
-  Serial.println("POS");
-  if(stepper1.distanceToGo() != 0){
-    stepper1.runSpeed();
-    if(printStop) {
-      printStop = false;
-    }
-  } else {
-    if(!printStop) {
-      printStop = true;
-      speed = -speed;
-      Serial.println(stepper1.currentPosition());
-      stepper1.moveTo(maxPosition - stepper1.currentPosition());
-      stepper1.setMaxSpeed(speed*2);
-      Serial.print("Speed:");
-      Serial.println(speed);
-      stepper1.setSpeed(speed);
-      delay(1000);
-    }
-  }
-  delay(1);
-}
+//   stepper1.setCurrentPosition(0);
+//   stepper1.moveTo(maxPosition);
+//   stepper1.setMaxSpeed(speed*2);
+//   stepper1.setSpeed(speed);
+//   Serial.println("POS");
+// }
+// bool printStop = true;
+// void loop() {
+//   Serial.println("POS");
+//   if(stepper1.distanceToGo() != 0){
+//     stepper1.runSpeed();
+//     if(printStop) {
+//       printStop = false;
+//     }
+//   } else {
+//     if(!printStop) {
+//       printStop = true;
+//       speed = -speed;
+//       Serial.println(stepper1.currentPosition());
+//       stepper1.moveTo(maxPosition - stepper1.currentPosition());
+//       stepper1.setMaxSpeed(speed*2);
+//       Serial.print("Speed:");
+//       Serial.println(speed);
+//       stepper1.setSpeed(speed);
+//       delay(1000);
+//     }
+//   }
+//   delay(1);
+// }
 #endif
 // Define pin connections & motor's steps per revolution
 // const int enPin = 8;

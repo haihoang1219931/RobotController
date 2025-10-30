@@ -1,7 +1,13 @@
 #include "Motor.h"
 #include "Robot.h"
 #include <stdio.h>
-#include <math.h>
+
+#ifdef abs
+#undef abs
+#endif
+
+#define abs(x) ((x)>0?(x):-(x))
+
 Motor::Motor(Robot* robot, int motorID):
     m_robot(robot),
     m_motorID(motorID),
@@ -17,6 +23,7 @@ void Motor::initPlan(int targetStep, int stepTime, int direction, bool isGoHome)
     m_targetStep = targetStep;
     m_stepTime = stepTime;
     m_state = isGoHome? MOTOR_EXECUTE_HOME:MOTOR_INIT;
+    m_robot->initDirection(m_motorID,m_direction);
     printf("init[%d] tar[%d] stp[%d] dir[%d]\r\n",
            m_motorID, m_targetStep, m_stepTime, m_direction);
 }
@@ -67,7 +74,9 @@ void Motor::cruiseSpeed()
                m_currStep
                );
         m_currStep += m_direction;
-        m_robot->moveStep(m_motorID);
+        m_robot->moveStep(m_motorID, 
+                          m_currStep-m_direction,
+                          m_currStep);
     }
     if(m_currStep == m_targetStep
 //            || (m_direction > 0 && !m_robot->isLimitReached(m_motorID,MOTOR_LIMIT_MAX))
@@ -89,7 +98,7 @@ void Motor::goHome()
     if(!m_robot->isLimitReached(m_motorID,MOTOR_LIMIT_MIN))
     {
         if(m_robot->elapsedTime() > m_stepTime)
-        m_robot->moveStep(m_motorID);
+        m_robot->moveStep(m_motorID,0,-1);
     } else {
         m_state = MOTOR_DONE;
     }
