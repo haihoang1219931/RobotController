@@ -31,7 +31,9 @@ void Robot::setState(ROBOT_STATE newState) {
 
 void Robot::loop() {
     m_elapsedTime = m_app->getSystemTime() - m_startTime;
+#ifdef DEBUG_ROBOT
     m_app->printf("Robot time[%ld]\r\n", m_elapsedTime);
+#endif
     switch(m_state) {
     case ROBOT_EXECUTE_GO_HOME: {
         executeGohome();
@@ -51,32 +53,44 @@ void Robot::loop() {
         break;
     }
 }
-void Robot::goHome() {
+void Robot::goHome(int motorID) {
     m_app->printf("GO HOME\r\n");
-    setState(ROBOT_EXECUTE_GO_HOME);
-    //  m_app->msleep(100);
-    for(int i=0; i< MAX_MOTOR; i++)
+    m_requestGoHomeMotorID = motorID;
+    int startID = motorID == MAX_MOTOR ? 0 : motorID;
+    int stopID = motorID == MAX_MOTOR ? MAX_MOTOR : motorID+1;
+    for(int i=startID; i< stopID; i++)
     {
-        m_motorList[i]->initPlan(0,300,-1,true);
-    }
+        m_motorList[i]->initPlan(0,0,-1,true);
+    }     
     m_startTime = m_app->getSystemTime();
+    setState(ROBOT_EXECUTE_GO_HOME);
 }
 
 void Robot::executeGohome() {
     bool allMotorsAtHome = true;
-    for(int i=0; i< m_executeNumMotor; i++)
+    int startID = m_requestGoHomeMotorID == MAX_MOTOR ? 
+                                            0 : m_requestGoHomeMotorID;
+    int stopID = m_requestGoHomeMotorID == MAX_MOTOR ? 
+                                            m_executeNumMotor : m_requestGoHomeMotorID+1;
+    for(int i=startID; i< stopID; i++)
     {
-        m_app->printf("M[%d] Time[%d] P[%d] T[%d]\r\n",
-                      i,m_elapsedTime,
-                      m_motorList[i]->currentStep(),
-                      m_motorList[i]->targetStep());
+// #ifdef DEBUG_ROBOT
+        m_app->printf("Robot M[%d] Time[%d] P[%d] T[%d]\r\n",
+                    i,m_elapsedTime,
+                    m_motorList[i]->currentStep(),
+                    m_motorList[i]->targetStep());
+// #endif                      
         if(!m_motorList[i]->isFinishExecution())
         {
+#ifdef DEBUG_ROBOT
+            m_app->printf("Robot M[%d] gohome\r\n",i);
+#endif            
             m_motorList[i]->executePlan();
             allMotorsAtHome = false;
         }
     }
     if(allMotorsAtHome) {
+        m_app->harwareStop(m_requestGoHomeMotorID);
         setState(ROBOT_EXECUTE_DONE);
     }
 }
@@ -143,6 +157,9 @@ void Robot::initDirection(int motorID, int direction)
 
 void Robot::moveStep(int motorID, int currentStep, int nextStep)
 {
+#ifdef DEBUG_ROBOT
+    m_app->printf("APP M[%d] moveStep\r\n",motorID);
+#endif    
     m_app->moveStep(motorID, currentStep, nextStep);
 }
 
@@ -182,7 +199,9 @@ void Robot::appendMove(int* jointSteps, int captureStep)
 
 void Robot::moveSequence(int numMotor)
 {
+#ifdef DEBUG_ROBOT
     m_app->printf("move sequence\r\n");
+#endif
     m_executeNumMotor = numMotor;
     setState(ROBOT_EXECUTE_SEQUENCE);
     m_sequenceState = ROBOT_MOVE_INIT;

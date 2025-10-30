@@ -16,7 +16,7 @@ public:
     Robot(ApplicationController* app,int numMotor = 0);
     void loop();
     void setState(ROBOT_STATE newState);
-    void goHome();
+    void goHome(int motorID = MAX_MOTOR);
     void executeGohome();
     int getNumMotor();
     void goToPosition(int* stepList, int numMotor, MOTION_SPACES motionSpace = MOTION_JOINT_SPACE);
@@ -46,6 +46,7 @@ private:
     int m_numMove;
     int m_numMotor;
     int m_executeNumMotor;
+    int m_requestGoHomeMotorID;
     long m_startTime;
     long m_elapsedTime;
 };

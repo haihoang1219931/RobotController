@@ -20,6 +20,8 @@ class DC_driver
     void runSpeed(bool checkHome = false);
     bool isFinished();
     void stop();
+    void setDir(int direction);
+    void moveStep(int sleepTime);
   private:
     uint8_t m_state;
     int m_startPosition;

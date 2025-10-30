@@ -45,6 +45,8 @@ public:
     void appendSequenceMove(Point start, Point stop, bool straightMove = false);
     void appendStandByMove();
     void initSequenceMove(int numberOfJoints);
+    virtual void hardwareGohome(int motorID = MAX_MOTOR) = 0;
+    virtual void harwareStop(int motorID = MAX_MOTOR) = 0;
     virtual void checkInput() = 0;
     virtual int printf(const char *fmt, ...) = 0;
     virtual void msleep(int millis) = 0;

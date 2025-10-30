@@ -18,7 +18,7 @@ void Stepper_driver::enable(bool enableDriver)
 void Stepper_driver::setDir(byte dir)
 {
   // dir > 0 means clockwise
-  digitalWrite(m_dirPin, dir > 0 ? HIGH:LOW);
+  digitalWrite(m_dirPin, dir > 0 ? LOW:HIGH);
 }
 
 void Stepper_driver::moveStep(int sleepTime)

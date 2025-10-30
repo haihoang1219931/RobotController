@@ -4,11 +4,16 @@
 
 ApplicationArduino* app;
 void setup() {
+  Serial.begin(38400);
+  Serial.println("======Arduino Serial======");
+  delay(1000);
   app = new ApplicationArduino();
+  app->printf("APP Arduino Init done\r\n");
   delay(1000);
 }
 void loop() {
   app->loop();
+  app->msleep(1000);
 }
 
 #else

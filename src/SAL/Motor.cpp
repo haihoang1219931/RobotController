@@ -1,13 +1,13 @@
 #include "Motor.h"
 #include "Robot.h"
 #include <stdio.h>
-
+#include "../ApplicationArduino.h"
 #ifdef abs
 #undef abs
 #endif
 
 #define abs(x) ((x)>0?(x):-(x))
-
+extern ApplicationArduino* app;
 Motor::Motor(Robot* robot, int motorID):
     m_robot(robot),
     m_motorID(motorID),
@@ -24,13 +24,15 @@ void Motor::initPlan(int targetStep, int stepTime, int direction, bool isGoHome)
     m_stepTime = stepTime;
     m_state = isGoHome? MOTOR_EXECUTE_HOME:MOTOR_INIT;
     m_robot->initDirection(m_motorID,m_direction);
-    printf("init[%d] tar[%d] stp[%d] dir[%d]\r\n",
+    app->printf("init[%d] tar[%d] stp[%d] dir[%d]\r\n",
            m_motorID, m_targetStep, m_stepTime, m_direction);
 }
 
 void Motor::executePlan()
 {
-    printf("Motor[%d] S[%d]\r\n",m_motorID,m_state);
+#ifdef DEBUG_MOTOR
+    app->printf("Motor[%d] S[%d]\r\n",m_motorID,m_state);
+#endif
     switch (m_state) {
     case MOTOR_INIT: {
         // @Todo: init motor from application
@@ -67,12 +69,14 @@ void Motor::cruiseSpeed()
     int numStep = m_robot->elapsedTime() / m_stepTime;
     if(numStep > abs(m_currStep - m_startStep))
     {
-        printf("M[%d] time[%ld] numStep[%d] m_currStep[%d]\r\n",
+#ifdef DEBUG_MOTOR
+        app->printf("M[%d] time[%ld] numStep[%d] m_currStep[%d]\r\n",
                m_motorID,
                m_robot->elapsedTime(),
                numStep,
                m_currStep
                );
+#endif               
         m_currStep += m_direction;
         m_robot->moveStep(m_motorID, 
                           m_currStep-m_direction,
@@ -85,7 +89,9 @@ void Motor::cruiseSpeed()
     {
         m_state = MOTOR_EXECUTE_DECREASE_SPEED;
     }
+#ifdef DEBUG_MOTOR    
     printf("M[%d] next state[%d]\r\n",m_motorID,m_state);
+#endif
 }
 
 void Motor::decreaseSpeed()

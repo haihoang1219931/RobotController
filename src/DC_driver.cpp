@@ -46,6 +46,22 @@ bool DC_driver::isFinished() {
   return m_state == DC_DONE;
 }
 
+void DC_driver::setDir(int direction)
+{
+  pinMode(m_in1, OUTPUT);
+  pinMode(m_in2, OUTPUT);
+  m_direction = direction;
+  digitalWrite(m_in1, LOW);
+  digitalWrite(m_in2, LOW);
+}
+
+void DC_driver::moveStep(int sleepTime)
+{
+  Serial.println("moveStep:");
+  digitalWrite(m_in1, m_direction > 0 ? HIGH:LOW);
+  digitalWrite(m_in2, m_direction > 0 ? LOW:HIGH);
+}
+
 void DC_driver::runSpeed(bool checkHome) {
   if(checkHome) {
     digitalWrite(m_in1, HIGH);

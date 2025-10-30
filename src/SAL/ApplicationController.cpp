@@ -130,8 +130,17 @@ void ApplicationController::executeCommand(char* command) {
         this->enableEngine(false);
     }
     else if(command[0] == 'h') {
-        setMachineState(MACHINE_EXECUTE_COMMAND);
-        m_robot->goHome();
+        if(command[1] == 'a') {
+            hardwareGohome();
+            m_robot->goHome();
+            setMachineState(MACHINE_EXECUTE_COMMAND);
+        }
+        else if(command[1] >= '0' && command[1] <= '3')
+        {
+            hardwareGohome(command[1]-'0');
+            m_robot->goHome(command[1]-'0');
+            setMachineState(MACHINE_EXECUTE_COMMAND);
+        }
     }
     else if(command[0] == 't' &&
             command[1] == '1' ) {

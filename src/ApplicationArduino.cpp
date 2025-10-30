@@ -27,9 +27,6 @@ const int dcIN2 = 44;
 volatile char m_buffer[128];
 ApplicationArduino::ApplicationArduino()
 {
-    Serial.begin(38400);
-    this->printf("ApplicationArduino constructor\r\n");    
-
     memset(m_buttonPin,NONE_PIN,sizeof(m_buttonPin));
     m_buttonPin[MOTOR_ARM1] = limitX;
     m_buttonPin[MOTOR_ARM2] = limitY;
@@ -70,6 +67,18 @@ long ApplicationArduino::getSystemTime() {
 	return m_appTimer;
 }
 
+void ApplicationArduino::hardwareGohome(int motorID)
+{
+  if(motorID == MAX_MOTOR || motorID == MOTOR::MOTOR_ARM3)
+  m_servoDriver->fastMoveToTarget(100);
+}
+
+void ApplicationArduino::harwareStop(int motorID = MAX_MOTOR)
+{
+  if(motorID == MAX_MOTOR || motorID == MOTOR::MOTOR_CAPTURE)
+  m_dcDriver->stop();
+}
+
 void ApplicationArduino::checkInput(){
 	for(unsigned int btnID = 0; btnID< MAX_BUTTON; btnID++) {
     if(m_buttonPin[btnID] != NONE_PIN) {
@@ -108,10 +117,10 @@ int ApplicationArduino::readSerial(char* output, int length) {
 #endif
 }
 
-bool ApplicationArduino::isLimitReached(int motor, MOTOR_LIMIT_TYPE limitType)
+bool ApplicationArduino::isLimitReached(int motorID, MOTOR_LIMIT_TYPE limitType)
                       {
   bool motorHomed = true;
-  switch(motor){
+  switch(motorID){
     case MOTOR::MOTOR_ARM1: {
       motorHomed = limitType == MOTOR_LIMIT_MIN ? 
                     (m_buttonList[MOTOR_ARM1]->buttonState() != BUTTON_STATE::BUTTON_NOMAL) :
@@ -125,7 +134,9 @@ bool ApplicationArduino::isLimitReached(int motor, MOTOR_LIMIT_TYPE limitType)
     }
     break;
     case MOTOR::MOTOR_ARM3: {
-      motorHomed = false;
+      motorHomed = limitType == MOTOR_LIMIT_MIN ? 
+                    m_servoDriver->currentPosition() == 100:
+                    false;
     }
     break;
     case MOTOR::MOTOR_CAPTURE: {
@@ -146,10 +157,47 @@ void ApplicationArduino::enableEngine(bool enable) {
 
 void ApplicationArduino::initDirection(int motorID, int direction)
 {
-
+  switch(motorID){
+    case MOTOR::MOTOR_ARM1:
+    case MOTOR::MOTOR_ARM2: {
+      m_listStepper[motorID]->setDir(direction);
+    }
+    break;
+    case MOTOR::MOTOR_ARM3:
+    {
+      //@todo implement move step with Servo motor
+    }
+    break;
+    case MOTOR::MOTOR_CAPTURE: 
+    {
+      //@todo implement move step with DC motor
+      m_dcDriver->setDir(direction);
+    }
+    break;
+    default: break;
+  }
+  
 }
 
 void ApplicationArduino::moveStep(int motorID, int currentStep, int nextStep)
 {
-
+  switch(motorID){
+    case MOTOR::MOTOR_ARM1:
+    case MOTOR::MOTOR_ARM2: {
+      m_listStepper[motorID]->moveStep(500);
+    }
+    break;
+    case MOTOR::MOTOR_ARM3:
+    {
+      //@todo implement move step with Servo motor
+    }
+    break;
+    case MOTOR::MOTOR_CAPTURE: 
+    {
+      //@todo implement move step with DC motor
+      m_dcDriver->moveStep(1000);
+    }
+    break;
+    default: break;
+  }
 }

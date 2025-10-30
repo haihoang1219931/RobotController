@@ -29,6 +29,7 @@ float Servo_driver::speed(){
 void Servo_driver::fastMoveToTarget(int position) {
   if(!attached()) attach(m_pin);
   write(position);
+  setCurrentPosition(position);
   m_state = SERVO_DONE;
 
 }
