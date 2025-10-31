@@ -13,7 +13,7 @@ void setup() {
 }
 void loop() {
   app->loop();
-  app->msleep(1000);
+  // app->msleep(1000);
 }
 
 #else

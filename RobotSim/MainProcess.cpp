@@ -1,5 +1,6 @@
 #include "MainProcess.h"
 #include "ApplicationSim.h"
+#include "../src/SAL/Robot.h"
 MainProcess::MainProcess(QThread *parent) :
     QThread(parent),
     m_stopped(false),
@@ -60,7 +61,8 @@ void MainProcess::syncRobot()
     float listArmLength[MAX_MOTOR];
     int numArm;
     m_application->getCurrentArmLength(listArmLength,&numArm);
-    for(int i=0; i< numArm; i++)
+    printf("syncRobot numArm[%d]\r\n",numArm);
+    for(int i=MOTOR_CAPTURE; i< numArm; i++)
     {
         m_listArmLength[i] = listArmLength[i];
         printf("m_listArmLength[%d] %f\r\n",
@@ -68,10 +70,9 @@ void MainProcess::syncRobot()
     }
 
     float listAngle[MAX_MOTOR];
-    float captureStep;
     int numMotor;
     printf("numMotor[%d]\r\n",numMotor);
-    m_application->getCurrentPosition(listAngle,&numMotor,&captureStep);
+    m_application->getCurrentPosition(listAngle,&numMotor);
     for(int i=0; i< numMotor; i++)
     {
         m_listAngle[i] = listAngle[i];
@@ -131,16 +132,14 @@ void MainProcess::executeCommand(QString command)
 void MainProcess::updateRobotStep()
 {
     float listSteps[MAX_MOTOR];
-    float captureStep;
     int numMotor;
     for(int i=0; i< MAX_MOTOR; i++){
         listSteps[i] = 0;
     }
-    m_application->getCurrentPosition(listSteps,&numMotor,&captureStep);
+    m_application->getCurrentPosition(listSteps,&numMotor);
     for(int i=0; i< numMotor; i++){
         setListAngle(i,listSteps[i]);
     }
-    setCaptureStep(captureStep);
     Q_EMIT listAngleChanged();
     Q_EMIT listArmLengthChanged();
 }
@@ -148,11 +147,6 @@ void MainProcess::updateRobotStep()
 void MainProcess::changeSleepTime(int sleepTime)
 {
     m_sleepTime = sleepTime;
-}
-
-float MainProcess::captureStep()
-{
-    return m_captureStep;
 }
 
 QVariantList MainProcess::listAngle()
@@ -168,12 +162,6 @@ QVariantList MainProcess::listArmLength()
 QVariantList MainProcess::chessBoardInfo()
 {
     return m_chessBoardInfo;
-}
-
-void MainProcess::setCaptureStep(float captureStep)
-{
-    m_captureStep = captureStep;
-    Q_EMIT captureStepChanged();
 }
 
 void MainProcess::setListAngle(int motorID, float angle)

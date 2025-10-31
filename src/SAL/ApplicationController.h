@@ -18,10 +18,14 @@ public:
     void storeButtonState(int btnID, bool pressed);
     void updateInputState();
     MACHINE_STATE stateMachine();
-    void getCurrentPosition(float* listCurrentStep, int* numMotor, float* captureStep);
-    void getCurrentArmLength(float* listCurrentArmLength, int* numArm);
+    void getCurrentPosition(float* listCurrentStep, int* numMotor);
+    void getCurrentArmLength(float* listArmLength, int* numArm);
     void getChessBoardParams(float* listParam, int* numParam);
     void executeCommand(char* command);
+    void executeSingleMotor(int motorID,
+                         int targetStep,
+                         int direction,
+                         int stepTime);
     void setMachineState(MACHINE_STATE machineState);
     bool inverseKinematic(float x, float y,
                            float a1, float a2,float* p1, float* p2);
@@ -45,7 +49,8 @@ public:
     void appendSequenceMove(Point start, Point stop, bool straightMove = false);
     void appendStandByMove();
     void initSequenceMove(int numberOfJoints);
-    virtual void hardwareGohome(int motorID = MAX_MOTOR) = 0;
+    virtual void initRobot() = 0;
+    virtual void specificPlatformGohome(int motorID = MAX_MOTOR) = 0;
     virtual void harwareStop(int motorID = MAX_MOTOR) = 0;
     virtual void checkInput() = 0;
     virtual int printf(const char *fmt, ...) = 0;
@@ -66,9 +71,6 @@ public:
     CommandReader* m_commandReader;
     int m_comCommandID = 0;
     int m_appTimer;
-    float m_motorScale[MAX_MOTOR];
-    float m_armLength[MAX_MOTOR];
-    float m_scale;
 };
 
 #endif // APPLICATIONCONTROLLER_H

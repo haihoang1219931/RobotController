@@ -31,6 +31,11 @@ typedef enum {
     MOTOR_LIMIT_MAX,
 }MOTOR_LIMIT_TYPE;
 
+typedef enum {
+    MOTOR_ENABLED,
+    MOTOR_DISABLED
+}MOTOR_ACTIVE_STATE;
+
 typedef enum{
     ROBOT_INIT,
     ROBOT_EXECUTE_GO_HOME,
@@ -76,4 +81,12 @@ typedef struct{
     float y;
 }Point;
 
+typedef struct{
+    bool active;
+    float scale;
+    float length;
+    int initStep;
+    int homeStep;
+    int homeStepTime;
+}JointParam;
 #endif // STDTYPES_H

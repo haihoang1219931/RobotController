@@ -144,10 +144,10 @@ ApplicationWindow {
                 arm4Width: parseInt(command.arm4Length * Math.cos(command.upAngle/180.0*Math.PI))
                 arm5Width: command.arm5Length
                 angle1: 180-command.angle1
-                angle2: command.angle2-130
-                angle3: command.angle3-50
-                angle4: command.angle4
-                angle5: command.angle5
+                angle2: 180+command.angle2
+                angle3: 180+command.angle3
+                angle4: 180+command.angle4
+                angle5: 180+command.angle5
                 grabberAngle: command.grabberAngle
             }
         }
@@ -155,21 +155,22 @@ ApplicationWindow {
             id: command
             width: 500
             height: 300
-            arm1Length: mainProcess.listArmLength[0]
-            arm2Length: mainProcess.listArmLength[1]
-            arm3Length: mainProcess.listArmLength[2]
-            arm4Length: mainProcess.listArmLength[3]
-            arm5Length: mainProcess.listArmLength[4]
-            angle1: mainProcess.listAngle[0]
-            angle2: mainProcess.listAngle[1]
-            angle3: 0
-            angle4: 0
-            angle5: 0
-            upAngle: mainProcess.listAngle[2]
-            grabberAngle: mainProcess.captureStep
-            chessBoardPosX: mainProcess.chessBoardInfo[0]
-            chessBoardPosY: mainProcess.chessBoardInfo[1]
-            chessBoardWidth: mainProcess.chessBoardInfo[2]
+            property int visualScale: 2
+            arm1Length: mainProcess.listArmLength[1] * visualScale
+            arm2Length: mainProcess.listArmLength[2] * visualScale
+            arm3Length: mainProcess.listArmLength[3] * visualScale
+            arm4Length: mainProcess.listArmLength[4] * visualScale
+            arm5Length: mainProcess.listArmLength[5] * visualScale
+            angle1: mainProcess.listAngle[1]
+            angle2: mainProcess.listAngle[2]
+            angle3: mainProcess.listAngle[3]
+            angle4: mainProcess.listAngle[4]
+            angle5: 180
+            upAngle: mainProcess.listAngle[5]
+            grabberAngle: mainProcess.listAngle[0]
+            chessBoardPosX: mainProcess.chessBoardInfo[0] * visualScale
+            chessBoardPosY: mainProcess.chessBoardInfo[1] * visualScale
+            chessBoardWidth: mainProcess.chessBoardInfo[2] * visualScale
 //            onAngle1Changed: {
 //                var pos = robot.getPosition();
 //                if(typeof cvsPathPlan.currPos == "undefined") {

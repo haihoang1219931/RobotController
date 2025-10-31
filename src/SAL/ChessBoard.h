@@ -5,13 +5,14 @@
 class ChessBoard
 {
 public:
-    ChessBoard(float x, float y, float size);
+    ChessBoard(float x = 0, float y = 0, float rect = 0, float dropZoneSpace = 0);
     float getChessBoardPosX();
     float getChessBoardPosY();
     float getChessBoardSize();
     void setChessBoardPosX(float value);
     void setChessBoardPosY(float value);
     void setChessBoardSize(float value);
+    void setDropZoneSpace(float value);
     Point getFreeDropPoint(ZONE_TYPE zone, uint8_t promote = 0);
     Point convertPoint(int row, int col);
     void updateDropZone(uint8_t piece, int row, int col, ZONE_TYPE zone);

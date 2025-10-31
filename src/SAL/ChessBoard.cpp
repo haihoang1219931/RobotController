@@ -2,11 +2,11 @@
 #include <string.h>
 #include <stdio.h>
 
-ChessBoard::ChessBoard(float x, float y, float size):
+ChessBoard::ChessBoard(float x, float y, float rect, float dropZoneSpace):
     m_chessBoardPosX(x),
     m_chessBoardPosY(y),
-    m_chessBoardRect(size),
-    m_dropZoneSpace(size)
+    m_chessBoardRect(rect),
+    m_dropZoneSpace(dropZoneSpace)
 {
     memset(m_dropZoneMap,0,16);
     memset(m_dropZoneMapGuest,0,16);
@@ -51,6 +51,11 @@ void ChessBoard::setChessBoardPosY(float value)
 void ChessBoard::setChessBoardSize(float value)
 {
     m_chessBoardRect = value/8;
+}
+
+void ChessBoard::setDropZoneSpace(float value)
+{
+    m_dropZoneSpace = value;
 }
 
 Point ChessBoard::getFreeDropPoint(ZONE_TYPE zone, uint8_t promotePiece)

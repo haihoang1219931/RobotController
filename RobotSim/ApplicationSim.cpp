@@ -1,6 +1,7 @@
 #include "ApplicationSim.h"
 #include "../src/SAL/Motor.h"
 #include "../src/SAL/Robot.h"
+#include "../src/SAL/ChessBoard.h"
 #include <stdio.h>
 #include <stdarg.h>
 #ifdef __linux__
@@ -15,11 +16,44 @@ ApplicationSim::ApplicationSim(MainProcess* mainProcess):
     m_mainProcess(mainProcess)
 {
     memset(m_command,0x00U, sizeof(m_command));
+    initRobot();
 }
 
 ApplicationSim::~ApplicationSim()
 {
 
+}
+
+void ApplicationSim::initRobot()
+{
+    m_chessBoard->setChessBoardPosX(13-13*8/2);
+    m_chessBoard->setChessBoardPosY(46);
+    m_chessBoard->setChessBoardSize(13*8);
+    m_chessBoard->setDropZoneSpace(13);
+
+    JointParam armPrams[MAX_MOTOR] = {
+    // active |   scale   |   length   | init step | home angle | home step time |
+        {true,  1.0f*1.0f,        0,         50,          0,             1,     },
+        {true,  1.0f*1.0f,      115,         10,        -20,             1,     },
+        {true,  1.0f*1.0f,       25,        150,         50,             1,     },
+        {false, 1.0f*1.0f,       18,        130,        130,             1,     },
+        {false, 1.0f*1.0f,       40,        180,        180,             1,     },
+        {true,  1.0f*1.0f,       13,          1,         45,             1,     }
+    };
+
+    for(int motor= MOTOR_CAPTURE; motor<= MOTOR_ARM5; motor++) {
+        m_robot->setMotorParam(motor,armPrams[motor]);
+    }
+}
+
+void ApplicationSim::specificPlatformGohome(int motorID)
+{
+    //@todo: consider to optimize code    
+}
+
+void ApplicationSim::harwareStop(int motorID)
+{
+    //@todo: consider to optimize code
 }
 
 void ApplicationSim::checkInput()
@@ -75,12 +109,19 @@ bool ApplicationSim::isLimitReached(int motorID,
                         MOTOR_LIMIT_TYPE limitType)
 {
     unsigned int maxStep[MAX_MOTOR];
-//    memset(maxStep,0xFF,sizeof(maxStep)*sizeof(unsigned int));
-    maxStep[0] = 150;
-    maxStep[1] = 50;
-    maxStep[2] = 25;
+    maxStep[MOTOR_ARM1] = 150;
+    maxStep[MOTOR_ARM2] = 210;
+    maxStep[MOTOR_ARM5] = 45;
+#ifdef DEBUG_SIM
+    printf("isLimitReached[%d] cur[%d] h[%d] dir[%d]\r\n",
+           motorID,
+           m_robot->currentStep(motorID),
+           m_robot->homeStep(motorID),
+           m_robot->dir(motorID));
+#endif
     return limitType == MOTOR_LIMIT_MIN?
-                m_robot->getMotor(motorID)->currentStep()<=0 :
+                (m_robot->currentStep(motorID) * m_robot->dir(motorID)
+                 >= m_robot->homeStep(motorID) * m_robot->dir(motorID)):
                 maxStep[motorID];
 }
 
@@ -104,12 +145,17 @@ void ApplicationSim::initDirection(int motorID, int direction)
 
 void ApplicationSim::moveStep(int motorID, int currentStep, int nextStep)
 {
-
+//    int simCurrentStep = m_robot->currentStep(motorID);
+//    int dir = m_robot->dir(motorID);
+//    m_robot->setCurrentStep(motorID,simCurrentStep + dir);
+#ifdef DEBUG_SIM
+    this->printf("Sim M[%d] S[%d]\r\n",motorID,simCurrentStep + dir);
+#endif
 }
 
 int ApplicationSim::getMotorAngle(int motorID)
 {
-    return m_robot->getMotor(motorID)->currentStep();
+    return m_robot->currentStep(motorID);
 }
 
 void ApplicationSim::simulateReceivedCommand(char* command, int length)

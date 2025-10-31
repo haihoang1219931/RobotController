@@ -4,12 +4,6 @@
 #include <Arduino.h>
 #include "SAL/ApplicationController.h"
 
-typedef enum {
-  MOTOR_ARM1,
-  MOTOR_ARM2,
-  MOTOR_ARM3,
-  MOTOR_CAPTURE
-} MOTOR;
 class Stepper_driver;
 class Servo_driver;
 class DC_driver;

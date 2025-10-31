@@ -8,6 +8,9 @@ class ApplicationSim: public ApplicationController
 public:
     ApplicationSim(MainProcess* mainProcess);
     ~ApplicationSim();
+    void initRobot() override;
+    void specificPlatformGohome(int motorID = MAX_MOTOR) override;
+    void harwareStop(int motorID = MAX_MOTOR) override;
     void checkInput() override;
     int printf(const char *fmt, ...) override;
     void msleep(int millis) override;
@@ -16,8 +19,8 @@ public:
     bool isLimitReached(int motorID,
                             MOTOR_LIMIT_TYPE limitType) override;
     int readSerial(char* output, int length) override;
-    void initDirection(int motorID, int direction);
-    void moveStep(int motorID, int currentStep, int nextStep);
+    void initDirection(int motorID, int direction) override ;
+    void moveStep(int motorID, int currentStep, int nextStep) override;
     int getMotorAngle(int motorID);
     void simulateReceivedCommand(char* command, int length);
 private:

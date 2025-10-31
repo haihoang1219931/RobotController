@@ -3,9 +3,23 @@
 
 #include "StdTypes.h"
 
+typedef enum {
+  MOTOR_CAPTURE,
+  MOTOR_ARM1,
+  MOTOR_ARM2,
+  MOTOR_ARM3,
+  MOTOR_ARM4,
+  MOTOR_ARM5,
+} MOTOR;
+
 typedef struct {
-    int jointSteps[MAX_MOTOR];
-    int captureStep;
+    int steps;
+    int stepTime;
+    int active;
+} Joint;
+
+typedef struct {
+    Joint jointSteps[MAX_MOTOR];
 } Move;
 
 class ApplicationController;
@@ -13,17 +27,19 @@ class Motor;
 class Robot
 {
 public:
-    Robot(ApplicationController* app,int numMotor = 0);
+    Robot(ApplicationController* app);
+    void setMotorParam(int motorID, JointParam param);
+    float armLength(int motorID);
+    int currentStep(int motorID);
     void loop();
     void setState(ROBOT_STATE newState);
-    void goHome(int motorID = MAX_MOTOR);
+    void requestGoHome(int motorID = MAX_MOTOR);
     void executeGohome();
-    int getNumMotor();
-    void goToPosition(int* stepList, int numMotor, MOTION_SPACES motionSpace = MOTION_JOINT_SPACE);
-    void executeGoToPosition();
+    void requestGoPosition(int motorID, int targetStep, int stepTime, bool isRelativeMove);
+    void executeGoPosition();
     void resetMoveSequene();
-    void appendMove(int* jointSteps, int captureStep);
-    void moveSequence(int numMotor);
+    void appendMove(int* jointSteps);
+    void moveSequence(int motorID = MAX_MOTOR);
     void executeMoveSequence();
     void initMove();
     void gotoTarget();
@@ -33,20 +49,26 @@ public:
     void moveStep(int motorID, int currentStep, int nextStep);
     bool isLimitReached(int motorID,
                         MOTOR_LIMIT_TYPE limitType);
-    void getCurrentPosition(int* listCurrentStep, int* numMotor, float* captureStep);
-    Motor* getMotor(int motorID);
+    int homeStep(int motorID);
+    int motorCurrentStep(int motorID);
+    void setCurrentStep(int motorID, int step);
+    void setDir(int motorID, int dir);
+    int dir(int motorID);
+    float angleToStep(int motorID, float angle);
+    void currentStep(int* listCurrentStep, int* numMotor);
+    void currentAngle(float* listCurrentStep, int* numMotor);
+    void armLength(float* listArmLength, int* numMotor);
+
 private:
     ApplicationController* m_app;
     Motor* m_motorList[MAX_MOTOR];
-    Motor* m_capture;
     ROBOT_STATE m_state;
     ROBOT_SEQUENCE_STATE m_sequenceState;
     Move m_moveSequence[MAX_MOVE_SEQUENCE];
     int m_curMove;
     int m_numMove;
     int m_numMotor;
-    int m_executeNumMotor;
-    int m_requestGoHomeMotorID;
+    int m_requestMotorID;
     long m_startTime;
     long m_elapsedTime;
 };

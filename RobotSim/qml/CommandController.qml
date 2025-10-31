@@ -109,17 +109,115 @@ Item {
                             verticalAlignment: Text.AlignVCenter
                         }
                     }
+                    Row {
+                        spacing: 10
+
+                        TextField {
+                            id: txtRawCommand
+                            width: 200
+                            height: 40
+                            text: "p0 0050 0001 a"
+                        }
+
+                        Button {
+                            width: 60
+                            height: 40
+                            text: "Raw"
+                            onClicked: {
+                                mainProcess.executeCommand(txtRawCommand.text);
+                            }
+                        }
+                    }
+                    Row {
+                        spacing: 10
+                        Button {
+                            width: 60
+                            height: 40
+                            text: "Home"
+                            onClicked: {
+                                mainProcess.executeCommand("ha");
+                            }
+                        }
+                        Button {
+                            width: 40
+                            height: 40
+                            text: "H1"
+                            onClicked: {
+                                mainProcess.executeCommand("h1");
+                            }
+                        }
+                        Button {
+                            width: 40
+                            height: 40
+                            text: "H2"
+                            onClicked: {
+                                mainProcess.executeCommand("h2");
+                            }
+                        }
+                        Button {
+                            width: 40
+                            height: 40
+                            text: "H5"
+                            onClicked: {
+                                mainProcess.executeCommand("h5");
+                            }
+                        }
+                        Button {
+                            width: 40
+                            height: 40
+                            text: "HC"
+                            onClicked: {
+                                mainProcess.executeCommand("h0");
+                            }
+                        }
+                    }
 
                     Row {
                         spacing: 10
                         Button {
-                            width: 100
+                            width: 60
                             height: 40
-                            text: "Home"
+                            text: "Ready"
                             onClicked: {
-                                mainProcess.executeCommand("h");
+                                mainProcess.executeCommand("ra");
                             }
                         }
+                        Button {
+                            width: 40
+                            height: 40
+                            text: "R1"
+                            onClicked: {
+                                mainProcess.executeCommand("r1");
+                            }
+                        }
+                        Button {
+                            width: 40
+                            height: 40
+                            text: "R2"
+                            onClicked: {
+                                mainProcess.executeCommand("r2");
+                            }
+                        }
+                        Button {
+                            width: 40
+                            height: 40
+                            text: "R5"
+                            onClicked: {
+                                mainProcess.executeCommand("r5");
+                            }
+                        }
+                        Button {
+                            width: 40
+                            height: 40
+                            text: "RC"
+                            onClicked: {
+                                mainProcess.executeCommand("r0");
+                            }
+                        }
+                    }
+
+                    Row {
+                        spacing: 10
                         Button {
                             width: 100
                             height: 40

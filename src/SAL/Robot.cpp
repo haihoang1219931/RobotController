@@ -10,16 +10,18 @@
 
 #define abs(x) ((x)>0?(x):-(x))
 
-Robot::Robot(ApplicationController* app, int numMotor) :
+Robot::Robot(ApplicationController* app) :
     m_app(app),
-    m_state(ROBOT_INIT),
-    m_numMotor(numMotor),
-    m_executeNumMotor(numMotor)
+    m_state(ROBOT_INIT)
 {
-    for(int i=0;i< MAX_MOTOR; i++) {
+    for(int i=MOTOR_CAPTURE;i< MAX_MOTOR; i++) {
         m_motorList[i] = new Motor(this,i);
     }
-    m_capture = new Motor(this,-1);
+}
+
+void Robot::setMotorParam(int motorID, JointParam param)
+{
+    m_motorList[motorID]->setParam(param);
 }
 
 void Robot::setState(ROBOT_STATE newState) {
@@ -40,7 +42,7 @@ void Robot::loop() {
     }
         break;
     case ROBOT_EXECUTE_POSITION: {
-        executeGohome();
+        executeGoPosition();
     }
         break;
     case ROBOT_EXECUTE_SEQUENCE: {
@@ -53,14 +55,15 @@ void Robot::loop() {
         break;
     }
 }
-void Robot::goHome(int motorID) {
+void Robot::requestGoHome(int motorID) {
     m_app->printf("GO HOME\r\n");
-    m_requestGoHomeMotorID = motorID;
+    m_requestMotorID = motorID;
     int startID = motorID == MAX_MOTOR ? 0 : motorID;
     int stopID = motorID == MAX_MOTOR ? MAX_MOTOR : motorID+1;
     for(int i=startID; i< stopID; i++)
     {
-        m_motorList[i]->initPlan(0,0,-1,true);
+        if(m_motorList[i]->isActive())
+            m_motorList[i]->initGoHome();
     }     
     m_startTime = m_app->getSystemTime();
     setState(ROBOT_EXECUTE_GO_HOME);
@@ -68,79 +71,70 @@ void Robot::goHome(int motorID) {
 
 void Robot::executeGohome() {
     bool allMotorsAtHome = true;
-    int startID = m_requestGoHomeMotorID == MAX_MOTOR ? 
-                                            0 : m_requestGoHomeMotorID;
-    int stopID = m_requestGoHomeMotorID == MAX_MOTOR ? 
-                                            m_executeNumMotor : m_requestGoHomeMotorID+1;
-    for(int i=startID; i< stopID; i++)
+#ifdef DEBUG_ROBOT
+    m_app->printf("Robot executeGohome M[%d]\r\n",m_requestMotorID);
+#endif
+    int startID = m_requestMotorID == MAX_MOTOR ?
+                                            MOTOR_CAPTURE : m_requestMotorID;
+    int stopID = m_requestMotorID == MAX_MOTOR ?
+                                            MAX_MOTOR : m_requestMotorID+1;
+    for(int motor = startID; motor< stopID; motor++)
     {
-// #ifdef DEBUG_ROBOT
-        m_app->printf("Robot M[%d] Time[%d] P[%d] T[%d]\r\n",
-                    i,m_elapsedTime,
-                    m_motorList[i]->currentStep(),
-                    m_motorList[i]->targetStep());
-// #endif                      
-        if(!m_motorList[i]->isFinishExecution())
+        if(!m_motorList[motor]->isActive()) continue;
+        if(!m_motorList[motor]->isFinishExecution())
         {
 #ifdef DEBUG_ROBOT
-            m_app->printf("Robot M[%d] gohome\r\n",i);
-#endif            
-            m_motorList[i]->executePlan();
+            m_app->printf("Robot M[%d] Time[%d] P[%d] T[%d]\r\n",
+                        motor,m_elapsedTime,
+                        m_motorList[motor]->currentStep(),
+                        m_motorList[motor]->targetStep());
+            m_app->printf("Robot M[%d] gohome\r\n",motor);
+#endif
+            m_motorList[motor]->executePlan();
             allMotorsAtHome = false;
         }
     }
     if(allMotorsAtHome) {
-        m_app->harwareStop(m_requestGoHomeMotorID);
+        m_app->harwareStop(m_requestMotorID);
         setState(ROBOT_EXECUTE_DONE);
     }
 }
 
-int Robot::getNumMotor()
+void Robot::requestGoPosition(int motorID, int targetStep, int stepTime, bool isRelativeMove)
 {
-    return m_executeNumMotor;
-}
-
-void Robot::goToPosition(int* stepList, int numMotor, MOTION_SPACES motionSpace)
-{
-    // calculate the step time for all motors in us
+    m_requestMotorID = motorID;
+    m_motorList[motorID]->initPlan(targetStep, stepTime, isRelativeMove);
     setState(ROBOT_EXECUTE_POSITION);
-    m_executeNumMotor = numMotor;
-    int listSteps[MAX_MOTOR];
-    int listTimeStep[MAX_MOTOR];
-    int maxStep = 0;
-    int minStep = 0;
-
-    for(int i=0; i< numMotor; i++){
-        listSteps[i] = abs(stepList[i] - m_motorList[i]->currentStep());
-        if(listSteps[i] > maxStep) maxStep = listSteps[i];
-        if(minStep == 0) minStep = listSteps[i];
-        else if(listSteps[i] < minStep) minStep = listSteps[i];
-    }
-//    m_app->printf("minStep[%d] maxStep[%d]\r\n",
-//           minStep,maxStep);
-//    int minScale = (int)pow(10,(int)log10((double)maxStep));
-    int minScale = 1;
-//    m_app->printf("minScale[%d]\r\n",minScale);
-    for(int i=0; i< numMotor; i++){
-        listTimeStep[i] = round((float)(minScale * maxStep) / listSteps[i]);
-        m_app->printf("    M[%d] [%d %d = %d]\r\n",
-               i,listSteps[i],listTimeStep[i],listSteps[i]*listTimeStep[i]);
-    }
-    m_app->printf("\r\n");
-    for(int i=0; i< numMotor; i++){
-        m_motorList[i]->initPlan(stepList[i],listTimeStep[i],0);
-    }
-    m_startTime = m_app->getSystemTime();
 }
 
-void Robot::executeGoToPosition() {
-    bool allMotorsAtTarget = true;
-    m_elapsedTime = m_app->getSystemTime() - m_startTime;
-    for(int i=0; i< m_executeNumMotor; i++)
+void Robot::executeGoPosition()
+{
+    bool allMotorsDone = true;
+#ifdef DEBUG_ROBOT
+    m_app->printf("Robot executeGoPosition M[%d]\r\n",m_requestMotorID);
+#endif
+    int startID = m_requestMotorID == MAX_MOTOR ?
+                                            MOTOR_CAPTURE : m_requestMotorID;
+    int stopID = m_requestMotorID == MAX_MOTOR ?
+                                            MAX_MOTOR : m_requestMotorID+1;
+    for(int motor = startID; motor< stopID; motor++)
     {
-        m_motorList[i]->executePlan();
+        if(!m_motorList[motor]->isActive()) continue;
+        if(!m_motorList[motor]->isFinishExecution())
+        {
+//#ifdef DEBUG_ROBOT
+            m_app->printf("Robot M[%d] Time[%d] P[%d] T[%d]\r\n",
+                        motor,m_elapsedTime,
+                        m_motorList[motor]->currentStep(),
+                        m_motorList[motor]->targetStep());
+            m_app->printf("Robot M[%d] executeGoPosition\r\n",motor);
+//#endif
+            m_motorList[motor]->executePlan();
+            allMotorsDone = false;
+        }
     }
-    if(allMotorsAtTarget) {
+    if(allMotorsDone) {
+        m_app->harwareStop(m_requestMotorID);
         setState(ROBOT_EXECUTE_DONE);
     }
 }
@@ -159,7 +153,7 @@ void Robot::moveStep(int motorID, int currentStep, int nextStep)
 {
 #ifdef DEBUG_ROBOT
     m_app->printf("APP M[%d] moveStep\r\n",motorID);
-#endif    
+#endif
     m_app->moveStep(motorID, currentStep, nextStep);
 }
 
@@ -169,19 +163,71 @@ bool Robot::isLimitReached(int motorID,
     return m_app->isLimitReached(motorID,limitType);
 }
 
-void Robot::getCurrentPosition(int* listCurrentStep, int* numMotor, float* captureStep)
+int Robot::homeStep(int motorID)
+{
+    return m_motorList[motorID]->homeStep();
+}
+
+int Robot::motorCurrentStep(int motorID)
+{
+    return m_motorList[motorID]->currentStep();
+}
+
+void Robot::setCurrentStep(int motorID, int step)
+{
+    m_motorList[motorID]->setCurrentStep(step);
+}
+
+void Robot::setDir(int motorID, int dir)
+{
+    m_motorList[motorID]->setDir(dir);
+}
+
+int Robot::dir(int motorID)
+{
+    return m_motorList[motorID]->dir();
+}
+
+float Robot::angleToStep(int motorID, float angle)
+{
+    return m_motorList[motorID]->angleToStep(angle);
+}
+
+void Robot::currentStep(int* listCurrentStep, int* numMotor)
 {
     *numMotor = MAX_MOTOR;
-    for(int i=0; i< MAX_MOTOR; i++)
+    for(int i=MOTOR_CAPTURE; i< MAX_MOTOR; i++)
     {
         listCurrentStep[i] = m_motorList[i]->currentStep();
     }
-    *captureStep = m_capture->currentStep();
 }
 
-Motor* Robot::getMotor(int motorID)
+void Robot::currentAngle(float* listCurrentAngle, int* numMotor)
 {
-    return m_motorList[motorID];
+    *numMotor = MAX_MOTOR;
+    for(int i=MOTOR_CAPTURE; i< MAX_MOTOR; i++)
+    {
+        listCurrentAngle[i] = m_motorList[i]->currentStep();
+    }
+}
+
+void Robot::armLength(float* listArmLength, int* numMotor)
+{
+    *numMotor = MAX_MOTOR;
+    for(int i=MOTOR_CAPTURE; i< MAX_MOTOR; i++)
+    {
+        listArmLength[i] = m_motorList[i]->length();
+    }
+}
+
+float Robot::armLength(int motorID)
+{
+    return m_motorList[motorID]->length();
+}
+
+int Robot::currentStep(int motorID)
+{
+    return m_motorList[motorID]->currentStep();
 }
 
 void Robot::resetMoveSequene()
@@ -190,19 +236,18 @@ void Robot::resetMoveSequene()
     m_numMove = 0;
 }
 
-void Robot::appendMove(int* jointSteps, int captureStep)
+void Robot::appendMove(int* jointSteps)
 {
     memcpy(m_moveSequence[m_numMove].jointSteps,jointSteps,sizeof(int)*MAX_MOTOR);
-    m_moveSequence[m_numMove].captureStep = captureStep;
     m_numMove++;
 }
 
-void Robot::moveSequence(int numMotor)
+void Robot::moveSequence(int motorID)
 {
 #ifdef DEBUG_ROBOT
     m_app->printf("move sequence\r\n");
 #endif
-    m_executeNumMotor = numMotor;
+    m_requestMotorID = motorID;
     setState(ROBOT_EXECUTE_SEQUENCE);
     m_sequenceState = ROBOT_MOVE_INIT;
 }
@@ -239,8 +284,9 @@ void Robot::initMove()
     int maxStep = 0;
     int minStep = 0;
 
-    for(int i=0; i< m_executeNumMotor; i++){
-        listSteps[i] = abs(m_moveSequence[m_curMove].jointSteps[i] - m_motorList[i]->currentStep());
+    for(int i=MOTOR_CAPTURE; i< MAX_MOTOR; i++){
+        if(!m_motorList[i]->isActive()) continue;
+        listSteps[i] = abs(m_moveSequence[m_curMove].jointSteps[i].steps - m_motorList[i]->currentStep());
         if(listSteps[i] > maxStep) maxStep = listSteps[i];
         if(minStep == 0) minStep = listSteps[i];
         else if(listSteps[i] < minStep) minStep = listSteps[i];
@@ -250,18 +296,16 @@ void Robot::initMove()
 //    int minScale = (int)pow(10,(int)log10((double)maxStep));
     int minScale = 1;
 //    m_app->printf("minScale[%d]\r\n",minScale);
-    for(int i=0; i< m_executeNumMotor; i++){
+    for(int i=MOTOR_CAPTURE; i< MAX_MOTOR; i++){
         listTimeStep[i] = round((float)(minScale * maxStep) / listSteps[i]);
         m_app->printf("     M[%d] [%d %d = %d]\r\n",
                i,listSteps[i],listTimeStep[i],listSteps[i]*listTimeStep[i]);
     }
     m_app->printf("\r\n");
-    for(int i=0; i< m_executeNumMotor; i++){
-        m_motorList[i]->initPlan(m_moveSequence[m_curMove].jointSteps[i],listTimeStep[i],0);
+    for(int i=MOTOR_CAPTURE; i< MAX_MOTOR; i++){
+        if(!m_motorList[i]->isActive()) continue;
+        m_motorList[i]->initPlan(m_moveSequence[m_curMove].jointSteps[i].steps,listTimeStep[i],0);
     }
-
-    // init capture
-    m_capture->initPlan(m_moveSequence[m_curMove].captureStep,1,0);
 
     // start time
     m_startTime = m_app->getSystemTime();
@@ -273,8 +317,12 @@ void Robot::gotoTarget()
 {
 //    m_sequenceState = ROBOT_MOVE_CAPTURE;
 //    return;
-    bool allMotorsAtHome = true;
-    for(int i=0; i< m_executeNumMotor; i++)
+    int startID = m_requestMotorID == MAX_MOTOR ?
+                                            MOTOR_ARM1 : m_requestMotorID;
+    int stopID = m_requestMotorID == MAX_MOTOR ?
+                                            MAX_MOTOR : m_requestMotorID+1;
+    bool allMotorsFinished = true;
+    for(int i=startID; i< stopID; i++)
     {
 //        m_app->printf("M[%d] Time[%d] P[%d] T[%d]\r\n",
 //                      i,m_elapsedTime,
@@ -283,10 +331,10 @@ void Robot::gotoTarget()
         if(!m_motorList[i]->isFinishExecution())
         {
             m_motorList[i]->executePlan();
-            allMotorsAtHome = false;
+            allMotorsFinished = false;
         }
     }
-    if(allMotorsAtHome) {
+    if(allMotorsFinished) {
         m_sequenceState = ROBOT_MOVE_CAPTURE;
     }
 }
@@ -296,11 +344,11 @@ void Robot::capture()
     bool captureDone = true;
     m_app->printf("Cap Time[%d] P[%d] T[%d]\r\n",
                   m_elapsedTime,
-                  m_capture->currentStep(),
-                  m_capture->targetStep());
-    if(!m_capture->isFinishExecution())
+                  m_motorList[MOTOR_CAPTURE]->currentStep(),
+                  m_motorList[MOTOR_CAPTURE]->targetStep());
+    if(!m_motorList[MOTOR_CAPTURE]->isFinishExecution())
     {
-        m_capture->executePlan();
+        m_motorList[MOTOR_CAPTURE]->executePlan();
         captureDone = false;
     }
     if(captureDone) {

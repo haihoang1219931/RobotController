@@ -24,7 +24,7 @@ Row {
         width: 150
         height: 40
         from: -180
-        to: 180
+        to: 360
         enabled: cbxAngleChangeEnable.checked
     }
     Label {

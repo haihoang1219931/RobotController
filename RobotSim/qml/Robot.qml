@@ -43,15 +43,24 @@ Item {
                         borderColor: "green"
                         anchors.left: parent.right
                         Rectangle{
-                            id: capture
                             y: -height/2+parent.height/2
                             width: height
-                            height: 30 - grabberAngle/10
-                            radius: height/2
-                            border.color: "red"
+                            height: 30
+                            border.color: "white"
+                            border.width: 2
                             color: "transparent"
                             anchors.left: parent.right
                             anchors.leftMargin: -height/2
+                            Rectangle {
+                                id: capture
+                                anchors.verticalCenter: parent.verticalCenter
+                                anchors.horizontalCenter: parent.horizontalCenter
+                                width: height
+                                height: 30 - grabberAngle/5
+                                border.color: "black"
+                                color: "transparent"
+                                border.width: 2
+                            }
                         }
                     }
                 }

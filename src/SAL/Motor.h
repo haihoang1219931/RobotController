@@ -8,7 +8,8 @@ class Motor
 {
 public:
     Motor(Robot* robot, int motorID = 0);
-    void initPlan(int targetStep, int stepTime, int direction, bool isGoHome = false);
+    void initPlan(int targetStep, int stepTime, bool isRelativeMove = false);
+    void initGoHome();
     void executePlan();
     void increaseSpeed();
     void cruiseSpeed();
@@ -17,10 +18,21 @@ public:
     int currentStep();
     int targetStep();
     bool isFinishExecution();
+    void setParam(JointParam param);
+    bool isActive();
+    float length();
+    float currentAngle();
+    float angleToStep(int angle);
+    int stepToAngle(int step);
+    int homeStep();
+    void setCurrentStep(int step);
+    void setDir(int dir);
+    int dir();
 private:
     Robot* m_robot;
     int m_motorID;
     MOTOR_CONTROL_STATE m_state;
+    JointParam m_param;
     int m_currStep;
     int m_startStep;
     int m_targetStep;
