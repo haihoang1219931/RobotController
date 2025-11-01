@@ -55,7 +55,7 @@ void Motor::executePlan()
 #ifdef DEBUG_MOTOR
     app->printf("Motor[%d] S[%d]\r\n",m_motorID,m_state);
 #else
-    printf("Motor[%d] S[%d]\r\n",m_motorID,m_state);
+//    printf("Motor[%d] S[%d]\r\n",m_motorID,m_state);
 #endif
     switch (m_state) {
     case MOTOR_INIT: {
@@ -101,17 +101,21 @@ void Motor::cruiseSpeed()
                m_currStep
                );
 #else
-        printf("M[%d] time[%ld] numStep[%d] m_currStep[%d]\r\n",
-                       m_motorID,
-                       m_robot->elapsedTime(),
-                       numStep,
-                       m_currStep
-                       );
+
 #endif               
         m_currStep += m_direction;
         m_robot->moveStep(m_motorID, 
                           m_currStep-m_direction,
                           m_currStep);
+//        printf("M[%d] time[%ld] numStep[%d] m_currStep[%d] m_direction[%d] max[%s] min[%s]\r\n",
+//                       m_motorID,
+//                       m_robot->elapsedTime(),
+//                       numStep,
+//                       m_currStep,
+//                        m_direction,
+//                        m_robot->isLimitReached(m_motorID,MOTOR_LIMIT_MAX) ? "true":"false",
+//                        m_robot->isLimitReached(m_motorID,MOTOR_LIMIT_MIN) ? "true":"false"
+//                       );
     }
     if(m_currStep == m_targetStep
             || (m_direction > 0 && !m_robot->isLimitReached(m_motorID,MOTOR_LIMIT_MAX))

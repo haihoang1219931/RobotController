@@ -26,6 +26,9 @@ ApplicationController::~ApplicationController() {
 
 void ApplicationController::loop() {
     m_appTimer++;
+#ifdef DEBUG_APP
+    this->printf("APP Timer[%d]\r\n",m_appTimer);
+#endif
     updateInputState();
     switch(m_machineState) {
     case MACHINE_WAIT_COMMAND: {

@@ -104,6 +104,7 @@ void Robot::requestGoPosition(int motorID, int targetStep, int stepTime, bool is
 {
     m_requestMotorID = motorID;
     m_motorList[motorID]->initPlan(targetStep, stepTime, isRelativeMove);
+    m_startTime = m_app->getSystemTime();
     setState(ROBOT_EXECUTE_POSITION);
 }
 
@@ -122,13 +123,12 @@ void Robot::executeGoPosition()
         if(!m_motorList[motor]->isActive()) continue;
         if(!m_motorList[motor]->isFinishExecution())
         {
-//#ifdef DEBUG_ROBOT
+#ifdef DEBUG_ROBOT
             m_app->printf("Robot M[%d] Time[%d] P[%d] T[%d]\r\n",
                         motor,m_elapsedTime,
                         m_motorList[motor]->currentStep(),
                         m_motorList[motor]->targetStep());
-            m_app->printf("Robot M[%d] executeGoPosition\r\n",motor);
-//#endif
+#endif
             m_motorList[motor]->executePlan();
             allMotorsDone = false;
         }
