@@ -265,7 +265,7 @@ void ApplicationController::executeSingleMotor(int motorID,
     for(int motor = 0; motor < numMotor; motor++){
         if(motor == motorID) listCurrentStep[motor] += targetStep*direction;
     }
-    initSequenceMove(3);
+    initSequenceMove(MAX_MOTOR);
 }
 
 bool ApplicationController::inverseKinematic(float x, float y, float a1, float a2, float* p1, float* p2)
@@ -372,7 +372,7 @@ void ApplicationController::calculateSequenceMoveNormal(int startCol, int startR
     clearSequenceMove();
     appendSequenceMove(startPoint, stopPoint);
     appendStandByMove();
-    initSequenceMove(3);
+    initSequenceMove(MAX_MOTOR);
 }
 
 void ApplicationController::calculateSequenceAttack(int startCol, int startRow,
@@ -385,10 +385,10 @@ void ApplicationController::calculateSequenceAttack(int startCol, int startRow,
     Point stopPoint = m_chessBoard->convertPoint(stopRow,stopCol);
 
     clearSequenceMove();
-    appendSequenceMove(stopPoint, dropPoint);
-    appendSequenceMove(startPoint, stopPoint);
+//    appendSequenceMove(stopPoint, dropPoint);
+//    appendSequenceMove(startPoint, stopPoint);
     appendStandByMove();
-    initSequenceMove(3);
+    initSequenceMove(MAX_MOTOR);
 }
 
 void ApplicationController::calculateSequencePastPawn(int startCol, int startRow,
@@ -403,7 +403,7 @@ void ApplicationController::calculateSequencePastPawn(int startCol, int startRow
     appendSequenceMove(pawnPoint, dropPoint);
     appendSequenceMove(startPoint, stopPoint);
     appendStandByMove();
-    initSequenceMove(3);
+    initSequenceMove(MAX_MOTOR);
 }
 
 void ApplicationController::calculateSequencePromotePiece(int startCol, int startRow,
@@ -447,7 +447,7 @@ void ApplicationController::calculateSequenceCastle(int kingCol, int kingRow,
     appendSequenceMove(rookPoint, rookNewPoint);
     appendSequenceMove(kingPoint, kingNewPoint);
     appendStandByMove();
-    initSequenceMove(3);
+    initSequenceMove(MAX_MOTOR);
 }
 
 void ApplicationController::clearSequenceMove() {
