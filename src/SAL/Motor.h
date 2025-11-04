@@ -28,6 +28,7 @@ public:
     void setCurrentStep(int step);
     void setDir(int dir);
     int dir();
+    int state();
 private:
     Robot* m_robot;
     int m_motorID;

@@ -322,7 +322,7 @@ void ApplicationController::calculateJoints(float xPos, float yPos, float upAngl
                 (M_PI/2 + q1)/M_PI*180.0f);
     jointSteps[MOTOR_ARM2] = m_robot->angleToStep(
                 MOTOR_ARM2,
-                (M_PI - q2 - q2Offset)/M_PI*180.0f);
+                (M_PI - q2 - q2Offset)/M_PI*180.0f + 50.0f);
     jointSteps[MOTOR_ARM3] = 0;
     jointSteps[MOTOR_ARM4] = 0;
     jointSteps[MOTOR_ARM5] = m_robot->angleToStep(
@@ -385,7 +385,7 @@ void ApplicationController::calculateSequenceAttack(int startCol, int startRow,
     Point stopPoint = m_chessBoard->convertPoint(stopRow,stopCol);
 
     clearSequenceMove();
-//    appendSequenceMove(stopPoint, dropPoint);
+    appendSequenceMove(stopPoint, dropPoint);
 //    appendSequenceMove(startPoint, stopPoint);
     appendStandByMove();
     initSequenceMove(MAX_MOTOR);
@@ -465,6 +465,7 @@ void ApplicationController::appendSequenceMove(Point start, Point stop, bool str
         int numStep = 6;
         for(int seqStep = 0; seqStep < numStep; seqStep++)
         {
+            jointSteps[MOTOR_CAPTURE] = captureStep[seqStep];
             // Inverse axis Oxy -> Oyx
             calculateJoints(position[seqStep].y, position[seqStep].x, upAngles[seqStep], jointSteps);
             m_robot->appendMove(jointSteps);
@@ -475,7 +476,7 @@ void ApplicationController::appendStandByMove() {
     int jointSteps[MAX_MOTOR];
     jointSteps[MOTOR_CAPTURE] = 0;
     jointSteps[MOTOR_ARM1] = 0;
-    jointSteps[MOTOR_ARM2] = 90;
+    jointSteps[MOTOR_ARM2] = 90+50;
     jointSteps[MOTOR_ARM3] = 0;
     jointSteps[MOTOR_ARM4] = 0;
     jointSteps[MOTOR_ARM5] = 45;

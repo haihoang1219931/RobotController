@@ -152,7 +152,7 @@ void Robot::initDirection(int motorID, int direction)
 void Robot::moveStep(int motorID, int currentStep, int nextStep)
 {
 #ifdef DEBUG_ROBOT
-    m_app->printf("APP M[%d] moveStep\r\n",motorID);
+    m_app->printf("Robot M[%d] moveStep\r\n",motorID);
 #endif
     m_app->moveStep(motorID, currentStep, nextStep);
 }
@@ -309,7 +309,7 @@ void Robot::initMove()
         if(!m_motorList[i]->isActive()) continue;
 //        listTimeStep[i] = round((float)(minScale * maxStep) / listSteps[i]);
         listTimeStep[i] = 1;
-        m_app->printf("     M[%d] [%d %d = %d]\r\n",
+        m_app->printf("Robot     M[%d] [%d %d = %d]\r\n",
                i,listSteps[i],listTimeStep[i],listSteps[i]*listTimeStep[i]);
     }
     m_app->printf("\r\n");
@@ -336,10 +336,6 @@ void Robot::gotoTarget()
     for(int i=startID; i< stopID; i++)
     {
         if(!m_motorList[i]->isActive()) continue;
-        m_app->printf("M[%d] Time[%d] P[%d] T[%d]\r\n",
-                      i,m_elapsedTime,
-                      m_motorList[i]->currentStep(),
-                      m_motorList[i]->targetStep());
         if(!m_motorList[i]->isFinishExecution())
         {
             m_motorList[i]->executePlan();
@@ -347,6 +343,7 @@ void Robot::gotoTarget()
         }
     }
     if(allMotorsFinished) {
+        m_app->printf("======All motor finished\r\n");
         m_sequenceState = ROBOT_MOVE_CAPTURE;
     }
 }

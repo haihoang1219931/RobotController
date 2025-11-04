@@ -108,21 +108,29 @@ long ApplicationSim::getSystemTime()
 bool ApplicationSim::isLimitReached(int motorID,
                         MOTOR_LIMIT_TYPE limitType)
 {
-    unsigned int maxStep[MAX_MOTOR];
+    int maxStep[MAX_MOTOR];
     maxStep[MOTOR_ARM1] = 150;
     maxStep[MOTOR_ARM2] = 210;
     maxStep[MOTOR_ARM5] = 45;
+    bool result = false;
+
+    if(limitType == MOTOR_LIMIT_MIN)
+        result = m_robot->currentStep(motorID)
+                <= m_robot->homeStep(motorID);
+    else
+        result = m_robot->currentStep(motorID)
+                >= maxStep[motorID];
 #ifdef DEBUG_SIM
-    printf("isLimitReached[%d] cur[%d] h[%d] dir[%d]\r\n",
+    printf("SIM M[%d] limit[%s][%s] h[%d] cur[%d] max[%d] dir[%d]\r\n",
            motorID,
-           m_robot->currentStep(motorID),
+           limitType == MOTOR_LIMIT_MIN?"MIN":"MAX",
+           result?"true":"false",
            m_robot->homeStep(motorID),
+           m_robot->currentStep(motorID),
+           maxStep[motorID],
            m_robot->dir(motorID));
 #endif
-    return limitType == MOTOR_LIMIT_MIN?
-                (m_robot->currentStep(motorID) * m_robot->dir(motorID)
-                 >= m_robot->homeStep(motorID) * m_robot->dir(motorID)):
-                maxStep[motorID];
+    return result;
 }
 
 void ApplicationSim::enableEngine(bool enable)
