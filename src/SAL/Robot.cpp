@@ -207,7 +207,7 @@ void Robot::currentAngle(float* listCurrentAngle, int* numMotor)
     *numMotor = MAX_MOTOR;
     for(int i=MOTOR_CAPTURE; i< MAX_MOTOR; i++)
     {
-        listCurrentAngle[i] = m_motorList[i]->currentStep();
+        listCurrentAngle[i] = m_motorList[i]->currentAngle();
     }
 }
 
@@ -218,6 +218,16 @@ void Robot::armLength(float* listArmLength, int* numMotor)
     {
         listArmLength[i] = m_motorList[i]->length();
     }
+}
+
+int Robot::minStep(int motorID)
+{
+    return m_motorList[motorID]->minStep();
+}
+
+int Robot::maxStep(int motorID)
+{
+    return m_motorList[motorID]->maxStep();
 }
 
 float Robot::armLength(int motorID)
@@ -307,8 +317,7 @@ void Robot::initMove()
 //    m_app->printf("minScale[%d]\r\n",minScale);
     for(int i=MOTOR_CAPTURE; i< MAX_MOTOR; i++){
         if(!m_motorList[i]->isActive()) continue;
-//        listTimeStep[i] = round((float)(minScale * maxStep) / listSteps[i]);
-        listTimeStep[i] = 1;
+        listTimeStep[i] = round((float)(minScale * maxStep) / listSteps[i]);
         m_app->printf("Robot     M[%d] [%d %d = %d]\r\n",
                i,listSteps[i],listTimeStep[i],listSteps[i]*listTimeStep[i]);
     }
@@ -351,10 +360,12 @@ void Robot::gotoTarget()
 void Robot::capture()
 {
     bool captureDone = true;
+#ifdef DEBUG_ROBOT
     m_app->printf("Cap Time[%d] P[%d] T[%d]\r\n",
                   m_elapsedTime,
                   m_motorList[MOTOR_CAPTURE]->currentStep(),
                   m_motorList[MOTOR_CAPTURE]->targetStep());
+#endif
     if(!m_motorList[MOTOR_CAPTURE]->isFinishExecution())
     {
         m_motorList[MOTOR_CAPTURE]->executePlan();

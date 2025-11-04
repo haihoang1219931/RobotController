@@ -29,6 +29,7 @@ typedef enum {
 typedef enum {
     MOTOR_LIMIT_MIN,
     MOTOR_LIMIT_MAX,
+    MOTOR_LIMIT_HOME,
 }MOTOR_LIMIT_TYPE;
 
 typedef enum {
@@ -85,8 +86,10 @@ typedef struct{
     bool active;
     float scale;
     float length;
-    int initStep;
-    int homeStep;
+    int initAngle;
+    int homeAngle;
     int homeStepTime;
+    int minAngle;
+    int maxAngle;
 }JointParam;
 #endif // STDTYPES_H

@@ -29,6 +29,8 @@ public:
     void setDir(int dir);
     int dir();
     int state();
+    int minStep();
+    int maxStep();
 private:
     Robot* m_robot;
     int m_motorID;

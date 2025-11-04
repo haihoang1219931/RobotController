@@ -32,13 +32,13 @@ void ApplicationSim::initRobot()
     m_chessBoard->setDropZoneSpace(13);
 
     JointParam armPrams[MAX_MOTOR] = {
-    // active |   scale   |   length   | init step | home angle | home step time |
-        {true,  1.0f*1.0f,        0,         50,          0,             1,     },
-        {true,  1.0f*1.0f,      115,         10,        -20,             1,     },
-        {true,  1.0f*1.0f,       25,        150,         50,             1,     },
-        {false, 1.0f*1.0f,       18,        130,        130,             1,     },
-        {false, 1.0f*1.0f,       40,        180,        180,             1,     },
-        {true,  1.0f*1.0f,       13,          1,         45,             1,     }
+    // active |   scale   |length|init angle|home angle|home step|min angle|max angle|
+        {true,  1.0f*1.0f,     0,      0,        0,        1,       0,       100   },
+        {true,   14.0f*1.0f,   115,      0,      -20,        1,     -20,       150   },
+        {true,  2.0f*1.0f,    25,    140,       50,        1,      50,       210   },
+        {false,  1.0f*1.0f,    18,    130,      130,        1,       0,         0   },
+        {false,  1.0f*1.0f,    40,    180,      180,        1,       0,         0   },
+        {true,  1.0f*1.0f,    13,     20,       45,        1,       0,        45   }
     };
 
     for(int motor= MOTOR_CAPTURE; motor<= MOTOR_ARM5; motor++) {
@@ -108,26 +108,30 @@ long ApplicationSim::getSystemTime()
 bool ApplicationSim::isLimitReached(int motorID,
                         MOTOR_LIMIT_TYPE limitType)
 {
-    int maxStep[MAX_MOTOR];
-    maxStep[MOTOR_ARM1] = 150;
-    maxStep[MOTOR_ARM2] = 210;
-    maxStep[MOTOR_ARM5] = 45;
     bool result = false;
 
     if(limitType == MOTOR_LIMIT_MIN)
         result = m_robot->currentStep(motorID)
-                <= m_robot->homeStep(motorID);
-    else
+                == m_robot->minStep(motorID);
+    else if(limitType == MOTOR_LIMIT_MAX)
         result = m_robot->currentStep(motorID)
-                >= maxStep[motorID];
+                == m_robot->maxStep(motorID);
+    else result = m_robot->currentStep(motorID)
+            == m_robot->homeStep(motorID);
 #ifdef DEBUG_SIM
-    printf("SIM M[%d] limit[%s][%s] h[%d] cur[%d] max[%d] dir[%d]\r\n",
+    char strLimit[3][8] = {
+        {"MIN"},
+        {"MAX"},
+        {"HOME"}
+    };
+    printf("SIM M[%d] limit[%s][%s] home[%d] min[%d] cur[%d] max[%d] dir[%d]\r\n",
            motorID,
-           limitType == MOTOR_LIMIT_MIN?"MIN":"MAX",
+           strLimit[limitType],
            result?"true":"false",
            m_robot->homeStep(motorID),
+           m_robot->minStep(motorID),
            m_robot->currentStep(motorID),
-           maxStep[motorID],
+           m_robot->maxStep(motorID),
            m_robot->dir(motorID));
 #endif
     return result;
@@ -153,9 +157,6 @@ void ApplicationSim::initDirection(int motorID, int direction)
 
 void ApplicationSim::moveStep(int motorID, int currentStep, int nextStep)
 {
-//    int simCurrentStep = m_robot->currentStep(motorID);
-//    int dir = m_robot->dir(motorID);
-//    m_robot->setCurrentStep(motorID,simCurrentStep + dir);
 #ifdef DEBUG_SIM
     this->printf("Sim M[%d] S[%d]\r\n",motorID,simCurrentStep + dir);
 #endif

@@ -167,8 +167,8 @@ void ApplicationController::executeCommand(char* command) {
         executeSequence(MOVE_CASTLE, 3, 0,
                 7,0);
     }else if(command[0] == 'a' && command[1] == 't' ) {
-        executeSequence(MOVE_ATTACK, 2, 1,
-                6,5);
+        executeSequence(MOVE_ATTACK, 0, 0,
+                4,4);
     }else if(command[0] == 'p' && command[1] == 'p' ) {
         executeSequence(MOVE_PASTPAWN, 2, 4,
                 3,5);
@@ -386,7 +386,7 @@ void ApplicationController::calculateSequenceAttack(int startCol, int startRow,
 
     clearSequenceMove();
     appendSequenceMove(stopPoint, dropPoint);
-//    appendSequenceMove(startPoint, stopPoint);
+    appendSequenceMove(startPoint, stopPoint);
     appendStandByMove();
     initSequenceMove(MAX_MOTOR);
 }
@@ -473,14 +473,26 @@ void ApplicationController::appendSequenceMove(Point start, Point stop, bool str
     }
 }
 void ApplicationController::appendStandByMove() {
-    int jointSteps[MAX_MOTOR];
-    jointSteps[MOTOR_CAPTURE] = 0;
-    jointSteps[MOTOR_ARM1] = 0;
-    jointSteps[MOTOR_ARM2] = 90+50;
-    jointSteps[MOTOR_ARM3] = 0;
-    jointSteps[MOTOR_ARM4] = 0;
-    jointSteps[MOTOR_ARM5] = 45;
-    m_robot->appendMove(jointSteps);
+    {
+        int jointSteps[MAX_MOTOR];
+        jointSteps[MOTOR_CAPTURE] = 0;
+        jointSteps[MOTOR_ARM1] = m_robot->angleToStep(MOTOR_ARM1,0);
+        jointSteps[MOTOR_ARM2] = m_robot->angleToStep(MOTOR_ARM2,90+50);
+        jointSteps[MOTOR_ARM3] = 0;
+        jointSteps[MOTOR_ARM4] = 0;
+        jointSteps[MOTOR_ARM5] = m_robot->angleToStep(MOTOR_ARM5,45);
+        m_robot->appendMove(jointSteps);
+    }
+//    {
+//        int jointSteps[MAX_MOTOR];
+//        jointSteps[MOTOR_CAPTURE] = 0;
+//        jointSteps[MOTOR_ARM1] = 0;
+//        jointSteps[MOTOR_ARM2] = 90+50;
+//        jointSteps[MOTOR_ARM3] = 0;
+//        jointSteps[MOTOR_ARM4] = 0;
+//        jointSteps[MOTOR_ARM5] = 0;
+//        m_robot->appendMove(jointSteps);
+//    }
 }
 void ApplicationController::initSequenceMove(int numberOfJoints) {
     m_robot->moveSequence(numberOfJoints);

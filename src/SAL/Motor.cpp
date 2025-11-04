@@ -46,7 +46,7 @@ void Motor::initGoHome()
 {
     m_stepTime = m_param.homeStepTime;
     m_state = MOTOR_EXECUTE_HOME;
-    m_direction = m_param.homeStep < m_currStep ? -1:1;
+    m_direction = angleToStep(m_param.homeAngle) < m_currStep ? -1:1;
     m_robot->initDirection(m_motorID, m_direction);
 }
 
@@ -100,7 +100,13 @@ void Motor::cruiseSpeed()
                m_currStep
                );
 #else
-
+//        printf("M[%d] time[%ld] numStep[%d] curr[%d] dir[%d]\r\n",
+//               m_motorID,
+//               m_robot->elapsedTime(),
+//               numStep,
+//               m_currStep,
+//               m_direction
+//               );
 #endif               
         m_currStep += m_direction;
         m_robot->moveStep(m_motorID, 
@@ -126,18 +132,18 @@ void Motor::decreaseSpeed()
 
 void Motor::goHome()
 {
-#ifdef DEBUG_MOTOR
+//#ifdef DEBUG_MOTOR
     printf("goHome M[%d] ST[%d] T[%ld]\r\n",
            m_motorID, m_stepTime, m_robot->elapsedTime());
-#endif
-    if(!m_robot->isLimitReached(m_motorID,MOTOR_LIMIT_MIN))
+//#endif
+    if(!m_robot->isLimitReached(m_motorID,MOTOR_LIMIT_HOME))
     {
         if(m_robot->elapsedTime() > m_stepTime) {
             m_currStep += m_direction;
-            m_robot->moveStep(m_motorID, m_currStep , m_param.homeStep);
+            m_robot->moveStep(m_motorID, m_currStep , angleToStep(m_param.homeAngle));
         }
     } else {
-        m_currStep = m_param.homeStep;
+        m_currStep = angleToStep(m_param.homeAngle);
         m_state = MOTOR_DONE;
     }
 }
@@ -160,7 +166,7 @@ bool Motor::isFinishExecution()
 void Motor::setParam(JointParam param)
 {
     m_param = param;
-    m_currStep = m_param.initStep;
+    m_currStep = angleToStep(m_param.initAngle);
 }
 
 bool Motor::isActive()
@@ -175,7 +181,7 @@ float Motor::length()
 
 float Motor::currentAngle()
 {
-    return m_currStep * m_param.scale;
+    return m_currStep / m_param.scale;
 }
 
 float Motor::angleToStep(int angle)
@@ -190,7 +196,7 @@ int Motor::stepToAngle(int step)
 
 int Motor::homeStep()
 {
-    return m_param.homeStep;
+    return angleToStep(m_param.homeAngle);
 }
 
 void Motor::setCurrentStep(int step)
@@ -211,4 +217,12 @@ int Motor::dir()
 int Motor::state()
 {
     return m_state;
+}
+int Motor::minStep()
+{
+    return angleToStep(m_param.minAngle);
+}
+int Motor::maxStep()
+{
+    return angleToStep(m_param.maxAngle);
 }
