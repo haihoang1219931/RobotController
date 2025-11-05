@@ -92,4 +92,20 @@ typedef struct{
     int minAngle;
     int maxAngle;
 }JointParam;
+
+
+typedef enum {
+  MOTOR_CAPTURE,
+  MOTOR_ARM1,
+  MOTOR_ARM2,
+  MOTOR_ARM3,
+  MOTOR_ARM4,
+  MOTOR_ARM5,
+} MOTOR;
+
+typedef struct {
+    int steps;
+    int stepTime;
+    int active;
+} Joint;
 #endif // STDTYPES_H

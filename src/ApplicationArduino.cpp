@@ -3,9 +3,12 @@
 #include "Servo_driver.h"
 #include "DC_driver.h"
 #include "SAL/Button.h"
+#include "SAL/ChessBoard.h"
+#include "SAL/Robot.h"
 #include <stdio.h>
 #include <string.h>
 #include <stdarg.h>
+#include "SAL/StdTypes.h"
 
 #define NONE_PIN  0xFF
 const int enPin=8;
@@ -44,11 +47,34 @@ ApplicationArduino::ApplicationArduino()
 
     m_listStepper[MOTOR_ARM1] = new Stepper_driver(enPin,stepXPin, dirXPin);
     m_listStepper[MOTOR_ARM2] = new Stepper_driver(enPin,stepYPin, dirYPin);
+    initRobot();
 }
 
 ApplicationArduino::~ApplicationArduino()
 {
 
+}
+
+void ApplicationArduino::initRobot()
+{
+    m_chessBoard->setChessBoardPosX(13-13*8/2);
+    m_chessBoard->setChessBoardPosY(46);
+    m_chessBoard->setChessBoardSize(13*8);
+    m_chessBoard->setDropZoneSpace(13);
+
+    JointParam armPrams[MAX_MOTOR] = {
+    // active |   scale   |length|init angle|home angle|home step|min angle|max angle|
+        {true,  1.0f*1.0f,     0,      0,        0,        1,       0,       100   },
+        {true,   14.0f*1.0f,   115,      0,      -20,        1,     -20,       150   },
+        {true,  2.0f*1.0f,    25,    140,       50,        1,      50,       210   },
+        {false,  1.0f*1.0f,    18,    130,      130,        1,       0,         0   },
+        {false,  1.0f*1.0f,    40,    180,      180,        1,       0,         0   },
+        {true,  1.0f*1.0f,    13,     20,       45,        1,       0,        45   }
+    };
+
+    for(int motor= MOTOR_CAPTURE; motor<= MOTOR_ARM5; motor++) {
+        m_robot->setMotorParam(motor,armPrams[motor]);
+    }
 }
 
 int ApplicationArduino::printf(const char *fmt, ...) {
@@ -67,7 +93,7 @@ long ApplicationArduino::getSystemTime() {
 	return m_appTimer;
 }
 
-void ApplicationArduino::hardwareGohome(int motorID)
+void ApplicationArduino::specificPlatformGohome(int motorID)
 {
   if(motorID == MAX_MOTOR || motorID == MOTOR::MOTOR_ARM3)
   m_servoDriver->fastMoveToTarget(100);
