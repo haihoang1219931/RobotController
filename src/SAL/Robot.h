@@ -39,7 +39,8 @@ public:
     void setCurrentStep(int motorID, int step);
     void setDir(int motorID, int dir);
     int dir(int motorID);
-    float angleToStep(int motorID, float angle);
+    int angleToStep(int motorID, float angle);
+    float stepToAngle(int motorID, int step);
     void currentStep(int* listCurrentStep, int* numMotor);
     void currentAngle(float* listCurrentStep, int* numMotor);
     void armLength(float* listArmLength, int* numMotor);

@@ -203,26 +203,17 @@ void loop() {
 // #define DEBUG_SERVO
 // #ifndef DEBUG_SERVO
 // #include <Arduino.h>
-// #include "Servo_driver.h"
+// #include "src/Servo_driver.h"
 // Servo_driver* servoDriver = new Servo_driver(45);
 // void setup() {
 //   Serial.begin(38400);
-//   servoDriver->write(55);
-//   servoDriver->setCurrentPosition(55);
-//   servoDriver->setSpeed(15.0f);
-//   servoDriver->moveTo(100);
 //   Serial.println("Ready");
 //   delay(1000);
 // }
 // void loop() {
-//   // if(!servoDriver->isFinished()) 
-//   {
-//     servoDriver->runSpeed();
-//     Serial.println("Runspeed");
-//   } 
-//   // else {
-//   //   Serial.println("Done");
-//   // }
+//   servoDriver->fastMoveToTarget(100);
+//   delay(1000);
+//   servoDriver->fastMoveToTarget(55);
 //   delay(1000);
 // }
 // #else

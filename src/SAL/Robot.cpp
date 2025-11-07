@@ -188,11 +188,15 @@ int Robot::dir(int motorID)
     return m_motorList[motorID]->dir();
 }
 
-float Robot::angleToStep(int motorID, float angle)
+int Robot::angleToStep(int motorID, float angle)
 {
     return m_motorList[motorID]->angleToStep(angle);
 }
 
+float Robot::stepToAngle(int motorID, int step)
+{
+    return m_motorList[motorID]->stepToAngle(step);
+}
 void Robot::currentStep(int* listCurrentStep, int* numMotor)
 {
     *numMotor = MAX_MOTOR;

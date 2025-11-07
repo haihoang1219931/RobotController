@@ -42,7 +42,7 @@ ApplicationArduino::ApplicationArduino()
     pinMode(enPin, OUTPUT);
     digitalWrite(enPin, HIGH);
 
-    m_servoDriver = new Servo_driver(servoPin);
+    m_servoDriver = new Servo_driver(servoPin);    
     m_dcDriver = new DC_driver(dcIN1, dcIN2);
 
     m_listStepper[MOTOR_ARM1] = new Stepper_driver(enPin,stepXPin, dirXPin);
@@ -64,12 +64,12 @@ void ApplicationArduino::initRobot()
 
     JointParam armPrams[MAX_MOTOR] = {
     // active |   scale   |length|init angle|home angle|home step|min angle|max angle|
-        {true,  1.0f*1.0f,     0,      0,        0,        1,       0,       100   },
-        {true,   14.0f*1.0f,   115,      0,      -20,        1,     -20,       150   },
-        {true,  2.0f*1.0f,    25,    140,       50,        1,      50,       210   },
-        {false,  1.0f*1.0f,    18,    130,      130,        1,       0,         0   },
-        {false,  1.0f*1.0f,    40,    180,      180,        1,       0,         0   },
-        {true,  1.0f*1.0f,    13,     20,       45,        1,       0,        45   }
+        {true,  1.0f*1.0f,     0,    100,        0,        1,       0,       250   },
+        {true,  14.0f*1.0f,  115,      0,        0,        1,       0,       150   },
+        {true,  2.0f*1.0f,    25,    140,       00,        1,       0,       210   },
+        {false, 1.0f*1.0f,    18,    130,      130,        1,       0,         0   },
+        {false, 1.0f*1.0f,    40,    180,      180,        1,       0,         0   },
+        {true,  1.0f*1.0f,    13,     20,        0,        1,       0,        45   }
     };
 
     for(int motor= MOTOR_CAPTURE; motor<= MOTOR_ARM5; motor++) {
@@ -95,7 +95,7 @@ long ApplicationArduino::getSystemTime() {
 
 void ApplicationArduino::specificPlatformGohome(int motorID)
 {
-  if(motorID == MAX_MOTOR || motorID == MOTOR::MOTOR_ARM3)
+  if(motorID == MAX_MOTOR || motorID == MOTOR::MOTOR_ARM5)
   m_servoDriver->fastMoveToTarget(100);
 }
 
@@ -114,71 +114,77 @@ void ApplicationArduino::checkInput(){
     }
 	}
 }
-// #define READBYTE
+
 int ApplicationArduino::readSerial(char* output, int length) {
-  // long start = this->getSystemTimeInMillis();
-#ifndef READBYTE
-  String command = Serial.readString();// read the incoming data as string
+  String command;
+  while(Serial.available()) {
+    delay(3);
+    char c = Serial.read();
+    command += c;  
+  }
   if(command.length()>0) {
     Serial.print(command);
-    // command.getBytes(output,command.length(),0);
     for(int i=0; i< command.length(); i++) {
       output[i] = command.charAt(i);
+#ifdef DEBUG_SERIAL
       Serial.print(output[i],HEX);
       Serial.print(" ");
+#endif
     }
+#ifdef DEBUG_SERIAL
     Serial.print("\n");
+#endif
   }
   return command.length();
-#else
-  int numBytes = Serial.readBytes(output,length);
-  if(numBytes>0) {
-    for(int i=0; i< numBytes; i++) {
-      Serial.print(output[i],HEX);
-      Serial.print(" ");
-    }
-    Serial.print("\n");
-  }
-  return numBytes;
-#endif
 }
 
 bool ApplicationArduino::isLimitReached(int motorID, MOTOR_LIMIT_TYPE limitType)
                       {
-  bool motorHomed = true;
+  bool limitReached = true;
   switch(motorID){
     case MOTOR::MOTOR_ARM1: {
-      motorHomed = limitType == MOTOR_LIMIT_MIN ? 
+      limitReached = limitType == MOTOR_LIMIT_MIN || limitType == MOTOR_LIMIT_HOME ? 
                     (m_buttonList[MOTOR_ARM1]->buttonState() != BUTTON_STATE::BUTTON_NOMAL) :
                     false;
     }
     break;
     case MOTOR::MOTOR_ARM2: {
-      motorHomed = limitType == MOTOR_LIMIT_MIN ? 
+      limitReached = limitType == MOTOR_LIMIT_MIN || limitType == MOTOR_LIMIT_HOME ? 
                     (m_buttonList[MOTOR_ARM2]->buttonState() != BUTTON_STATE::BUTTON_NOMAL) :
                     false;
     }
     break;
-    case MOTOR::MOTOR_ARM3: {
-      motorHomed = limitType == MOTOR_LIMIT_MIN ? 
-                    m_servoDriver->currentPosition() == 100:
+    case MOTOR::MOTOR_ARM5: {
+      limitReached = limitType == MOTOR_LIMIT_MIN || limitType == MOTOR_LIMIT_HOME ? 
+                    m_servoDriver->read() == 100:
                     false;
+      this->printf("APPArduino Servo p[%d] limitType[%d] limitReached[%s]\r\n",
+        m_servoDriver->read(),limitType,
+        limitReached?"true":"false"
+       );
     }
     break;
     case MOTOR::MOTOR_CAPTURE: {
-      motorHomed = limitType == MOTOR_LIMIT_MIN ? 
+      limitReached = limitType == MOTOR_LIMIT_MIN || limitType == MOTOR_LIMIT_HOME ? 
                     (m_buttonList[MOTOR_CAPTURE]->buttonState() != BUTTON_STATE::BUTTON_NOMAL) :
-                    false;
+                    m_robot->currentStep(motorID) >= m_robot->maxStep(motorID);
     }
     break;
     default: break;
   }
-  return motorHomed;
+  return limitReached;
 }
 
 void ApplicationArduino::enableEngine(bool enable) {
-  this->printf("%s Stepper\r\n",enable?"ENABLE":"DISABLE");
-  digitalWrite(enPin, enable?LOW:HIGH);
+  this->printf("%s engine\r\n",enable?"ENABLE":"DISABLE");
+  if(enable) {
+    digitalWrite(enPin, LOW);    
+    m_servoDriver->connect();
+  } else {
+    digitalWrite(enPin, HIGH);
+    m_servoDriver->detach();
+  }
+  
 }
 
 void ApplicationArduino::initDirection(int motorID, int direction)
@@ -189,7 +195,7 @@ void ApplicationArduino::initDirection(int motorID, int direction)
       m_listStepper[motorID]->setDir(direction);
     }
     break;
-    case MOTOR::MOTOR_ARM3:
+    case MOTOR::MOTOR_ARM5:
     {
       //@todo implement move step with Servo motor
     }
@@ -213,15 +219,18 @@ void ApplicationArduino::moveStep(int motorID, int currentStep, int nextStep)
       m_listStepper[motorID]->moveStep(500);
     }
     break;
-    case MOTOR::MOTOR_ARM3:
+    case MOTOR::MOTOR_ARM5:
     {
       //@todo implement move step with Servo motor
+      m_servoDriver->fastMoveToTarget(m_robot->stepToAngle(motorID, 100-nextStep));
     }
     break;
     case MOTOR::MOTOR_CAPTURE: 
     {
       //@todo implement move step with DC motor
       m_dcDriver->moveStep(1000);
+      this->printf("APPArduino M[%d] s[%d]\r\n",
+        motorID,m_robot->currentStep(motorID));
     }
     break;
     default: break;

@@ -22,8 +22,8 @@ public:
     bool isActive();
     float length();
     float currentAngle();
-    float angleToStep(int angle);
-    int stepToAngle(int step);
+    int angleToStep(float angle);
+    float stepToAngle(int step);
     int homeStep();
     void setCurrentStep(int step);
     void setDir(int dir);

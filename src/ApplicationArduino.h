@@ -28,8 +28,8 @@ public:
 private:
 	uint8_t m_buttonPin[MAX_BUTTON];
   Stepper_driver* m_listStepper[2];
-  Servo_driver* m_servoDriver;
   DC_driver* m_dcDriver;
+  Servo_driver* m_servoDriver;
 };
 
 #endif // APPLICATIONARDUINO_H

@@ -110,6 +110,27 @@ void ApplicationController::executeCommand(char* command) {
             }
         }
     }
+    else if(command[0] == 'b' && command[1]>='0') {
+        if(command[1]-'0' < MAX_BUTTON) {
+            int buttonID = command[1]-'0';
+            this->printf("B%c %s\r\n",command[1],
+                m_buttonList[buttonID]->buttonState() == BUTTON_NOMAL?
+                "NORMAL":"PRESSED");
+        }
+        else {
+            this->printf("B%c INVALID\r\n",command[1]);
+        }        
+    }
+    else if(command[0] == 's' && command[1]>='0') {
+        if(command[1]-'0' < MAX_MOTOR) {
+            int motorID = command[1]-'0';
+            this->printf("M%c %d\r\n",command[1],
+                m_robot->currentStep(motorID));
+        }
+        else {
+            this->printf("B%c INVALID\r\n",command[1]);
+        }        
+    }
     else if(command[0] == 'e') {
         this->enableEngine(true);
     }
@@ -459,8 +480,8 @@ void ApplicationController::appendSequenceMove(Point start, Point stop, bool str
                               45.0f,0.0f,45.0f};
         Point position[6] = {start,start,start,
                               stop,stop,stop};
-        int captureStep[6] = {0,100,100,
-                               100,0,0};
+        int captureStep[6] = {0,250,250,
+                               250,0,0};
         int jointSteps[MAX_MOTOR];
         int numStep = 6;
         for(int seqStep = 0; seqStep < numStep; seqStep++)

@@ -46,7 +46,8 @@ void Motor::initGoHome()
 {
     m_stepTime = m_param.homeStepTime;
     m_state = MOTOR_EXECUTE_HOME;
-    m_direction = angleToStep(m_param.homeAngle) < m_currStep ? -1:1;
+    m_direction = angleToStep(m_param.homeAngle) < m_currStep ? -1:
+                  angleToStep(m_param.homeAngle) > m_currStep ? 1 : 0;
     m_robot->initDirection(m_motorID, m_direction);
 }
 
@@ -89,36 +90,37 @@ void Motor::increaseSpeed()
 
 void Motor::cruiseSpeed()
 {
-    int numStep = m_robot->elapsedTime() / m_stepTime;
-    if(numStep > abs(m_currStep - m_startStep))
-    {
-#ifdef DEBUG_MOTOR
-        app->printf("M[%d] time[%ld] numStep[%d] m_currStep[%d]\r\n",
-               m_motorID,
-               m_robot->elapsedTime(),
-               numStep,
-               m_currStep
-               );
-#else
-//        printf("M[%d] time[%ld] numStep[%d] curr[%d] dir[%d]\r\n",
-//               m_motorID,
-//               m_robot->elapsedTime(),
-//               numStep,
-//               m_currStep,
-//               m_direction
-//               );
-#endif               
-        m_currStep += m_direction;
-        m_robot->moveStep(m_motorID, 
-                          m_currStep-m_direction,
-                          m_currStep);
-    }
     if(m_currStep == m_targetStep
             || (m_direction > 0 && m_robot->isLimitReached(m_motorID,MOTOR_LIMIT_MAX))
             || (m_direction < 0 && m_robot->isLimitReached(m_motorID,MOTOR_LIMIT_MIN))
         )
     {
         m_state = MOTOR_EXECUTE_DECREASE_SPEED;
+    } else {   
+        int numStep = m_robot->elapsedTime() / m_stepTime;
+        if(numStep > abs(m_currStep - m_startStep))
+        {
+    #ifdef DEBUG_MOTOR
+            app->printf("M[%d] time[%ld] numStep[%d] m_currStep[%d]\r\n",
+                m_motorID,
+                m_robot->elapsedTime(),
+                numStep,
+                m_currStep
+                );
+    #else
+    //        printf("M[%d] time[%ld] numStep[%d] curr[%d] dir[%d]\r\n",
+    //               m_motorID,
+    //               m_robot->elapsedTime(),
+    //               numStep,
+    //               m_currStep,
+    //               m_direction
+    //               );
+    #endif               
+            m_currStep += m_direction;
+            m_robot->moveStep(m_motorID, 
+                            m_currStep-m_direction,
+                            m_currStep);
+        }
     }
 #ifdef DEBUG_MOTOR    
     printf("M[%d] next state[%d]\r\n",m_motorID,m_state);
@@ -184,14 +186,14 @@ float Motor::currentAngle()
     return m_currStep / m_param.scale;
 }
 
-float Motor::angleToStep(int angle)
+int Motor::angleToStep(float angle)
 {
-    return (float)angle * m_param.scale;
+    return (int)(angle * m_param.scale);
 }
 
-int Motor::stepToAngle(int step)
+float Motor::stepToAngle(int step)
 {
-    return (int)((float)step / m_param.scale);
+    return (float)step / m_param.scale;
 }
 
 int Motor::homeStep()
