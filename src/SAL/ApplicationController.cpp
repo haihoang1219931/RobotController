@@ -312,7 +312,7 @@ void ApplicationController::forwardKinematic(float a1, float a2, float p1, float
 
 void ApplicationController::calculateJoints(float xPos, float yPos, float upAngleInDegree, int* jointSteps)
 {    
-    float upAngle = (upAngleInDegree)/180.0f*M_PI;
+    float upAngle = (45-upAngleInDegree)/180.0f*M_PI;
     float a1 = m_robot->armLength(MOTOR_ARM1);
     float a2Cos = m_robot->armLength(MOTOR_ARM2);
     float a2Sin = m_robot->armLength(MOTOR_ARM3) +
@@ -476,8 +476,8 @@ void ApplicationController::clearSequenceMove() {
 }
 void ApplicationController::appendSequenceMove(Point start, Point stop, bool straightMove) {
     if(!straightMove) {
-        float upAngles[6] = {45.0f,0.0f,45.0f,
-                              45.0f,0.0f,45.0f};
+        float upAngles[6] = {0.0f,45.0f,0.0f,
+                              0.0f,45.0f,0.0f};
         Point position[6] = {start,start,start,
                               stop,stop,stop};
         int captureStep[6] = {0,250,250,
@@ -501,7 +501,7 @@ void ApplicationController::appendStandByMove() {
         jointSteps[MOTOR_ARM2] = m_robot->angleToStep(MOTOR_ARM2,90+50);
         jointSteps[MOTOR_ARM3] = 0;
         jointSteps[MOTOR_ARM4] = 0;
-        jointSteps[MOTOR_ARM5] = m_robot->angleToStep(MOTOR_ARM5,45);
+        jointSteps[MOTOR_ARM5] = m_robot->angleToStep(MOTOR_ARM5,0);
         m_robot->appendMove(jointSteps);
     }
 //    {
