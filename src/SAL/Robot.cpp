@@ -234,6 +234,11 @@ int Robot::maxStep(int motorID)
     return m_motorList[motorID]->maxStep();
 }
 
+float Robot::homeAngle(int motorID)
+{
+    return m_motorList[motorID]->homeAngle();
+}
+
 float Robot::armLength(int motorID)
 {
     return m_motorList[motorID]->length();
@@ -305,33 +310,41 @@ void Robot::initMove()
     int maxStep = 0;
     int minStep = 0;
 
-    for(int i=MOTOR_CAPTURE; i< MAX_MOTOR; i++){
+    for(int i=MOTOR_ARM1; i< MAX_MOTOR; i++){
         if(!m_motorList[i]->isActive()) continue;
         m_app->printf("Robot InitMove M[%d] Steps[%d]\r\n",
                i,m_moveSequence[m_curMove].jointSteps[i].steps);
         listSteps[i] = abs(m_moveSequence[m_curMove].jointSteps[i].steps - m_motorList[i]->currentStep());
         if(listSteps[i] > maxStep) maxStep = listSteps[i];
+        if(listSteps[i] == 0) continue;
         if(minStep == 0) minStep = listSteps[i];
         else if(listSteps[i] < minStep) minStep = listSteps[i];
     }
-//    m_app->printf("minStep[%d] maxStep[%d]\r\n",
-//           minStep,maxStep);
+    m_app->printf("minStep[%d] maxStep[%d]\r\n",
+           minStep,maxStep);
 //    int minScale = (int)pow(10,(int)log10((double)maxStep));
     int minScale = 1;
 //    m_app->printf("minScale[%d]\r\n",minScale);
-    for(int i=MOTOR_CAPTURE; i< MAX_MOTOR; i++){
+    for(int i=MOTOR_ARM1; i< MAX_MOTOR; i++){
         if(!m_motorList[i]->isActive()) continue;
-        listTimeStep[i] = round((float)(minScale * maxStep) / listSteps[i]);
+        if(listSteps[i] != 0)
+            listTimeStep[i] = round((float)(minScale * maxStep) / listSteps[i]);
+        else listTimeStep[i] = 0;
         m_app->printf("Robot     M[%d] [%d %d = %d]\r\n",
                i,listSteps[i],listTimeStep[i],listSteps[i]*listTimeStep[i]);
     }
     m_app->printf("\r\n");
-    for(int i=MOTOR_CAPTURE; i< MAX_MOTOR; i++){
+    for(int i=MOTOR_ARM1; i< MAX_MOTOR; i++){
         if(!m_motorList[i]->isActive()) continue;
         m_motorList[i]->initPlan(m_moveSequence[m_curMove].jointSteps[i].steps,
                                  listTimeStep[i],false);
     }
-
+    // Capture
+    int stepTimeCapture =
+            m_moveSequence[m_curMove].jointSteps[MOTOR_CAPTURE].steps != m_motorList[MOTOR_CAPTURE]->currentStep() ? 1 : 0;
+    m_motorList[MOTOR_CAPTURE]->initPlan(
+                m_moveSequence[m_curMove].jointSteps[MOTOR_CAPTURE].steps,
+                stepTimeCapture,false);
     // start time
     m_startTime = m_app->getSystemTime();
     m_sequenceState = ROBOT_MOVE_EXECUTE;

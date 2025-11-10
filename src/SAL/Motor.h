@@ -31,6 +31,7 @@ public:
     int state();
     int minStep();
     int maxStep();
+    float homeAngle();
 private:
     Robot* m_robot;
     int m_motorID;

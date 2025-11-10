@@ -46,6 +46,7 @@ public:
     void armLength(float* listArmLength, int* numMotor);
     int minStep(int motorID);
     int maxStep(int motorID);
+    float homeAngle(int motorID);
 
 private:
     ApplicationController* m_app;

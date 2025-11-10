@@ -24,7 +24,7 @@ ApplicationSim::~ApplicationSim()
 
 }
 
-//#define ROBOT_SENSE
+#define ROBOT_SENSE
 void ApplicationSim::initRobot()
 {
 #ifdef ROBOT_SENSE
@@ -36,11 +36,11 @@ void ApplicationSim::initRobot()
     JointParam armPrams[MAX_MOTOR] = {
     // active |   scale   |length|init angle|home angle|home step|min angle|max angle|
          {true,  1.0f*1.0f,     0,      50,        0,        1,       0,       100   },
-         {true,   1.0f*1.0f,   115,      0,      -20,        1,     -20,       150   },
+         {true,   1.0f*1.0f,   115,      0,       0,        1,       0,       150   },
          {true,  1.0f*1.0f,    25,    140,       50,        1,      50,       210   },
          {false,  1.0f*1.0f,    18,    130,      130,        1,       0,         0   },
          {false,  1.0f*1.0f,    40,    180,      180,        1,       0,         0   },
-         {true,  1.0f*1.0f,    13,     20,       45,        1,       0,        45   }
+         {true,  1.0f*1.0f,    13,     20,       0,        1,       0,        45   }
     };
 #else
     m_chessBoard->setChessBoardPosX(13-13*8/2);
@@ -52,10 +52,10 @@ void ApplicationSim::initRobot()
     // active |   scale   |length|init angle|home angle|home step|min angle|max angle|
         {true,  1.0f*1.0f,     0,    100,        0,        1,       0,       250   },
         {true,  1.0f*1.0f,  275/2,      0,        0,        1,       0,       150   },
-        {true,  1.0f*1.0f,    35/2,    90,       90,        1,       0,       410   },
+        {true,  1.0f*1.0f,    35/2,    90,       90,        1,       90,       410   },
         {false, 1.0f*1.0f,    25/2,    135,      135,        1,       0,         0   },
-        {false, 1.0f*1.0f, (32+35)/2,    135,      135,        1,       0,         0   },
-        {true,  1.0f*1.0f,    85/2,     20,        0,        1,       0,        45   }
+        {false, 1.0f*1.0f, (32+85)/2,    135,      135,        1,       0,         0   },
+        {true,  1.0f*1.0f,    35/2,     20,        0,        1,       0,        45   }
     };
 #endif
     for(int motor= MOTOR_CAPTURE; motor<= MOTOR_ARM5; motor++) {

@@ -220,11 +220,18 @@ int Motor::state()
 {
     return m_state;
 }
+
 int Motor::minStep()
 {
     return angleToStep(m_param.minAngle);
 }
+
 int Motor::maxStep()
 {
     return angleToStep(m_param.maxAngle);
+}
+
+float Motor::homeAngle()
+{
+    return m_param.homeAngle;
 }

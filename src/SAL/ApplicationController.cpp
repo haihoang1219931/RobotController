@@ -150,34 +150,6 @@ void ApplicationController::executeCommand(char* command) {
             setMachineState(MACHINE_EXECUTE_COMMAND);
         }
     }
-    else if(command[0] == 'p') {
-        if(command[1] >= '0' && command[1] <= '5')
-        {
-            int motorID = command[1]-'0';
-            char angleStr[8];
-            angleStr[0] = command[3];
-            angleStr[1] = command[4];
-            angleStr[2] = command[5];
-            angleStr[3] = command[6];
-            angleStr[4] = 0;
-            float angle = atoi(angleStr);
-
-            char stepTimeStr[8];
-            stepTimeStr[0] = command[8];
-            stepTimeStr[1] = command[9];
-            stepTimeStr[2] = command[10];
-            stepTimeStr[3] = command[11];
-            stepTimeStr[4] = 0;
-            int stepTime = atoi(stepTimeStr);
-
-            bool isRelative = command[13] == 'r';
-
-            m_robot->requestGoPosition(motorID,
-                    m_robot->angleToStep(motorID, angle),
-                    stepTime, isRelative);
-            setMachineState(MACHINE_EXECUTE_COMMAND);
-        }
-    }
     else if(command[0] == 'c' && strlen(command)>=3) {
         executeSequence(MOVE_NORMAL, command[2]-'0',command[1]-'0',
                 7,0);
@@ -199,6 +171,31 @@ void ApplicationController::executeCommand(char* command) {
     }else if(command[0] == 'p' && command[1] == 'r' && command[2] == 'n' ) {
         executeSequence(MOVE_PROMOTE, 2, 6,
                 2, 7);
+    }else if(command[0] == 'p' && command[1] >= '0' && command[1] <= '5')
+    {
+        int motorID = command[1]-'0';
+        char angleStr[8];
+        angleStr[0] = command[3];
+        angleStr[1] = command[4];
+        angleStr[2] = command[5];
+        angleStr[3] = command[6];
+        angleStr[4] = 0;
+        float angle = atoi(angleStr);
+
+        char stepTimeStr[8];
+        stepTimeStr[0] = command[8];
+        stepTimeStr[1] = command[9];
+        stepTimeStr[2] = command[10];
+        stepTimeStr[3] = command[11];
+        stepTimeStr[4] = 0;
+        int stepTime = atoi(stepTimeStr);
+
+        bool isRelative = command[13] == 'r';
+
+        m_robot->requestGoPosition(motorID,
+                m_robot->angleToStep(motorID, angle),
+                stepTime, isRelative);
+        setMachineState(MACHINE_EXECUTE_COMMAND);
     }
     //  else if(command[0] == 'a') {
     //    if(strlen(command)<21) {
@@ -318,7 +315,7 @@ void ApplicationController::calculateJoints(float xPos, float yPos, float upAngl
     float a2Sin = m_robot->armLength(MOTOR_ARM3) +
                   m_robot->armLength(MOTOR_ARM4) * cos(upAngle) +
                   m_robot->armLength(MOTOR_ARM5);
-    float a2 = (float)sqrt(a2Sin*a2Sin + a2Cos*a2Cos - 2*a2Cos*a2Sin*cos(130.0f*M_PI/180.0f));
+    float a2 = (float)sqrt(a2Sin*a2Sin + a2Cos*a2Cos - 2*a2Cos*a2Sin*cos(m_robot->homeAngle(MOTOR_ARM3)*M_PI/180.0f));
     float q2Offset = acosf((a2Sin*a2Sin + a2*a2 - a2Cos*a2Cos)/(2*a2*a2Sin));
     float q1 = 0;
     float q2 = 0;
@@ -445,7 +442,8 @@ void ApplicationController::calculateSequencePromotePiece(int startCol, int star
     appendSequenceMove(promotePiecePoint, stopPoint);
     appendSequenceMove(startPoint, dropPiecePoint);
     appendStandByMove();
-    m_robot->moveSequence(3);
+    appendStandByMove();
+    initSequenceMove(MAX_MOTOR);
 }
 
 void ApplicationController::calculateSequenceCastle(int kingCol, int kingRow,
@@ -498,7 +496,7 @@ void ApplicationController::appendStandByMove() {
         int jointSteps[MAX_MOTOR];
         jointSteps[MOTOR_CAPTURE] = 0;
         jointSteps[MOTOR_ARM1] = m_robot->angleToStep(MOTOR_ARM1,0);
-        jointSteps[MOTOR_ARM2] = m_robot->angleToStep(MOTOR_ARM2,90+50);
+        jointSteps[MOTOR_ARM2] = m_robot->angleToStep(MOTOR_ARM2,90+m_robot->homeAngle(MOTOR_ARM2));
         jointSteps[MOTOR_ARM3] = 0;
         jointSteps[MOTOR_ARM4] = 0;
         jointSteps[MOTOR_ARM5] = m_robot->angleToStep(MOTOR_ARM5,0);
