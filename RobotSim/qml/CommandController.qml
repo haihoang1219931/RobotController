@@ -393,7 +393,7 @@ Item {
                             width: 300
                             height: 40
                             from: 0
-                            to: 100
+                            to: 300
                         }
                         Label {
                             width: 40

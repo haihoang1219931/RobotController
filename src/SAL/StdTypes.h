@@ -4,8 +4,8 @@
 #include <stdio.h>
 
 #define MAX_MOVE_SEQUENCE 20
-#define MAX_BUTTON 12
-#define MAX_MOTOR 12
+#define MAX_BUTTON 6
+#define MAX_MOTOR 6
 #define MAX_COMMAND_LENGTH 256
 #define MAX_PARAMS_CHESSBOARD 4
 
@@ -81,6 +81,11 @@ typedef struct{
     float x;
     float y;
 }Point;
+
+typedef struct {
+    double length;
+    double angle_rad;
+} Edge;
 
 typedef struct{
     bool active;

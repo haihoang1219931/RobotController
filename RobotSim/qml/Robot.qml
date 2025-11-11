@@ -45,7 +45,7 @@ Item {
                         Rectangle{
                             y: -height/2+parent.height/2
                             width: height
-                            height: 30
+                            height: 34
                             border.color: "white"
                             border.width: 2
                             color: "transparent"
@@ -56,7 +56,7 @@ Item {
                                 anchors.verticalCenter: parent.verticalCenter
                                 anchors.horizontalCenter: parent.horizontalCenter
                                 width: height
-                                height: 30 - grabberAngle/5
+                                height: 34 - grabberAngle/9
                                 border.color: "black"
                                 color: "transparent"
                                 border.width: 2

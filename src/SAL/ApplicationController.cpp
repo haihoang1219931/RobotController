@@ -306,23 +306,45 @@ void ApplicationController::forwardKinematic(float a1, float a2, float p1, float
                  (int)(p1/M_PI*180.0f),(int)(p2/M_PI*180.0f));
 }
 
+void ApplicationController::calculatePolygonEdge(float upAngleInDegree, float* edge, float* angle)
+{
+    float upAngle = (45-upAngleInDegree)/180.0f*M_PI;
+    float a1, a2, q1, q2, xFK, yFK;
+    float bufAngle = 0;
+    float lastEdge;
+    a1 = m_robot->armLength(MOTOR_ARM2);
+    a2 = m_robot->armLength(MOTOR_ARM3);
+    q1 = 0;
+    q2 = (180.0f - m_robot->homeAngle(MOTOR_ARM3))/180.0f*M_PI + bufAngle;
+    forwardKinematic(a1,a2,q1,q2,&xFK,&yFK);
+    lastEdge = sqrt(xFK*xFK + yFK*yFK);
+    bufAngle = acosf((a2*a2 + lastEdge*lastEdge - a1*a1)/(2*a2*lastEdge));
+    a1 = lastEdge;
+    a2 = m_robot->armLength(MOTOR_ARM4) * cos(upAngle)
+            + m_robot->armLength(MOTOR_ARM5);
+    q1 = 0;
+    q2 = (180.0f - m_robot->homeAngle(MOTOR_ARM4))/180.0f*M_PI + bufAngle;
+    forwardKinematic(a1,a2,q1,q2,&xFK,&yFK);
+    lastEdge = sqrt(xFK*xFK + yFK*yFK);
+    bufAngle = acosf((a2*a2 + lastEdge*lastEdge - a1*a1)/(2*a2*lastEdge));
+    *edge = lastEdge;
+    *angle = bufAngle;
+}
 
 void ApplicationController::calculateJoints(float xPos, float yPos, float upAngleInDegree, int* jointSteps)
 {    
-    float upAngle = (45-upAngleInDegree)/180.0f*M_PI;
     float a1 = m_robot->armLength(MOTOR_ARM1);
-    float a2Cos = m_robot->armLength(MOTOR_ARM2);
-    float a2Sin = m_robot->armLength(MOTOR_ARM3) +
-                  m_robot->armLength(MOTOR_ARM4) * cos(upAngle) +
-                  m_robot->armLength(MOTOR_ARM5);
-    float a2 = (float)sqrt(a2Sin*a2Sin + a2Cos*a2Cos - 2*a2Cos*a2Sin*cos(m_robot->homeAngle(MOTOR_ARM3)*M_PI/180.0f));
-    float q2Offset = acosf((a2Sin*a2Sin + a2*a2 - a2Cos*a2Cos)/(2*a2*a2Sin));
+    float a2 = 0;
+    float q2Offset = 0;
+    calculatePolygonEdge(upAngleInDegree,&a2,&q2Offset);
     float q1 = 0;
     float q2 = 0;
     this->printf("xPos[%d]\r\n",(int)xPos);
     this->printf("yPos[%d]\r\n",(int)yPos);
     this->printf("a1[%d]\r\n",(int)a1);
-    this->printf("a2[%d] cos[%.02f] upAngle[%.02f] upAngleInDegree[%.02f] PI[%f]\r\n",(int)a2,upAngle,cos(upAngle),upAngleInDegree,M_PI);
+    this->printf("a2[%d]\r\n",(int)a2);
+    this->printf("q2Offset[%d]\r\n",(int)(q2Offset*180.f/M_PI));
+
     inverseKinematic(xPos, yPos, a1, a2, &q1, &q2);
 
     float xPosFK = 0, yPosFK = 0;
@@ -340,7 +362,8 @@ void ApplicationController::calculateJoints(float xPos, float yPos, float upAngl
                 (M_PI/2 + q1)/M_PI*180.0f);
     jointSteps[MOTOR_ARM2] = m_robot->angleToStep(
                 MOTOR_ARM2,
-                (M_PI - q2 - q2Offset)/M_PI*180.0f + 50.0f);
+                (M_PI - q2 - q2Offset)/M_PI*180.0f + 180.0f -
+                m_robot->homeAngle(MOTOR_ARM2));
     jointSteps[MOTOR_ARM3] = 0;
     jointSteps[MOTOR_ARM4] = 0;
     jointSteps[MOTOR_ARM5] = m_robot->angleToStep(

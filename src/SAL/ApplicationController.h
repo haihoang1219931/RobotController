@@ -44,6 +44,7 @@ public:
                          int stopCol, int stopRow, char promotePiece);
     void calculateSequenceCastle(int kingCol, int kingRow,
                                  int rookCol, int rookRow);
+    void calculatePolygonEdge(float upAngleInDegree, float* edge, float* angle);
     void calculateJoints(float xPos, float yPos, float upAngleInDegree, int* jointSteps);
     void clearSequenceMove();
     void appendSequenceMove(Point start, Point stop, bool straightMove = false);

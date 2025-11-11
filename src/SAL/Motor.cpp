@@ -108,13 +108,13 @@ void Motor::cruiseSpeed()
                 m_currStep
                 );
     #else
-    //        printf("M[%d] time[%ld] numStep[%d] curr[%d] dir[%d]\r\n",
-    //               m_motorID,
-    //               m_robot->elapsedTime(),
-    //               numStep,
-    //               m_currStep,
-    //               m_direction
-    //               );
+//            printf("M[%d] time[%ld] numStep[%d] curr[%d] dir[%d]\r\n",
+//                   m_motorID,
+//                   m_robot->elapsedTime(),
+//                   numStep,
+//                   m_currStep,
+//                   m_direction
+//                   );
     #endif               
             m_currStep += m_direction;
             m_robot->moveStep(m_motorID, 

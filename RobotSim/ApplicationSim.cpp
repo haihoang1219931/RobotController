@@ -24,7 +24,7 @@ ApplicationSim::~ApplicationSim()
 
 }
 
-#define ROBOT_SENSE
+//#define ROBOT_SENSE
 void ApplicationSim::initRobot()
 {
 #ifdef ROBOT_SENSE
@@ -50,7 +50,7 @@ void ApplicationSim::initRobot()
 
     JointParam armPrams[MAX_MOTOR] = {
     // active |   scale   |length|init angle|home angle|home step|min angle|max angle|
-        {true,  1.0f*1.0f,     0,    100,        0,        1,       0,       250   },
+        {true,  1.0f*1.0f,     0,    50,        0,        1,       0,       250   },
         {true,  1.0f*1.0f,  275/2,      0,        0,        1,       0,       150   },
         {true,  1.0f*1.0f,    35/2,    90,       90,        1,       90,       410   },
         {false, 1.0f*1.0f,    25/2,    135,      135,        1,       0,         0   },
