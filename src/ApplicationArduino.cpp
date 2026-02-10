@@ -1,7 +1,7 @@
 #include "ApplicationArduino.h"
+#include "MiniStepper_driver.h"
 #include "Stepper_driver.h"
 #include "Servo_driver.h"
-#include "DC_driver.h"
 #include "SAL/Button.h"
 #include "SAL/ChessBoard.h"
 #include "SAL/Robot.h"
@@ -11,39 +11,49 @@
 #include "SAL/StdTypes.h"
 
 #define NONE_PIN  0xFF
+#define MINISTEPPER_UPDOWN_ID 0
+#define MINISTEPPER_GRIPPER_ID 1
 const int enPin=8;
 const int stepXPin = 2; //X.STEP
 const int dirXPin = 5; // X.DIR
 const int stepYPin = 3; //Y.STEP
 const int dirYPin = 6; // Y.DIR
-const int stepZPin = 4; //Z.STEP
-const int dirZPin = 7; // Z.DIR
 
 const int limitX = 9;
 const int limitY = 10;
-const int limitZ = 11;
 
-const int servoPin = 45;
+const int miniStepperUpdownPin1 = 12;
+const int miniStepperUpdownPin2 = 13;
+const int miniStepperUpdownPin3 = 14;
+const int miniStepperUpdownPin4 = 15;
 
-const int dcIN1 = 42;
-const int dcIN2 = 44;
+const int miniStepperGripperPin1 = 16;
+const int miniStepperGripperPin2 = 17;
+const int miniStepperGripperPin3 = 18;
+const int miniStepperGripperPin4 = 19;
+
+const int limitUpdown = 11;
+const int limitGripper = 12;
+
 volatile char m_buffer[128];
 ApplicationArduino::ApplicationArduino()
 {
     memset(m_buttonPin,NONE_PIN,sizeof(m_buttonPin));
     m_buttonPin[MOTOR_ARM1] = limitX;
     m_buttonPin[MOTOR_ARM2] = limitY;
-    m_buttonPin[MOTOR_CAPTURE] = limitZ;
+    m_buttonPin[MOTOR_ARM5] = limitUpdown;
 
     pinMode(m_buttonPin[MOTOR_ARM1], INPUT_PULLUP);
     pinMode(m_buttonPin[MOTOR_ARM2], INPUT_PULLUP);
-    pinMode(m_buttonPin[MOTOR_CAPTURE], INPUT_PULLUP);
+    pinMode(m_buttonPin[MOTOR_ARM5], INPUT_PULLUP);
     
     pinMode(enPin, OUTPUT);
     digitalWrite(enPin, HIGH);
 
-    m_servoDriver = new Servo_driver(servoPin);    
-    m_dcDriver = new DC_driver(dcIN1, dcIN2);
+    m_listMiniStepper[MINISTEPPER_UPDOWN_ID] = new MiniStepper_driver(
+      miniStepperUpdownPin1,miniStepperUpdownPin2,miniStepperUpdownPin3,miniStepperUpdownPin4);
+    m_listMiniStepper[MINISTEPPER_GRIPPER_ID] = new MiniStepper_driver(
+      miniStepperGripperPin1,miniStepperGripperPin2,miniStepperGripperPin3,miniStepperGripperPin4);
 
     m_listStepper[MOTOR_ARM1] = new Stepper_driver(enPin,stepXPin, dirXPin);
     m_listStepper[MOTOR_ARM2] = new Stepper_driver(enPin,stepYPin, dirYPin);
@@ -95,14 +105,12 @@ long ApplicationArduino::getSystemTime() {
 
 void ApplicationArduino::specificPlatformGohome(int motorID)
 {
-  if(motorID == MAX_MOTOR || motorID == MOTOR::MOTOR_ARM5)
-  m_servoDriver->fastMoveToTarget(100);
+  // Not used
 }
 
 void ApplicationArduino::harwareStop(int motorID = MAX_MOTOR)
 {
-  if(motorID == MAX_MOTOR || motorID == MOTOR::MOTOR_CAPTURE)
-  m_dcDriver->stop();
+  // Not used
 }
 
 void ApplicationArduino::checkInput(){
@@ -113,6 +121,7 @@ void ApplicationArduino::checkInput(){
       // this->printf("button[%d] %s\r\n",btnID, digitalRead(m_buttonPin[btnID]) == LOW ? "pressed" : "normal");
     }
 	}
+  m_limitGripperValue = analogRead(limitGripper);
 }
 
 int ApplicationArduino::readSerial(char* output, int length) {
@@ -156,18 +165,14 @@ bool ApplicationArduino::isLimitReached(int motorID, MOTOR_LIMIT_TYPE limitType)
     break;
     case MOTOR::MOTOR_ARM5: {
       limitReached = limitType == MOTOR_LIMIT_MIN || limitType == MOTOR_LIMIT_HOME ? 
-                    m_servoDriver->read() == 100:
+                    (m_buttonList[MOTOR_ARM5]->buttonState() != BUTTON_STATE::BUTTON_NOMAL) :
                     false;
-      this->printf("APPArduino Servo p[%d] limitType[%d] limitReached[%s]\r\n",
-        m_servoDriver->read(),limitType,
-        limitReached?"true":"false"
-       );
     }
     break;
     case MOTOR::MOTOR_CAPTURE: {
       limitReached = limitType == MOTOR_LIMIT_MIN || limitType == MOTOR_LIMIT_HOME ? 
-                    (m_buttonList[MOTOR_CAPTURE]->buttonState() != BUTTON_STATE::BUTTON_NOMAL) :
-                    m_robot->currentStep(motorID) >= m_robot->maxStep(motorID);
+                    m_limitGripperValue <= 140 :
+                    m_limitGripperValue >= 600;
     }
     break;
     default: break;
@@ -178,11 +183,9 @@ bool ApplicationArduino::isLimitReached(int motorID, MOTOR_LIMIT_TYPE limitType)
 void ApplicationArduino::enableEngine(bool enable) {
   this->printf("%s engine\r\n",enable?"ENABLE":"DISABLE");
   if(enable) {
-    digitalWrite(enPin, LOW);    
-    m_servoDriver->connect();
+    digitalWrite(enPin, LOW);
   } else {
     digitalWrite(enPin, HIGH);
-    m_servoDriver->detach();
   }
   
 }
@@ -197,13 +200,12 @@ void ApplicationArduino::initDirection(int motorID, int direction)
     break;
     case MOTOR::MOTOR_ARM5:
     {
-      //@todo implement move step with Servo motor
+      m_listMiniStepper[MINISTEPPER_UPDOWN_ID]->setDir(direction);
     }
     break;
     case MOTOR::MOTOR_CAPTURE: 
     {
-      //@todo implement move step with DC motor
-      m_dcDriver->setDir(direction);
+      m_listMiniStepper[MINISTEPPER_GRIPPER_ID]->setDir(direction);
     }
     break;
     default: break;
@@ -221,16 +223,12 @@ void ApplicationArduino::moveStep(int motorID, int currentStep, int nextStep)
     break;
     case MOTOR::MOTOR_ARM5:
     {
-      //@todo implement move step with Servo motor
-      m_servoDriver->fastMoveToTarget(m_robot->stepToAngle(motorID, 100-nextStep));
+      m_listMiniStepper[MINISTEPPER_UPDOWN_ID]->moveStep(1000);
     }
     break;
     case MOTOR::MOTOR_CAPTURE: 
     {
-      //@todo implement move step with DC motor
-      m_dcDriver->moveStep(1000);
-      this->printf("APPArduino M[%d] s[%d]\r\n",
-        motorID,m_robot->currentStep(motorID));
+      m_listMiniStepper[MINISTEPPER_GRIPPER_ID]->moveStep(1000);
     }
     break;
     default: break;
