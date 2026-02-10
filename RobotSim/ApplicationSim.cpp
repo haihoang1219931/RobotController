@@ -24,7 +24,7 @@ ApplicationSim::~ApplicationSim()
 
 }
 
-//#define ROBOT_SENSE
+#define ROBOT_SENSE
 void ApplicationSim::initRobot()
 {
 #ifdef ROBOT_SENSE

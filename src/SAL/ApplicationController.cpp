@@ -292,18 +292,18 @@ bool ApplicationController::inverseKinematic(float x, float y, float a1, float a
     *p2 = acos((x*x+y*y-a1*a1-a2*a2)/(2*a1*a2));
     *p1 = atan(y/x) - atan((a2*sin(*p2))/(a1+a2*cos(*p2)));
     *p1 =  *p1 < 0?*p1+M_PI:*p1;
-    this->printf("IK: x[%d] y[%d] a1[%d] a2[%d] q1[%d] q2[%d]\r\n",
-                 (int)x,(int)y,(int)a1,(int)a2,
-                 (int)(*p1/M_PI*180.0f),(int)(*p2/M_PI*180.0f));
+    this->printf("IK: x[%.2f] y[%.2f] a1[%.2f] a2[%.2f] q1[%.2f] q2[%.2f]\r\n",
+                 x,y,a1,a2,
+                 (*p1/M_PI*180.0f),(*p2/M_PI*180.0f));
     return true;
 }
 
 void ApplicationController::forwardKinematic(float a1, float a2, float p1, float p2, float* x, float* y) {
     *x = a1 * cos(p1) + a2 * cos(p1 + p2);
     *y = a1 * sin(p1) + a2 * sin(p1 + p2);
-    this->printf("FK: x[%d] y[%d] a1[%d] a2[%d] q1[%d] q2[%d]\r\n",
-                 (int)*x,(int)*y,(int)a1,(int)a2,
-                 (int)(p1/M_PI*180.0f),(int)(p2/M_PI*180.0f));
+    this->printf("FK: x[%.2f] y[%.2f] a1[%.2f] a2[%.2f] q1[%.2f] q2[%.2f]\r\n",
+                 *x,*y,a1,a2,
+                 (p1/M_PI*180.0f),(p2/M_PI*180.0f));
 }
 
 void ApplicationController::calculatePolygonEdge(float upAngleInDegree, float* edge, float* angle)
@@ -336,7 +336,9 @@ void ApplicationController::calculateJoints(float xPos, float yPos, float upAngl
     float a1 = m_robot->armLength(MOTOR_ARM1);
     float a2 = 0;
     float q2Offset = 0;
+    this->printf("=== calculatePolygonEdge\r\n");
     calculatePolygonEdge(upAngleInDegree,&a2,&q2Offset);
+    this->printf("calculatePolygonEdge ===\r\n");
     float q1 = 0;
     float q2 = 0;
     this->printf("xPos[%d]\r\n",(int)xPos);
@@ -362,7 +364,7 @@ void ApplicationController::calculateJoints(float xPos, float yPos, float upAngl
                 (M_PI/2 + q1)/M_PI*180.0f);
     jointSteps[MOTOR_ARM2] = m_robot->angleToStep(
                 MOTOR_ARM2,
-                (M_PI - q2 - q2Offset)/M_PI*180.0f + 180.0f -
+                (M_PI - q2 - q2Offset)/M_PI*180.0f +
                 m_robot->homeAngle(MOTOR_ARM2));
     jointSteps[MOTOR_ARM3] = 0;
     jointSteps[MOTOR_ARM4] = 0;
@@ -409,6 +411,9 @@ void ApplicationController::calculateSequenceMoveNormal(int startCol, int startR
 {
     // append move from start -> stop -> standy
     Point startPoint = m_chessBoard->convertPoint(startRow,startCol);
+    printf("start[%d,%d] to Point(%d,%d)\r\n",
+           startRow,startCol,
+           startPoint.x,startPoint.y);
     Point stopPoint = m_chessBoard->convertPoint(stopRow,stopCol);
     clearSequenceMove();
     appendSequenceMove(startPoint, stopPoint);

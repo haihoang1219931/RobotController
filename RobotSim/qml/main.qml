@@ -78,6 +78,61 @@ ApplicationWindow {
             height: 600
             border.color: "red"
             color: "transparent"
+            property int maxRow: 8
+            property int maxCol: 12
+            property int square: 50 * command.visualScale
+            Canvas {
+                id: cvsGridLine
+                x: parent.width/2
+                y: 0
+                width: parent.width/2
+                height: parent.height
+                z: chessBoard.z + 2
+                onPaint: {
+                    var ctx = getContext("2d");
+
+                    ctx.strokeStyle = "green";
+                    ctx.lineWidth = 2;
+                    for(var rowId = 0; rowId < parent.maxRow; rowId ++) {
+                        for(var colId =0; colId < parent.maxCol; colId ++) {
+                            ctx.beginPath();
+                            ctx.moveTo(rowId * parent.square, 0);
+                            ctx.lineTo(rowId * parent.square, colId * parent.square);
+                            ctx.stroke();
+                            ctx.beginPath();
+                            ctx.moveTo(0, colId * parent.square);
+                            ctx.lineTo(rowId * parent.square, colId * parent.square);
+                            ctx.stroke();
+                        }
+                    }
+                }
+            }
+            Canvas {
+                id: cvsGridLineLeft
+                x: 0
+                y: 0
+                width: parent.width/2
+                height: parent.height
+                z: chessBoard.z + 3
+                onPaint: {
+                    var ctx = getContext("2d");
+
+                    ctx.strokeStyle = "red";
+                    ctx.lineWidth = 2;
+                    for(var rowId = 0; rowId < parent.maxRow; rowId ++) {
+                        for(var colId =0; colId < parent.maxCol; colId ++) {
+                            ctx.beginPath();
+                            ctx.moveTo(rowId * parent.square, 0);
+                            ctx.lineTo(rowId * parent.square, colId * parent.square);
+                            ctx.stroke();
+                            ctx.beginPath();
+                            ctx.moveTo(0, colId * parent.square);
+                            ctx.lineTo(rowId * parent.square, colId * parent.square);
+                            ctx.stroke();
+                        }
+                    }
+                }
+            }
             Canvas {
                 id: cvsPathPlan
                 z: chessBoard.z + 1
