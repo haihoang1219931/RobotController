@@ -19,21 +19,21 @@ const int dirXPin = 5; // X.DIR
 const int stepYPin = 3; //Y.STEP
 const int dirYPin = 6; // Y.DIR
 
-const int limitX = 9;
-const int limitY = 10;
+const int limitX = 9; // X.LIMIT
+const int limitY = 10; // Y.LIMIT
 
-const int miniStepperUpdownPin1 = 12;
-const int miniStepperUpdownPin2 = 13;
-const int miniStepperUpdownPin3 = 14;
-const int miniStepperUpdownPin4 = 15;
+const int miniStepperUpdownPin1 = 34;
+const int miniStepperUpdownPin2 = 36;
+const int miniStepperUpdownPin3 = 38;
+const int miniStepperUpdownPin4 = 40;
 
-const int miniStepperGripperPin1 = 16;
-const int miniStepperGripperPin2 = 17;
-const int miniStepperGripperPin3 = 18;
-const int miniStepperGripperPin4 = 19;
+const int miniStepperGripperPin1 = 35;
+const int miniStepperGripperPin2 = 37;
+const int miniStepperGripperPin3 = 39;
+const int miniStepperGripperPin4 = 41;
 
 const int limitUpdown = 11;
-const int limitGripper = 12;
+const int limitGripper = A8;
 
 volatile char m_buffer[128];
 ApplicationArduino::ApplicationArduino()
@@ -74,12 +74,12 @@ void ApplicationArduino::initRobot()
 
     JointParam armPrams[MAX_MOTOR] = {
     // active |   scale   |length|init angle|home angle|home step|min angle|max angle|
-        {true,  1.0f*1.0f,     0,    100,        0,        1,       0,       250   },
-        {true,  14.0f*1.0f,  275,      0,        0,        1,       0,       150   },
-        {true,  2.0f*1.0f,    55,    140,       00,        1,       0,       210   },
-        {false, 1.0f*1.0f,    25,    130,      135,        1,       0,         0   },
-        {false, 1.0f*1.0f, 32+35,    180,      135,        1,       0,         0   },
-        {true,  1.0f*1.0f,    85,     20,        0,        1,       0,        45   }
+        {true,  1.0f*1.0f,     0,    100,        0,       1000,      0,       250   },
+        {true,  18.0f*1.0f,  275,      0,       -17,       100,      0,       150   },
+        {true,  4.0f*1.0f,    55,    140,       50,        100,      0,       210   },
+        {false, 1.0f*1.0f,    25,    130,      135,          1,      0,         0   },
+        {false, 1.0f*1.0f, 32+35,    180,      135,          1,      0,         0   },
+        {true,  2.0f*1.0f,    85,     20,       45,        100,      0,        45   }
     };
 
     for(int motor= MOTOR_CAPTURE; motor<= MOTOR_ARM5; motor++) {
@@ -216,9 +216,12 @@ void ApplicationArduino::initDirection(int motorID, int direction)
 void ApplicationArduino::moveStep(int motorID, int currentStep, int nextStep)
 {
   switch(motorID){
-    case MOTOR::MOTOR_ARM1:
+    case MOTOR::MOTOR_ARM1: {
+      m_listStepper[motorID]->moveStep(1000);
+    }
+    break;
     case MOTOR::MOTOR_ARM2: {
-      m_listStepper[motorID]->moveStep(500);
+      m_listStepper[motorID]->moveStep(4000);
     }
     break;
     case MOTOR::MOTOR_ARM5:

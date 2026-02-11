@@ -16,7 +16,7 @@ void MiniStepper_driver::enable(bool enableDriver)
 {
 }
 
-void MiniStepper_driver::setDir(byte dir)
+void MiniStepper_driver::setDir(int dir)
 {
   m_dir = dir;
 }
@@ -25,6 +25,7 @@ void MiniStepper_driver::moveStep(int sleepTime)
 {
   if(m_dir > 0)
   {
+    Serial.println("FORWARD");
   //1
   digitalWrite(m_pin1, HIGH);
   digitalWrite(m_pin2, LOW);
@@ -76,7 +77,7 @@ void MiniStepper_driver::moveStep(int sleepTime)
 } 
   
   else{
-    
+    Serial.println("BACKWARD");
   //1
   digitalWrite(m_pin1, HIGH);
   digitalWrite(m_pin2, LOW);

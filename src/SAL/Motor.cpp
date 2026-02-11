@@ -135,7 +135,7 @@ void Motor::decreaseSpeed()
 void Motor::goHome()
 {
 //#ifdef DEBUG_MOTOR
-    printf("goHome M[%d] ST[%d] T[%ld]\r\n",
+    app->printf("goHome M[%d] ST[%d] T[%ld]\r\n",
            m_motorID, m_stepTime, m_robot->elapsedTime());
 //#endif
     if(!m_robot->isLimitReached(m_motorID,MOTOR_LIMIT_HOME))
