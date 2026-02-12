@@ -4,6 +4,7 @@
 ApplicationArduino* app;
 
 void setup() {
+  int x= A8;
   Serial.begin(38400);
   // delay(1000);
   Serial.println("======Arduino Serial======");

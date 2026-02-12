@@ -506,8 +506,8 @@ void ApplicationController::appendSequenceMove(Point start, Point stop, bool str
                               0.0f,45.0f,0.0f};
         Point position[6] = {start,start,start,
                               stop,stop,stop};
-        int captureStep[6] = {0,250,250,
-                               250,0,0};
+        int captureStep[6] = {0,80,80,
+                               80,0,0};
         int jointSteps[MAX_MOTOR];
         int numStep = 6;
         for(int seqStep = 0; seqStep < numStep; seqStep++)

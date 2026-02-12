@@ -25,7 +25,7 @@ public:
   void moveDoneAction(int motorID) override;
 private:
   uint8_t m_buttonPin[MAX_BUTTON];
-  uint8_t m_limitGripperValue;
+  int m_limitGripperValue;
 };
 
 #endif // APPLICATIONARDUINO_H

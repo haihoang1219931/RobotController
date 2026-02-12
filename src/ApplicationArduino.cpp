@@ -26,12 +26,12 @@
 #define miniStepperUpdownPin4 40
 
 #define miniStepperGripperPin1 24
-#define miniStepperGripperPin2 25
-#define miniStepperGripperPin3 26
-#define miniStepperGripperPin4 40
+#define miniStepperGripperPin2 26
+#define miniStepperGripperPin3 28
+#define miniStepperGripperPin4 30
 
 #define limitUpdown 11
-#define limitGripper A8
+#define limitGripper 62 // A8
 
 Stepper_driver driver1(enPin,stepXPin, dirXPin);
 Stepper_driver driver2(enPin,stepYPin, dirYPin);
@@ -69,12 +69,12 @@ void ApplicationArduino::initRobot()
 
     JointParam armPrams[MAX_MOTOR] = {
     // active |scale=gear_ratio/resolution   |length|init angle|home angle|home step|min angle|max angle|
-        {true,  1.0f/1.0f,                        0,    100,        0,       1000,      0,       250   },
+        {true,  1.0f/1.0f,                        0,    100,        0,          1,      0,       250   },
         {true,  18.0f/1.0f*(200.0f/360.0f),     255,      0,       -17,       100,    -17,       150   },
         {true,  70.0f/20.0f*(200.0f/360.0f),     60,    140,       50,        100,      0,       210   },
         {false, 1.0f/1.0f,                       50,    130,      135,          1,      0,         0   },
         {false, 1.0f/1.0f,                      120,    180,      135,          1,      0,         0   },
-        {true,  50.0f/14.0f*(512.0f/360.0f),      0,      20,        0,          1,      0,        45   }
+        {true,  50.0f/14.0f*(512.0f/360.0f),      0,      20,       0,          1,      0,        45   }
     };
 
     for(int motor= MOTOR_CAPTURE; motor<= MOTOR_ARM5; motor++) {
@@ -118,6 +118,7 @@ void ApplicationArduino::checkInput(){
     }
 	}
   m_limitGripperValue = analogRead(limitGripper);
+  // this->printf("Limit Gripper pin[%d] Value: %d\r\n", limitGripper, m_limitGripperValue);
 }
 #define DEBUG_SERIAL
 int ApplicationArduino::readSerial(char* output, int length) {
@@ -167,8 +168,8 @@ bool ApplicationArduino::isLimitReached(int motorID, MOTOR_LIMIT_TYPE limitType)
     break;
     case MOTOR::MOTOR_CAPTURE: {
       limitReached = limitType == MOTOR_LIMIT_MIN || limitType == MOTOR_LIMIT_HOME ? 
-                    m_limitGripperValue <= 140 :
-                    m_limitGripperValue >= 600;
+                    m_limitGripperValue >= 400 :
+                    m_limitGripperValue <= 170;
     }
     break;
     default: break;
