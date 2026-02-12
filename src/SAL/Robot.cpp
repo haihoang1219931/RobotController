@@ -335,10 +335,10 @@ void Robot::initMove()
         if(listSteps[i] != 0)
             listTimeStep[i] = round((float)(minScale * maxStep) / listSteps[i]);
         else listTimeStep[i] = 0;
-        m_app->printf("Robot     M[%d] [%d %d = %d]\r\n",
-               i,listSteps[i],listTimeStep[i],listSteps[i]*listTimeStep[i]);
+        // m_app->printf("Robot     M[%d] [%d %d = %d]\r\n",
+        //        i,listSteps[i],listTimeStep[i],listSteps[i]*listTimeStep[i]);
     }
-    m_app->printf("\r\n");
+    // m_app->printf("\r\n");
     for(int i=MOTOR_ARM1; i< MAX_MOTOR; i++){
         if(!m_motorList[i]->isActive()) continue;
         m_motorList[i]->initPlan(m_moveSequence[m_curMove].jointSteps[i].steps,

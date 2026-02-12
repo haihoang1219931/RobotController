@@ -62,17 +62,17 @@ ApplicationArduino::~ApplicationArduino()
 
 void ApplicationArduino::initRobot()
 {
-    m_chessBoard->setChessBoardPosX(13-13*8/2);
-    m_chessBoard->setChessBoardPosY(46);
-    m_chessBoard->setChessBoardSize(13*8);
-    m_chessBoard->setDropZoneSpace(13);
+    m_chessBoard->setChessBoardPosX(31-31*8/2);
+    m_chessBoard->setChessBoardPosY(100);
+    m_chessBoard->setChessBoardSize(31*8);
+    m_chessBoard->setDropZoneSpace(31);
 
     JointParam armPrams[MAX_MOTOR] = {
     // active |scale=gear_ratio/resolution   |length|init angle|home angle|home step|min angle|max angle|
         {true,  1.0f/1.0f,                        0,    100,        0,          1,      0,       250   },
         {true,  18.0f/1.0f*(200.0f/360.0f),     255,      0,       -17,       100,    -17,       150   },
-        {true,  70.0f/20.0f*(200.0f/360.0f),     60,    140,       50,        100,      0,       210   },
-        {false, 1.0f/1.0f,                       50,    130,      135,          1,      0,         0   },
+        {true,  70.0f/20.0f*(200.0f/360.0f),     85,    140,       50,        100,      0,       210   },
+        {false, 1.0f/1.0f,                       15,    130,      135,          1,      0,         0   },
         {false, 1.0f/1.0f,                      120,    180,      135,          1,      0,         0   },
         {true,  50.0f/14.0f*(512.0f/360.0f),      0,      20,       0,          1,      0,        45   }
     };
@@ -227,12 +227,12 @@ void ApplicationArduino::moveStep(int motorID, int currentStep, int nextStep)
     break;
     case MOTOR::MOTOR_ARM5:
     {
-      miniStepperUpdown.moveStep(900);
+      miniStepperUpdown.moveStep(1000);
     }
     break;
     case MOTOR::MOTOR_CAPTURE: 
     {
-      miniStepperGripper.moveStep(900);
+      miniStepperGripper.moveStep(1000);
     }
     break;
     default: break;

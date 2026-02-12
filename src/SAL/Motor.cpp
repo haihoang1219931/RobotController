@@ -46,8 +46,9 @@ void Motor::initGoHome()
 {
     m_stepTime = m_param.homeStepTime;
     m_state = MOTOR_EXECUTE_HOME;
-    m_direction = angleToStep(m_param.homeAngle) < m_currStep ? -1:
-                  angleToStep(m_param.homeAngle) > m_currStep ? 1 : 0;
+    // m_direction = angleToStep(m_param.homeAngle)  m_currStep ? -1:
+    //               angleToStep(m_param.homeAngle) > m_currStep ? 1 : 0;
+    m_direction = -1;
     m_robot->initDirection(m_motorID, m_direction);
 }
 
@@ -80,7 +81,7 @@ void Motor::executePlan()
     }
         break;
     case MOTOR_DONE: {
-        moveDoneAction();
+        // Do nothing
     }
         break;
     }
@@ -137,10 +138,10 @@ void Motor::decreaseSpeed()
 
 void Motor::goHome()
 {
-//#ifdef DEBUG_MOTOR
+#ifdef DEBUG_MOTOR
     app->printf("goHome M[%d] ST[%d] T[%ld]\r\n",
            m_motorID, m_stepTime, m_robot->elapsedTime());
-//#endif
+#endif
     if(!m_robot->isLimitReached(m_motorID,MOTOR_LIMIT_HOME))
     {
         if(m_robot->elapsedTime() > m_stepTime) {
@@ -149,6 +150,7 @@ void Motor::goHome()
         }
     } else {
         m_currStep = angleToStep(m_param.homeAngle);
+        moveDoneAction();
         m_state = MOTOR_DONE;
     }
 }

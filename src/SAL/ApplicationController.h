@@ -30,10 +30,12 @@ public:
     bool inverseKinematic(float x, float y,
                            float a1, float a2,float* p1, float* p2);
     void forwardKinematic(float a1, float a2, float p1, float p2, float* x, float* y);
+    void goToReadyPosition();
     void executeSequence(MOVE_TYPE moveType,
                          int startCol, int startRow,
                          int stopCol, int stopRow,
                          char promotePiece = 0);
+    void calculateSequenceMove(int startCol, int startRow, int upAngleInDegree, bool isCapture);
     void calculateSequenceMoveNormal(int startCol, int startRow,
                          int stopCol, int stopRow);
     void calculateSequenceAttack(int startCol, int startRow,

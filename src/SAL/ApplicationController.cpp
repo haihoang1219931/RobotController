@@ -28,14 +28,14 @@ void ApplicationController::loop() {
     m_appTimer++;
 #ifdef DEBUG_APP
     this->printf("APP Timer[%d]\r\n",m_appTimer);
-#endif
-    updateInputState();
+#endif    
     switch(m_machineState) {
     case MACHINE_WAIT_COMMAND: {
         m_commandReader->loop();
         break;
     }
     case MACHINE_EXECUTE_COMMAND: {
+        updateInputState();
         m_robot->loop();
         break;
     }
@@ -137,6 +137,13 @@ void ApplicationController::executeCommand(char* command) {
     else if(command[0] == 'd') {
         this->enableEngine(false);
     }
+    else if(command[0] == 'r') {
+        goToReadyPosition();
+    }
+    else if(command[0] == 'm' && strlen(command)>=5) {
+        calculateSequenceMove(command[2]-'0',command[1]-'0', 
+            command[3] == 'u'?0:45, command[4] == 'c');
+    }
     else if(command[0] == 'h') {
         if(command[1] == 'a') {
             specificPlatformGohome();
@@ -152,7 +159,7 @@ void ApplicationController::executeCommand(char* command) {
     }
     else if(command[0] == 'c' && strlen(command)>=3) {
         executeSequence(MOVE_NORMAL, command[2]-'0',command[1]-'0',
-                7,0);
+                0,7);
     }else if(command[0] == 'c' && command[1] == 'n' ) {
         executeSequence(MOVE_CASTLE, 3, 0,
                 0,0);
@@ -373,6 +380,14 @@ void ApplicationController::calculateJoints(float xPos, float yPos, float upAngl
                 upAngleInDegree);
 }
 
+void ApplicationController::goToReadyPosition() {
+    clearSequenceMove();
+    appendStandByMove();
+    initSequenceMove(MAX_MOTOR);
+    if(m_machineState != MACHINE_EXECUTE_COMMAND)
+        setMachineState(MACHINE_EXECUTE_COMMAND);
+}
+
 void ApplicationController::executeSequence(
         MOVE_TYPE moveType,
         int startCol, int startRow,
@@ -406,6 +421,23 @@ void ApplicationController::executeSequence(
     if(m_machineState != MACHINE_EXECUTE_COMMAND)
         setMachineState(MACHINE_EXECUTE_COMMAND);
 }
+
+void ApplicationController::calculateSequenceMove(int startCol, int startRow, int upAngleInDegree, bool isCapture)
+{
+    Point targetPoint = m_chessBoard->convertPoint(startRow,startCol);
+    int jointSteps[MAX_MOTOR];
+    clearSequenceMove();
+    
+    jointSteps[MOTOR_CAPTURE] = isCapture?80:0;
+    // Inverse axis Oxy -> Oyx
+    calculateJoints(targetPoint.y, targetPoint.x, upAngleInDegree, jointSteps);
+    m_robot->appendMove(jointSteps);
+    initSequenceMove(MAX_MOTOR);
+
+    if(m_machineState != MACHINE_EXECUTE_COMMAND)
+        setMachineState(MACHINE_EXECUTE_COMMAND);
+}
+
 void ApplicationController::calculateSequenceMoveNormal(int startCol, int startRow,
                      int stopCol, int stopRow)
 {

@@ -4,7 +4,6 @@
 ApplicationArduino* app;
 
 void setup() {
-  int x= A8;
   Serial.begin(38400);
   // delay(1000);
   Serial.println("======Arduino Serial======");
@@ -15,6 +14,7 @@ void setup() {
 }
 void loop() {
   app->loop();
+  delayMicroseconds(100);
   // app->msleep(1000);
 }
 
@@ -24,7 +24,8 @@ MiniStepper_driver* miniStepper;
 enum {
   INIT,
   MOVE_CLOCK,
-  MOVE_CLOCKWISE
+  MOVE_CLOCKWISE,
+  STOP
 } STEPPER_STATE;
 int stepperState = INIT;
 int countStep = 0;
@@ -67,10 +68,16 @@ void loop() {
       countStep ++;
       Serial.println(countStep,DEC);
       if(countStep >= 240) {
-        stepperState = INIT;
+        stepperState = STOP;
       }
     }
     break;
+    case STOP:{
+      digitalWrite(34, LOW);
+      digitalWrite(36, LOW);
+      digitalWrite(38, LOW);
+      digitalWrite(40, LOW);
+    }
     // Serial.println("OFF");
   }
 }
