@@ -13,31 +13,38 @@
 #define NONE_PIN  0xFF
 #define MINISTEPPER_UPDOWN_ID 0
 #define MINISTEPPER_GRIPPER_ID 1
-const int enPin=8;
-const int stepXPin = 2; //X.STEP
-const int dirXPin = 5; // X.DIR
-const int stepYPin = 3; //Y.STEP
-const int dirYPin = 6; // Y.DIR
+#define enPin 8
+#define stepXPin 2 //X.STEP
+#define dirXPin 5 // X.DIR
+#define stepYPin 3 //Y.STEP
+#define dirYPin 6 // Y.DIR
 
-const int limitX = 9; // X.LIMIT
-const int limitY = 10; // Y.LIMIT
+#define limitX 9 // X.LIMIT
+#define limitY 10 // Y.LIMIT
 
-const int miniStepperUpdownPin1 = 34;
-const int miniStepperUpdownPin2 = 36;
-const int miniStepperUpdownPin3 = 38;
-const int miniStepperUpdownPin4 = 40;
+#define miniStepperUpdownPin1 34
+#define miniStepperUpdownPin2 36
+#define miniStepperUpdownPin3 38
+#define miniStepperUpdownPin4 40
 
-const int miniStepperGripperPin1 = 35;
-const int miniStepperGripperPin2 = 37;
-const int miniStepperGripperPin3 = 39;
-const int miniStepperGripperPin4 = 41;
+#define miniStepperGripperPin1 24
+#define miniStepperGripperPin2 25
+#define miniStepperGripperPin3 26
+#define miniStepperGripperPin4 40
 
-const int limitUpdown = 11;
-const int limitGripper = A8;
+#define limitUpdown 11
+#define limitGripper A8
 
-volatile char m_buffer[128];
+
 ApplicationArduino::ApplicationArduino()
 {
+    m_listStepper[MOTOR_ARM1] = new Stepper_driver(enPin,stepXPin, dirXPin);
+    m_listStepper[MOTOR_ARM2] = new Stepper_driver(enPin,stepYPin, dirYPin);
+    m_listMiniStepper[MINISTEPPER_UPDOWN_ID] = new MiniStepper_driver(
+      miniStepperUpdownPin1,miniStepperUpdownPin2,miniStepperUpdownPin3,miniStepperUpdownPin4);
+    m_listMiniStepper[MINISTEPPER_GRIPPER_ID] = new MiniStepper_driver(
+      miniStepperGripperPin1,miniStepperGripperPin2,miniStepperGripperPin3,miniStepperGripperPin4);
+    initRobot();
     memset(m_buttonPin,NONE_PIN,sizeof(m_buttonPin));
     m_buttonPin[MOTOR_ARM1] = limitX;
     m_buttonPin[MOTOR_ARM2] = limitY;
@@ -46,18 +53,8 @@ ApplicationArduino::ApplicationArduino()
     pinMode(m_buttonPin[MOTOR_ARM1], INPUT_PULLUP);
     pinMode(m_buttonPin[MOTOR_ARM2], INPUT_PULLUP);
     pinMode(m_buttonPin[MOTOR_ARM5], INPUT_PULLUP);
-    
     pinMode(enPin, OUTPUT);
     digitalWrite(enPin, HIGH);
-
-    m_listMiniStepper[MINISTEPPER_UPDOWN_ID] = new MiniStepper_driver(
-      miniStepperUpdownPin1,miniStepperUpdownPin2,miniStepperUpdownPin3,miniStepperUpdownPin4);
-    m_listMiniStepper[MINISTEPPER_GRIPPER_ID] = new MiniStepper_driver(
-      miniStepperGripperPin1,miniStepperGripperPin2,miniStepperGripperPin3,miniStepperGripperPin4);
-
-    m_listStepper[MOTOR_ARM1] = new Stepper_driver(enPin,stepXPin, dirXPin);
-    m_listStepper[MOTOR_ARM2] = new Stepper_driver(enPin,stepYPin, dirYPin);
-    initRobot();
 }
 
 ApplicationArduino::~ApplicationArduino()
@@ -73,13 +70,13 @@ void ApplicationArduino::initRobot()
     m_chessBoard->setDropZoneSpace(13);
 
     JointParam armPrams[MAX_MOTOR] = {
-    // active |   scale   |length|init angle|home angle|home step|min angle|max angle|
-        {true,  1.0f*1.0f,     0,    100,        0,       1000,      0,       250   },
-        {true,  18.0f*1.0f,  275,      0,       -17,       100,      0,       150   },
-        {true,  4.0f*1.0f,    55,    140,       50,        100,      0,       210   },
-        {false, 1.0f*1.0f,    25,    130,      135,          1,      0,         0   },
-        {false, 1.0f*1.0f, 32+35,    180,      135,          1,      0,         0   },
-        {true,  2.0f*1.0f,    85,     20,       45,        100,      0,        45   }
+    // active |scale=gear_ratio/resolution   |length|init angle|home angle|home step|min angle|max angle|
+        {true,  1.0f/1.0f,                        0,    100,        0,       1000,      0,       250   },
+        {true,  18.0f/1.0f*(200.0f/360.0f),     255,      0,       -17,       100,    -17,       150   },
+        {true,  70.0f/20.0f*(200.0f/360.0f),     60,    140,       50,        100,      0,       210   },
+        {false, 1.0f/1.0f,                       50,    130,      135,          1,      0,         0   },
+        {false, 1.0f/1.0f,                      120,    180,      135,          1,      0,         0   },
+        {true,  50.0f/14.0f*(512.0f/360.0f),      0,      20,        0,          1,      0,        45   }
     };
 
     for(int motor= MOTOR_CAPTURE; motor<= MOTOR_ARM5; motor++) {
@@ -90,6 +87,7 @@ void ApplicationArduino::initRobot()
 int ApplicationArduino::printf(const char *fmt, ...) {
     va_list args;
     va_start(args, fmt);
+    char m_buffer[128];
     int rc = vsprintf(m_buffer, fmt, args);
     va_end(args);
     Serial.print((const char*)m_buffer);
@@ -123,7 +121,7 @@ void ApplicationArduino::checkInput(){
 	}
   m_limitGripperValue = analogRead(limitGripper);
 }
-
+#define DEBUG_SERIAL
 int ApplicationArduino::readSerial(char* output, int length) {
   String command;
   while(Serial.available()) {
@@ -192,6 +190,7 @@ void ApplicationArduino::enableEngine(bool enable) {
 
 void ApplicationArduino::initDirection(int motorID, int direction)
 {
+  this->printf("initDirection motorID=%d, direction=%d\r\n", motorID, direction);
   switch(motorID){
     case MOTOR::MOTOR_ARM1:
     case MOTOR::MOTOR_ARM2: {
@@ -226,12 +225,36 @@ void ApplicationArduino::moveStep(int motorID, int currentStep, int nextStep)
     break;
     case MOTOR::MOTOR_ARM5:
     {
-      m_listMiniStepper[MINISTEPPER_UPDOWN_ID]->moveStep(1000);
+      m_listMiniStepper[MINISTEPPER_UPDOWN_ID]->moveStep(900);
     }
     break;
     case MOTOR::MOTOR_CAPTURE: 
     {
-      m_listMiniStepper[MINISTEPPER_GRIPPER_ID]->moveStep(1000);
+      m_listMiniStepper[MINISTEPPER_GRIPPER_ID]->moveStep(900);
+    }
+    break;
+    default: break;
+  }
+}
+void ApplicationArduino::moveDoneAction(int motorID)
+{
+  switch(motorID){
+    case MOTOR::MOTOR_ARM1: {
+      // Do nothing
+    }
+    break;
+    case MOTOR::MOTOR_ARM2: {
+      // Do nothing
+    }
+    break;
+    case MOTOR::MOTOR_ARM5:
+    {
+      m_listMiniStepper[MINISTEPPER_UPDOWN_ID]->enable(false);
+    }
+    break;
+    case MOTOR::MOTOR_CAPTURE: 
+    {
+      m_listMiniStepper[MINISTEPPER_GRIPPER_ID]->enable(false);
     }
     break;
     default: break;

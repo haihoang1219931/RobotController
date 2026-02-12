@@ -1,8 +1,24 @@
 // #define DEBUG
 #ifndef DEBUG
 #include "src/ApplicationArduino.h"
-#include "src/MiniStepper_driver.h"
 ApplicationArduino* app;
+
+void setup() {
+  Serial.begin(38400);
+  // delay(1000);
+  Serial.println("======Arduino Serial======");
+  app = new ApplicationArduino();
+  // delay(1000);
+  app->printf("APP Arduino Init done\r\n");
+  delay(1000);
+}
+void loop() {
+  app->loop();
+  // app->msleep(1000);
+}
+
+#else
+#include "src/MiniStepper_driver.h"
 MiniStepper_driver* miniStepper;
 enum {
   INIT,
@@ -13,35 +29,33 @@ int stepperState = INIT;
 int countStep = 0;
 void setup() {
   Serial.begin(38400);
-  // delay(1000);
   Serial.println("======Arduino Serial======");
-  app = new ApplicationArduino();
-  // delay(1000);
-  app->printf("APP Arduino Init done\r\n");
-  delay(1000);
   miniStepper = new MiniStepper_driver(34,36,38,40);
-  // miniStepper->setDir(-1);
-  // miniStepper->moveStep(900);
-  // miniStepper->setDir(-1);
-  // miniStepper->moveStep(900);
-  
+  pinMode(11, INPUT_PULLUP);
+  // delay(1000);
+  // while(1) {
+  //   if(digitalRead(11) == HIGH) {
+  //     Serial.println("HIGH");
+  //   } else Serial.println("LOW");
+  //   delay(1000);
+  // }
 }
 void loop() {
-  // app->loop();
   switch (stepperState) {
     case INIT:{
-      miniStepper->setDir(1);
+      miniStepper->setDir(-1);
       stepperState = MOVE_CLOCK;
     }
     break;
     case MOVE_CLOCK:{
       Serial.println("Clock");
+      
       if(digitalRead(11) == HIGH) {
         miniStepper->moveStep(900);
       }
       else {
         stepperState = MOVE_CLOCKWISE;
-        miniStepper->setDir(-1);
+        miniStepper->setDir(1);
         Serial.println("ClockWise");
         countStep = 0;
       }
@@ -50,199 +64,13 @@ void loop() {
     case MOVE_CLOCKWISE:{
       miniStepper->moveStep(900);
       countStep ++;
+      Serial.println(countStep,DEC);
       if(countStep >= 240) {
-        stepperState = MOVE_CLOCK;
-        miniStepper->setDir(1);
-        Serial.println("Clock");
+        stepperState = INIT;
       }
     }
     break;
     // Serial.println("OFF");
-  }
-  // 
-  // app->msleep(1000);
-}
-
-#else
-/* #18
-================================================================================================================= 
-* 8 steps Sequence 64*64 = 4096 stepsPerRevolution
-Channel M&E Automation:https://bit.ly/3uz3Bt8
-Vui lòng đăng ký kênh https://bit.ly/34a2of1 cảm ơn các bạn rất nhiều!
-Danh sách phát Arduino : https://bit.ly/34BUDlU
-=================================================================================================================
-*/
-enum {
-  INIT,
-  MOVE_CLOCK,
-  MOVE_CLOCKWISE
-} STEPPER_STATE;
-int IN1= 34;
-int IN2= 36;
-int IN3= 38;
-int IN4= 40;
-
-int potentiometer = A8;
-int Val_Analog,MotorSpeed;
-
-int stepperState = MOVE_CLOCK;
-//===============================================================================================================
-void setup() 
-{
-Serial.begin(38400);  
-pinMode(IN1, OUTPUT);
-pinMode(IN2, OUTPUT);
-pinMode(IN3, OUTPUT);
-pinMode(IN4, OUTPUT);
-// int Val_Analog = 535;
-// int MotorSpeed = 0;
-MotorSpeed = 900;
-Serial.begin(38400);
-}
-//===============================================================================================================
-void loop() 
-{ 
-    // Val_Analog = analogRead(potentiometer);
-    //for(int i=0; i< 1500; i++) 
-      //Forward_Reverse (false);
-    //for(int i=0; i< 1500; i++) 
-      // Forward_Reverse (true);
-    // read the input on analog pin 0:
-    int sensorValue = analogRead(potentiometer);
-    switch (stepperState) {
-    case INIT:{
-      if(sensorValue > 100) stepperState = MOVE_CLOCK;
-    }
-    break;
-    case MOVE_CLOCK:{
-      Forward_Reverse (true);
-      if(sensorValue > 600) stepperState = MOVE_CLOCKWISE;
-    }
-    break;
-    case MOVE_CLOCKWISE:{
-      Forward_Reverse (false);
-      if(sensorValue <= 260) stepperState = MOVE_CLOCK;
-    }
-    break;
-    }
-    // if(sensorValue > 100) Forward_Reverse (false);
-    // else if(sensorValue > 800) Forward_Reverse (true);
-    Serial.println(sensorValue);
-    // delay(30);
-  //   if (Val_Analog <= 535) 
-  //  { MotorSpeed = (Val_Analog/30+1);
-  //   Forward_Reverse (true);}
-  //   else
-  //   {MotorSpeed = ((1023-Val_Analog)/30+1);
-  //   Forward_Reverse (false);}
- 
-}
-//===============================================================================================================
-void Forward_Reverse (bool dir)
-{
-  if(dir)
-  {
-  //1
-  digitalWrite(IN1, HIGH);
-  digitalWrite(IN2, LOW);
-  digitalWrite(IN3, LOW);
-  digitalWrite(IN4, LOW);
-  delayMicroseconds(MotorSpeed);
-  //2
-  digitalWrite(IN1, HIGH);
-  digitalWrite(IN2, HIGH);
-  digitalWrite(IN3, LOW);
-  digitalWrite(IN4, LOW);
-  delayMicroseconds(MotorSpeed);
-  //3
-  digitalWrite(IN1, LOW);
-  digitalWrite(IN2, HIGH);
-  digitalWrite(IN3, LOW);
-  digitalWrite(IN4, LOW);
-  delayMicroseconds(MotorSpeed);
-  //4
-  digitalWrite(IN1, LOW);
-  digitalWrite(IN2, HIGH);
-  digitalWrite(IN3, HIGH);
-  digitalWrite(IN4, LOW);
-  delayMicroseconds(MotorSpeed);
-  //5
-  digitalWrite(IN1, LOW);
-  digitalWrite(IN2, LOW);
-  digitalWrite(IN3, HIGH);
-  digitalWrite(IN4, LOW);
-  delayMicroseconds(MotorSpeed);
-  //6
-  digitalWrite(IN1, LOW);
-  digitalWrite(IN2, LOW);
-  digitalWrite(IN3, HIGH);
-  digitalWrite(IN4, HIGH);
-  delayMicroseconds(MotorSpeed);
-  //7
-  digitalWrite(IN1, LOW);
-  digitalWrite(IN2, LOW);
-  digitalWrite(IN3, LOW);
-  digitalWrite(IN4, HIGH);
-  delayMicroseconds(MotorSpeed);
-  //8
-  digitalWrite(IN1, HIGH);
-  digitalWrite(IN2, LOW);
-  digitalWrite(IN3, LOW);
-  digitalWrite(IN4, HIGH);
-  delayMicroseconds(MotorSpeed);
-} 
-  
-  else{
-    
-  //1
-  digitalWrite(IN1, HIGH);
-  digitalWrite(IN2, LOW);
-  digitalWrite(IN3, LOW);
-  digitalWrite(IN4, HIGH);
-  delayMicroseconds(MotorSpeed);
-  //2
-  digitalWrite(IN1, LOW);
-  digitalWrite(IN2, LOW);
-  digitalWrite(IN3, LOW);
-  digitalWrite(IN4, HIGH);
-  delayMicroseconds(MotorSpeed);
-  //3
-  digitalWrite(IN1, LOW);
-  digitalWrite(IN2, LOW);
-  digitalWrite(IN3, HIGH);
-  digitalWrite(IN4, HIGH);
-  delayMicroseconds(MotorSpeed);
-  //4
-  digitalWrite(IN1, LOW);
-  digitalWrite(IN2, LOW);
-  digitalWrite(IN3, HIGH);
-  digitalWrite(IN4, LOW);
- delayMicroseconds(MotorSpeed);
- //5
-  digitalWrite(IN1, LOW);
-  digitalWrite(IN2, HIGH);
-  digitalWrite(IN3, HIGH);
-  digitalWrite(IN4, LOW);
-  delayMicroseconds(MotorSpeed);
-  //6
-  digitalWrite(IN1, LOW);
-  digitalWrite(IN2, HIGH);
-  digitalWrite(IN3, LOW);
-  digitalWrite(IN4, LOW);
-  delayMicroseconds(MotorSpeed);
-  //7
-  digitalWrite(IN1, HIGH);
-  digitalWrite(IN2, HIGH);
-  digitalWrite(IN3, LOW);
-  digitalWrite(IN4, LOW);
-  delayMicroseconds(MotorSpeed);
-//8
-  digitalWrite(IN1, HIGH);
-  digitalWrite(IN2, LOW);
-  digitalWrite(IN3, LOW);
-  digitalWrite(IN4, LOW);
-  delayMicroseconds(MotorSpeed);
- 
   }
 }
 //=============================================== END =========================================================

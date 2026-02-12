@@ -63,6 +63,7 @@ public:
     virtual int readSerial(char* output, int length) = 0;
     virtual void initDirection(int motorID, int direction) = 0;
     virtual void moveStep(int motorID, int currentStep, int nextStep) = 0;
+    virtual void moveDoneAction(int motorID) = 0;
 
 public:
     MACHINE_STATE m_machineState;

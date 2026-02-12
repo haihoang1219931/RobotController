@@ -157,6 +157,11 @@ void Robot::moveStep(int motorID, int currentStep, int nextStep)
     m_app->moveStep(motorID, currentStep, nextStep);
 }
 
+void Robot::moveDoneAction(int motorID)
+{
+    m_app->moveDoneAction(motorID);
+}
+
 bool Robot::isLimitReached(int motorID,
                            MOTOR_LIMIT_TYPE limitType)
 {

@@ -179,6 +179,13 @@ void ApplicationSim::moveStep(int motorID, int currentStep, int nextStep)
 #endif
 }
 
+void ApplicationSim::moveDoneAction(int motorID)
+{
+#ifdef DEBUG_SIM
+    this->printf("Sim M[%d] move done\r\n",motorID);
+#endif
+}
+
 int ApplicationSim::getMotorAngle(int motorID)
 {
     return m_robot->currentStep(motorID);

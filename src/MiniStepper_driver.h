@@ -6,15 +6,15 @@
 class MiniStepper_driver
 {
   public:
-    MiniStepper_driver(byte pin1, byte pin2, byte pin3, byte pin4);
+    MiniStepper_driver(int pin1, int pin2, int pin3, int pin4);
     void enable(bool enableDriver);
     void setDir(int dir);
     void moveStep(int sleepTime);    
-  private:
-    byte m_pin1;
-    byte m_pin2;
-    byte m_pin3;
-    byte m_pin4;
+  public:
+    int m_pin1;
+    int m_pin2;
+    int m_pin3;
+    int m_pin4;
     int m_dir;
 };
 

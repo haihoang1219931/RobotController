@@ -25,6 +25,7 @@ public:
     int angleToStep(float angle);
     float stepToAngle(int step);
     int homeStep();
+    void moveDoneAction();
     void setCurrentStep(int step);
     void setDir(int dir);
     int dir();

@@ -1,6 +1,6 @@
 #include "Stepper_driver.h"
 
-Stepper_driver::Stepper_driver(byte enablePin, byte stepPin, byte dirPin):
+Stepper_driver::Stepper_driver(int enablePin, int stepPin, int dirPin):
   m_enablePin(enablePin),
   m_stepPin(stepPin),
   m_dirPin(dirPin)
@@ -15,7 +15,7 @@ void Stepper_driver::enable(bool enableDriver)
   digitalWrite(m_enablePin, enableDriver? LOW:HIGH);
 }
 
-void Stepper_driver::setDir(byte dir)
+void Stepper_driver::setDir(int dir)
 {
   // dir > 0 means clockwise
   digitalWrite(m_dirPin, dir > 0 ? LOW:HIGH);

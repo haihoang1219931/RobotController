@@ -79,7 +79,10 @@ void Motor::executePlan()
         goHome();
     }
         break;
-    case MOTOR_DONE: break;
+    case MOTOR_DONE: {
+        moveDoneAction();
+    }
+        break;
     }
 }
 
@@ -150,6 +153,11 @@ void Motor::goHome()
     }
 }
 
+void Motor::moveDoneAction()
+{
+    // Notify robot
+    m_robot->moveDoneAction(m_motorID);
+}
 int Motor::currentStep()
 {
     return m_currStep;

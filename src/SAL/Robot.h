@@ -32,6 +32,7 @@ public:
     long elapsedTime();
     void initDirection(int motorID, int direction);
     void moveStep(int motorID, int currentStep, int nextStep);
+    void moveDoneAction(int motorID);
     bool isLimitReached(int motorID,
                         MOTOR_LIMIT_TYPE limitType);
     int homeStep(int motorID);

@@ -26,6 +26,7 @@ public:
   void enableEngine(bool enable) override;
   void initDirection(int motorID, int direction) override;
   void moveStep(int motorID, int currentStep, int nextStep) override;
+  void moveDoneAction(int motorID) override;
 private:
 	uint8_t m_buttonPin[MAX_BUTTON];
   uint8_t m_limitGripperValue;

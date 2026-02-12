@@ -6,14 +6,14 @@
 class Stepper_driver
 {
   public:
-    Stepper_driver(byte enablePin, byte stepPin, byte dirPin);
+    Stepper_driver(int enablePin, int stepPin, int dirPin);
     void enable(bool enableDriver);
-    void setDir(byte dir);
+    void setDir(int dir);
     void moveStep(int sleepTime);    
   private:
-    byte m_enablePin;
-    byte m_stepPin;
-    byte m_dirPin;
+    int m_enablePin;
+    int m_stepPin;
+    int m_dirPin;
     
 };
 
