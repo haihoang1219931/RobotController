@@ -4,10 +4,6 @@
 #include <Arduino.h>
 #include "SAL/ApplicationController.h"
 
-class Stepper_driver;
-class Servo_driver;
-class DC_driver;
-class MiniStepper_driver;
 class ApplicationArduino : public ApplicationController
 {
 public:
@@ -28,10 +24,8 @@ public:
   void moveStep(int motorID, int currentStep, int nextStep) override;
   void moveDoneAction(int motorID) override;
 private:
-	uint8_t m_buttonPin[MAX_BUTTON];
+  uint8_t m_buttonPin[MAX_BUTTON];
   uint8_t m_limitGripperValue;
-  Stepper_driver* m_listStepper[2];
-  MiniStepper_driver* m_listMiniStepper[2];
 };
 
 #endif // APPLICATIONARDUINO_H

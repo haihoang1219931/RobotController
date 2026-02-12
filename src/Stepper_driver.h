@@ -14,7 +14,6 @@ class Stepper_driver
     int m_enablePin;
     int m_stepPin;
     int m_dirPin;
-    
 };
 
 #endif

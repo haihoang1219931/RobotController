@@ -34,7 +34,6 @@ void MiniStepper_driver::moveStep(int sleepTime)
 {
   if(m_dir < 0)
   {
-    Serial.println("Home");    
     //1
     digitalWrite(m_pin1, HIGH);
     digitalWrite(m_pin2, LOW);
@@ -86,7 +85,6 @@ void MiniStepper_driver::moveStep(int sleepTime)
   } 
   
   else{
-    Serial.println("Down");
     //1
     digitalWrite(m_pin1, HIGH);
     digitalWrite(m_pin2, LOW);

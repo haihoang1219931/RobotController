@@ -11,8 +11,6 @@
 #include "SAL/StdTypes.h"
 
 #define NONE_PIN  0xFF
-#define MINISTEPPER_UPDOWN_ID 0
-#define MINISTEPPER_GRIPPER_ID 1
 #define enPin 8
 #define stepXPin 2 //X.STEP
 #define dirXPin 5 // X.DIR
@@ -35,15 +33,15 @@
 #define limitUpdown 11
 #define limitGripper A8
 
+Stepper_driver driver1(enPin,stepXPin, dirXPin);
+Stepper_driver driver2(enPin,stepYPin, dirYPin);
+MiniStepper_driver miniStepperUpdown(
+      miniStepperUpdownPin1,miniStepperUpdownPin2,miniStepperUpdownPin3,miniStepperUpdownPin4);
+MiniStepper_driver miniStepperGripper(
+      miniStepperGripperPin1,miniStepperGripperPin2,miniStepperGripperPin3,miniStepperGripperPin4);
 
 ApplicationArduino::ApplicationArduino()
 {
-    m_listStepper[MOTOR_ARM1] = new Stepper_driver(enPin,stepXPin, dirXPin);
-    m_listStepper[MOTOR_ARM2] = new Stepper_driver(enPin,stepYPin, dirYPin);
-    m_listMiniStepper[MINISTEPPER_UPDOWN_ID] = new MiniStepper_driver(
-      miniStepperUpdownPin1,miniStepperUpdownPin2,miniStepperUpdownPin3,miniStepperUpdownPin4);
-    m_listMiniStepper[MINISTEPPER_GRIPPER_ID] = new MiniStepper_driver(
-      miniStepperGripperPin1,miniStepperGripperPin2,miniStepperGripperPin3,miniStepperGripperPin4);
     initRobot();
     memset(m_buttonPin,NONE_PIN,sizeof(m_buttonPin));
     m_buttonPin[MOTOR_ARM1] = limitX;
@@ -192,19 +190,22 @@ void ApplicationArduino::initDirection(int motorID, int direction)
 {
   this->printf("initDirection motorID=%d, direction=%d\r\n", motorID, direction);
   switch(motorID){
-    case MOTOR::MOTOR_ARM1:
+    case MOTOR::MOTOR_ARM1: {
+      driver1.setDir(direction);
+    }
+    break;
     case MOTOR::MOTOR_ARM2: {
-      m_listStepper[motorID]->setDir(direction);
+      driver2.setDir(direction);
     }
     break;
     case MOTOR::MOTOR_ARM5:
     {
-      m_listMiniStepper[MINISTEPPER_UPDOWN_ID]->setDir(direction);
+      miniStepperUpdown.setDir(direction);
     }
     break;
     case MOTOR::MOTOR_CAPTURE: 
     {
-      m_listMiniStepper[MINISTEPPER_GRIPPER_ID]->setDir(direction);
+      miniStepperGripper.setDir(direction);
     }
     break;
     default: break;
@@ -216,21 +217,21 @@ void ApplicationArduino::moveStep(int motorID, int currentStep, int nextStep)
 {
   switch(motorID){
     case MOTOR::MOTOR_ARM1: {
-      m_listStepper[motorID]->moveStep(1000);
+      driver1.moveStep(1000);
     }
     break;
     case MOTOR::MOTOR_ARM2: {
-      m_listStepper[motorID]->moveStep(4000);
+      driver2.moveStep(4000);
     }
     break;
     case MOTOR::MOTOR_ARM5:
     {
-      m_listMiniStepper[MINISTEPPER_UPDOWN_ID]->moveStep(900);
+      miniStepperUpdown.moveStep(900);
     }
     break;
     case MOTOR::MOTOR_CAPTURE: 
     {
-      m_listMiniStepper[MINISTEPPER_GRIPPER_ID]->moveStep(900);
+      miniStepperGripper.moveStep(900);
     }
     break;
     default: break;
@@ -249,12 +250,12 @@ void ApplicationArduino::moveDoneAction(int motorID)
     break;
     case MOTOR::MOTOR_ARM5:
     {
-      m_listMiniStepper[MINISTEPPER_UPDOWN_ID]->enable(false);
+      miniStepperUpdown.enable(false);
     }
     break;
     case MOTOR::MOTOR_CAPTURE: 
     {
-      m_listMiniStepper[MINISTEPPER_GRIPPER_ID]->enable(false);
+      miniStepperGripper.enable(false);
     }
     break;
     default: break;
