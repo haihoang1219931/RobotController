@@ -69,12 +69,12 @@ void ApplicationArduino::initRobot()
 
     JointParam armPrams[MAX_MOTOR] = {
     // active |scale=gear_ratio/resolution   |length|init angle|home angle|home step|min angle|max angle|
-        {true,  1.0f/1.0f,                        0,    100,        0,          1,      0,       250   },
-        {true,  18.0f/1.0f*(200.0f/360.0f),     255,      0,       -17,       100,    -17,       150   },
-        {true,  70.0f/20.0f*(200.0f/360.0f),     85,    140,       50,        100,      0,       210   },
-        {false, 1.0f/1.0f,                       15,    130,      135,          1,      0,         0   },
-        {false, 1.0f/1.0f,                      120,    180,      135,          1,      0,         0   },
-        {true,  50.0f/14.0f*(512.0f/360.0f),      0,      20,       0,          1,      0,        45   }
+         {true,  1.0f/1.0f,                       0,     100,        0,        1,       0,       250   },
+         {true,   18.0f/1.0f*(200.0f/360.0f),   255,       0,      -17,      100,     -17,       150   },
+         {true,  70.0f/20.0f*(200.0f/360.0f),    85,     140,       50,      100,      50,       210   },
+         {false,  1.0f/1.0f,                     15,     130,      130,        1,     130,       130   },
+         {false,  1.0f/1.0f,                    120,     180,      180,        1,     180,       180   },
+         {true,  50.0f/14.0f*(512.0f/360.0f),     0,      20,        0,        1,       0,        45   }
     };
 
     for(int motor= MOTOR_CAPTURE; motor<= MOTOR_ARM5; motor++) {

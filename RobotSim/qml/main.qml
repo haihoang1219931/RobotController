@@ -71,7 +71,7 @@ ApplicationWindow {
         anchors.top: parent.top
         anchors.left: parent.left
         anchors.topMargin: 80
-        anchors.leftMargin: 20
+        anchors.leftMargin: 80
         spacing: 20
         Rectangle {
             width: 600
@@ -210,7 +210,7 @@ ApplicationWindow {
             id: command
             width: 500
             height: 300
-            property int visualScale: 2
+            property real visualScale: 1
             arm1Length: mainProcess.listArmLength[1] * visualScale
             arm2Length: mainProcess.listArmLength[2] * visualScale
             arm3Length: mainProcess.listArmLength[3] * visualScale

@@ -443,7 +443,7 @@ void ApplicationController::calculateSequenceMoveNormal(int startCol, int startR
 {
     // append move from start -> stop -> standy
     Point startPoint = m_chessBoard->convertPoint(startRow,startCol);
-    printf("start[%d,%d] to Point(%d,%d)\r\n",
+    printf("start[%d,%d] to Point(%f,%f)\r\n",
            startRow,startCol,
            startPoint.x,startPoint.y);
     Point stopPoint = m_chessBoard->convertPoint(stopRow,stopCol);
