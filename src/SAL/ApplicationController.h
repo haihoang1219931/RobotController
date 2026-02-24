@@ -66,7 +66,11 @@ public:
     virtual void initDirection(int motorID, int direction) = 0;
     virtual void moveSingleStep(int motorID, int delayTime) = 0;
     virtual void moveDoneAction(int motorID) = 0;
-
+    virtual void enableMotionTask(bool enable) = 0;
+    virtual void setupMotionTask(int motorID, 
+        int stepsAccel, int stepsCruise, int stepsDecel, 
+        int direction, bool isAccel, float delayStart) = 0;
+    virtual int readNumStepsFeedback(int motorID) = 0;
 public:
     MACHINE_STATE m_machineState;
     Button* m_buttonList[MAX_BUTTON];

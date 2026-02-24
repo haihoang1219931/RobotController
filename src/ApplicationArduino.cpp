@@ -79,13 +79,13 @@ void ApplicationArduino::initRobot()
     m_chessBoard->setDropZoneSpace(31);
 
     JointParam armPrams[MAX_MOTOR] = {
-    // active|   scale=gear_ratio/resolution   |length|init angle|home angle|home step|min angle|max angle|
-      {true,  1.0f/1.0f,                            0,     100,        0,        1,       0,       250   },
-      {true,  8.0f*18.0f/01.0f*(200.0f/360.0f),   255,       0,      -17,      100,     -17,       150   },
-      {true,  8.0f*70.0f/20.0f*(200.0f/360.0f),    85,     140,       50,      500,      50,       210   },
-      {false,  1.0f/1.0f,                          15,     130,      130,        1,     130,       130   },
-      {false,  1.0f/1.0f,                         120,     180,      180,        1,     180,       180   },
-      {true,  50.0f/14.0f*(512.0f/360.0f),          0,      20,        0,     1000,       0,        45   }
+    // active|   scale=gear_ratio/resolution   |length|init angle|home angle|home step|min angle|max angle|max speed (step/s)
+      {true,  1.0f/1.0f,                            0,     100,        0,         1,        0,       250,          76},
+      {true,  8.0f*18.0f/01.0f*(200.0f/360.0f),   255,       0,      -17,       100,      -17,       150,        5000},
+      {true,  8.0f*70.0f/20.0f*(200.0f/360.0f),    85,     140,       50,       500,       50,       210,        5000},
+      {false,  1.0f/1.0f,                          15,     130,      130,         1,      130,       130,           1},
+      {false,  1.0f/1.0f,                         120,     180,      180,         1,      180,       180,           1},
+      {true,  50.0f/14.0f*(512.0f/360.0f),          0,      20,        0,      1000,        0,        45,          76}
     };
 
     for(int motor= MOTOR_CAPTURE; motor<= MOTOR_ARM5; motor++) {
@@ -285,14 +285,117 @@ void ApplicationArduino::initHardwareTimer()
   OCR1A = 16000000.0f / samplerate; // compare match register for IRQ with selected samplerate
   TCCR1B |= (1 << WGM12); // CTC mode
   TCCR1B |= (1 << CS10); // no prescaler
-  TIMSK1 |= (1 << OCIE1A); // enable timer compare interrupt
   interrupts(); // enable all interrupts
 }
 
+void ApplicationArduino::enableMotionTask(bool enable)
+{
+  if(enable)
+    TIMSK1 |= (1 << OCIE1A); // enable timer compare interrupt
+  else
+    TIMSK1 &= ~(1 << OCIE1A);
+}
+
+void ApplicationArduino::setupMotionTask(int motorID, 
+        int stepsAccel, int stepsCruise, int stepsDecel, 
+        int direction, bool isAccel, float delayStart)
+{
+  switch (motorID)
+  {
+    case MOTOR::MOTOR_ARM1: {
+      motionDriver1.setupTarget(stepsAccel, stepsCruise, stepsDecel, direction, isAccel, delayStart);
+    }
+    break;
+    case MOTOR::MOTOR_ARM2: {
+      motionDriver2.setupTarget(stepsAccel, stepsCruise, stepsDecel, direction, isAccel, delayStart);
+    }
+    break;
+    case MOTOR::MOTOR_ARM5: {
+      motionUpdown.setupTarget(stepsAccel, stepsCruise, stepsDecel, direction, isAccel, delayStart);
+    }
+    break;
+    case MOTOR::MOTOR_CAPTURE: {
+      motionGripper.setupTarget(stepsAccel, stepsCruise, stepsDecel, direction, isAccel, delayStart);
+    }
+    break;
+    default:
+      this->printf("Invalid motorID=%d\r\n", motorID);
+      break;
+  }
+}
+
+int ApplicationArduino::readNumStepsFeedback(int motorID)
+{
+  switch(motorID){
+    case MOTOR::MOTOR_ARM1: {
+      return motionDriver1.getCurrentSteps();
+    }
+    break;
+    case MOTOR::MOTOR_ARM2: {
+      return motionDriver2.getCurrentSteps();
+    }
+    break;
+    case MOTOR::MOTOR_ARM5: {
+      return motionUpdown.getCurrentSteps();
+    }
+    break;
+    case MOTOR::MOTOR_CAPTURE: {
+      return motionGripper.getCurrentSteps();
+    }
+    break;
+  }
+  return 0;
+}
+int countPulse = 0;
 ISR(TIMER1_COMPA_vect)
 {
   motionDriver1.motionControlLoop();
   motionDriver2.motionControlLoop();
   motionUpdown.motionControlLoop();
-  motionGripper.motionControlLoop();
+  // motionGripper.motionControlLoop();
+  countPulse++;
+  if(countPulse >= 40000) {
+    countPulse = 0;
+    Serial.print("M1[");
+    Serial.print(motionDriver1.getCurrentSteps());
+    Serial.print("] M2[");
+    Serial.print(motionDriver2.getCurrentSteps());
+    Serial.print("] UPDOWN[");
+    Serial.print(motionUpdown.getCurrentSteps());
+    Serial.print("] GRIPPER[");
+    Serial.print(motionGripper.getCurrentSteps());
+    Serial.println("]");
+  }
 }
+
+// uint8_t statePulse = STATE_HIGH;
+// uint8_t numWaitPulse = 3;
+// uint8_t pulseCount = 0;
+
+// ISR(TIMER1_COMPA_vect)
+// {
+//   switch(statePulse){
+//     case STATE_HIGH: {
+//       digitalWrite(2,HIGH);
+//       statePulse = STATE_WAIT1;
+//       pulseCount = 0;
+//     }
+//     break;
+//     case STATE_WAIT1: {
+//       pulseCount++;
+//       if(pulseCount >= numWaitPulse) statePulse = STATE_LOW;
+//     }
+//     break;
+//     case STATE_LOW: {
+//       digitalWrite(2,LOW);
+//       statePulse = STATE_WAIT2;
+//       pulseCount = 0;
+//     }
+//     break;
+//     case STATE_WAIT2: {
+//       pulseCount++;
+//       if(pulseCount >= numWaitPulse) statePulse = STATE_HIGH;
+//     }
+//     break;
+//   }
+// }

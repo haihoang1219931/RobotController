@@ -8,7 +8,8 @@ class SmoothMotion {
     SmoothMotion(int stepPin1, int stepPin2, int stepPin3, int stepPin4);
 
     void init();
-    void setupTarget(int targetStep, int direction, bool isAccel, float delayStart);
+    void setupTarget(int stepsAccel, int stepsCruise, int stepsDecel, 
+      int direction, bool isAccel, float delayStart);
     void motionControlLoop();
     void pulseLoop();
     void increaseSpeed();
@@ -17,6 +18,7 @@ class SmoothMotion {
     void goHome();
     float delayAccel(float stepCount, float delayCur);
     float delayDecel(float stepCount, float delayCur);
+    int getCurrentSteps();
   private:
     uint8_t m_statePulse;
     uint8_t m_numWaitPulse = 2;

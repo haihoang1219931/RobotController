@@ -22,6 +22,10 @@ public:
     void resetMoveSequene();
     void appendMove(int* jointSteps);
     void moveSequence(int motorID = MAX_MOTOR);
+    void executeMoveSequence();
+    void initMove();
+    void gotoTarget();
+    void capture();
     long elapsedTime();
     int angleToStep(int motorID, float angle);
     float stepToAngle(int motorID, int step);

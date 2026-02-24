@@ -2,7 +2,6 @@
 #include "ApplicationController.h"
 #include <math.h>
 #include <string.h>
-
 #ifdef abs
 #undef abs
 #endif
@@ -38,8 +37,8 @@ void Robot::loop() {
         executeGohome();
     }
         break;
-    case ROBOT_EXECUTE_POSITION: {
-        // executeMoveSequence();
+    case ROBOT_EXECUTE_SEQUENCE: {
+        executeMoveSequence();
     }
         break;
     case ROBOT_EXECUTE_DONE: {
@@ -203,7 +202,88 @@ void Robot::moveSequence(int motorID)
     m_sequenceState = ROBOT_MOVE_INIT;
 }
 
-// void Robot::executeMoveSequence()
-// {
+void Robot::executeMoveSequence()
+{
+    switch (m_sequenceState) {
+        case ROBOT_MOVE_INIT:{
+            initMove();
+        }
+            break;
+        case ROBOT_MOVE_EXECUTE: {
+            gotoTarget();
+        }
+            break;
+        case ROBOT_MOVE_CAPTURE: {
+            capture();
+        }
+            break;
+        case ROBOT_MOVE_DONE: {
+            setState(ROBOT_EXECUTE_DONE);
+        }
+            break;
+    }
+}
 
-// }
+void Robot::initMove()
+{
+    m_app->printf("============= Init Move [%02d/%02d] =============\r\n",
+                  m_curMove, m_numMove);
+    // Calculate time for each motor to reach target step, 
+    // then start with the motor which has longest time to reach target step
+    float maxTime = 0;
+    for(int i=0; i< MAX_MOTOR; i++) {
+        if(!m_motorParamList[i].active) continue;
+        m_motorParamList[i].targetStep = m_moveSequence[m_curMove].jointSteps[i].steps;
+        m_motorParamList[i].startStep = m_motorParamList[i].currentStep;
+        m_motorParamList[i].direction = (m_motorParamList[i].targetStep > m_motorParamList[i].currentStep) ? 1 : -1;   
+        float numStep = (float)abs(m_motorParamList[i].targetStep - m_motorParamList[i].currentStep);
+        float time = (float)numStep / m_motorParamList[i].maxSpeed;
+        if(time > maxTime) maxTime = time;
+        m_app->printf("Motor[%d] numStep[%d] time[%d] => Max[%f]\r\n", i, numStep, time, maxTime);
+    }
+
+    // Set step time for each motor
+    for(int i=0; i< MAX_MOTOR; i++) {
+        if(!m_motorParamList[i].active) continue;
+        float numStep = (float)abs(m_motorParamList[i].targetStep - m_motorParamList[i].currentStep);
+        int delayTime = (int)(maxTime / numStep * 40000.0f);
+        m_app->setupMotionTask(i, 
+            (int)(numStep*0.1f), (int)(numStep*0.8f), (int)(numStep*0.1f), 
+            m_motorParamList[i].direction, true, delayTime);
+        m_app->printf("Motor[%d] numStep[%d] delayTime[%d]\r\n", i, (int)numStep, delayTime);
+    }
+    m_app->enableMotionTask(true);
+
+    m_sequenceState = ROBOT_MOVE_EXECUTE;
+}
+
+void Robot::gotoTarget()
+{
+    bool allMotorsFinished = true;
+    for(int motor = 0; motor< MAX_MOTOR; motor++)
+    {
+        if(!m_motorParamList[motor].active) continue;
+        m_motorParamList[motor].currentStep = m_app->readNumStepsFeedback(motor);
+        if(m_motorParamList[motor].currentStep != m_motorParamList[motor].targetStep) {
+            allMotorsFinished = false;
+        }
+    }
+    if(allMotorsFinished) {
+        m_app->printf("======All motor finished\r\n");
+        m_sequenceState = ROBOT_MOVE_DONE;
+    }
+}
+
+void Robot::capture()
+{
+    bool captureDone = true;
+    if(captureDone) {
+        if(m_curMove < m_numMove-1) {
+            m_curMove++;
+            m_sequenceState = ROBOT_MOVE_INIT;
+        } else {
+            m_app->enableMotionTask(false);
+            m_sequenceState = ROBOT_MOVE_DONE;
+        }
+    }
+}

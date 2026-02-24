@@ -23,6 +23,11 @@ public:
   void initDirection(int motorID, int direction) override;
   void moveSingleStep(int motorID, int delayTime) override;
   void moveDoneAction(int motorID) override;
+  void enableMotionTask(bool enable) override;
+  void setupMotionTask(int motorID, 
+        int stepsAccel, int stepsCruise, int stepsDecel, 
+        int direction, bool isAccel, float delayStart) override;
+  int readNumStepsFeedback(int motorID) override;
 
 private:
   void initHardwareTimer();

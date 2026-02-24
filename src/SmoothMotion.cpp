@@ -18,9 +18,20 @@ SmoothMotion::SmoothMotion(int stepPin1, int stepPin2, int stepPin3, int stepPin
 {
 
 }
+// void setAcc(float acceleration) {
+//   if(acceleration <= 0){return;}
+//   first_step_delay =1000*(sqrt(2*1.8)/acceleration);
 
-void SmoothMotion::setupTarget(int targetStep, int direction, bool isAccel, float delayStart) {
-  m_targetStep = targetStep;
+//   Serial.print("Acceleration ->  ");
+//   Serial.println(acceleration);
+// }
+
+void SmoothMotion::setupTarget(
+  int stepsAccel, int stepsCruise, int stepsDecel, 
+  int direction, bool isAccel, float delayStart) {
+  m_numStepAccel = stepsAccel;
+  m_numStepCruise = stepsCruise;
+  m_numStepDecel = stepsDecel;
   m_targetDirection = direction;
   m_isAccel = isAccel;
   m_delayStart = delayStart;
@@ -30,7 +41,6 @@ void SmoothMotion::setupTarget(int targetStep, int direction, bool isAccel, floa
     m_stateControl = MOTOR_EXECUTE_CRUISE_SPEED;
   }
   m_delayTimeStart = delayStart;
-
 }
 
 float SmoothMotion::delayAccel(float stepCount, float delayCur) {
@@ -96,7 +106,7 @@ void SmoothMotion::increaseSpeed() {
     }
     break;
     case MOTION_UPDATE_DELAY: {
-      m_stepCountAccel ++;        
+      m_stepCountAccel ++;
       m_delayTime = delayAccel(m_stepCountAccel,m_delayTime);
       m_numWaitPulse = m_delayTime;
       if(m_stepCountAccel < m_numStepAccel) {
@@ -121,7 +131,6 @@ void SmoothMotion::cruiseSpeed() {
     case MOTION_INIT: {
       Serial.println("Cruise");
       m_statePulse = STATE_HIGH;
-      m_numWaitPulse = 2;
       m_motionCruiseState = MOTION_PULSE;
     }
     break;
@@ -158,8 +167,6 @@ void SmoothMotion::decreaseSpeed() {
     case MOTION_INIT: {
       Serial.println("Decel");
       m_statePulse = STATE_HIGH;
-      m_numWaitPulse = 2;
-      m_delayTime = 2; 
       m_stepCountDecel = m_numStepDecel;
       m_motionDecelState = MOTION_PULSE;
     }
@@ -340,4 +347,9 @@ void SmoothMotion::pulseLoop()
   } else {
     m_statePulse = STATE_DONE;
   }
+}
+
+int SmoothMotion::getCurrentSteps()
+{
+  return m_stepCountAccel + m_stepCountCruise + m_stepCountDecel;
 }
