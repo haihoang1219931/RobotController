@@ -110,7 +110,7 @@ void ApplicationController::executeCommand(char* command) {
             }
         }
     }
-    else if(command[0] == 'b' && command[1]>='0') {
+    else if(command[0] == 'b' && strlen(command)>=2 && command[1]>='0') {
         if(command[1]-'0' < MAX_BUTTON) {
             int buttonID = command[1]-'0';
             this->printf("B%c %s\r\n",command[1],
@@ -121,7 +121,7 @@ void ApplicationController::executeCommand(char* command) {
             this->printf("B%c INVALID\r\n",command[1]);
         }        
     }
-    else if(command[0] == 's' && command[1]>='0') {
+    else if(command[0] == 's' && strlen(command)>=2 && command[1]>='0') {
         if(command[1]-'0' < MAX_MOTOR) {
             int motorID = command[1]-'0';
             this->printf("M%c %d\r\n",command[1],
@@ -145,12 +145,12 @@ void ApplicationController::executeCommand(char* command) {
             command[3] == 'u'?0:45, command[4] == 'c');
     }
     else if(command[0] == 'h') {
-        if(command[1] == 'a') {
+        if(strlen(command)>=2 && command[1] == 'a') {
             specificPlatformGohome();
             m_robot->requestGoHome();
             setMachineState(MACHINE_EXECUTE_COMMAND);
         }
-        else if(command[1] >= '0' && command[1] <= '5')
+        else if(strlen(command)>=2 && command[1] >= '0' && command[1] <= '5')
         {
             specificPlatformGohome(command[1]-'0');
             m_robot->requestGoHome(command[1]-'0');
@@ -160,25 +160,25 @@ void ApplicationController::executeCommand(char* command) {
     else if(command[0] == 'c' && strlen(command)>=3) {
         executeSequence(MOVE_NORMAL, command[2]-'0',command[1]-'0',
                 0,7);
-    }else if(command[0] == 'c' && command[1] == 'n' ) {
+    }else if(command[0] == 'c' && strlen(command)>=2 && command[1] == 'n' ) {
         executeSequence(MOVE_CASTLE, 3, 0,
                 0,0);
-    }else if(command[0] == 'c' && command[1] == 'l' ) {
+    }else if(command[0] == 'c' && strlen(command)>=2 && command[1] == 'l' ) {
         executeSequence(MOVE_CASTLE, 3, 0,
                 7,0);
-    }else if(command[0] == 'a' && command[1] == 't' ) {
+    }else if(command[0] == 'a' && strlen(command)>=2 && command[1] == 't' ) {
         executeSequence(MOVE_ATTACK, 0, 0,
                 4,4);
     }else if(command[0] == 'p' && command[1] == 'p' ) {
         executeSequence(MOVE_PASTPAWN, 2, 4,
                 3,5);
-    }else if(command[0] == 'p' && command[1] == 'r' && command[2] == 'a' ) {
+    }else if(command[0] == 'p' && strlen(command)>=3 && command[1] == 'r' && command[2] == 'a' ) {
         executeSequence(MOVE_PROMOTE, 2, 6,
                 3, 7, 'q');
-    }else if(command[0] == 'p' && command[1] == 'r' && command[2] == 'n' ) {
+    }else if(command[0] == 'p' && strlen(command)>=3 && command[1] == 'r' && command[2] == 'n' ) {
         executeSequence(MOVE_PROMOTE, 2, 6,
                 2, 7);
-    }else if(command[0] == 'p' && command[1] >= '0' && command[1] <= '5')
+    }else if(command[0] == 'p' && strlen(command)>=2 && command[1] >= '0' && command[1] <= '5')
     {
         int motorID = command[1]-'0';
         char angleStr[8];
@@ -204,77 +204,9 @@ void ApplicationController::executeCommand(char* command) {
                 stepTime, isRelative);
         setMachineState(MACHINE_EXECUTE_COMMAND);
     }
-    //  else if(command[0] == 'a') {
-    //    if(strlen(command)<21) {
-    //      this->printf("All Params: a [base] [arm1] [arm2] [servo]\r\n");
-    //      return;
-    //    }
-    //    char angleStr[16];
-    //    angleStr[0] = command[2];
-    //    angleStr[1] = command[3];
-    //    angleStr[2] = command[4];
-    //    angleStr[3] = command[5];
-    //    angleStr[4] = 0;
-    //    long angleBase = atoi(angleStr);
-
-    //    angleStr[0] = command[7];
-    //    angleStr[1] = command[8];
-    //    angleStr[2] = command[9];
-    //    angleStr[3] = command[10];
-    //    angleStr[4] = 0;
-    //    long angleArm1 = atoi(angleStr);
-
-    //    angleStr[0] = command[12];
-    //    angleStr[1] = command[13];
-    //    angleStr[2] = command[14];
-    //    angleStr[3] = command[15];
-    //    angleStr[4] = 0;
-    //    long angleArm2 = atoi(angleStr);
-
-    //    angleStr[0] = command[17];
-    //    angleStr[1] = command[18];
-    //    angleStr[2] = command[19];
-    //    angleStr[3] = command[20];
-    //    angleStr[4] = 0;
-    //    long angleStepper = atoi(angleStr);
-    //    m_robot->ablsoluteAngle(angleBase,angleArm1,angleArm2,angleStepper);
-    //  }
-    //    else if(command[0] == 'p'){
-    //    if(strlen(command)<16) {
-    //      this->printf("Mission Params: p [startCol] [startRow] [stopCol] [stopRow] [a/n][c/n][promote piece]\r\n");
-    //      return;
-    //    }
-    //    int startCol = (command[2]-'0')*10+(command[3]-'0');
-    //    int startRow = (command[5]-'0')*10+(command[6]-'0');
-    //    int stopCol = (command[8]-'0')*10+(command[9]-'0');
-    //    int stopRow = (command[11]-'0')*10+(command[12]-'0');
-    //    bool attack = command[13] == 'a';
-    //    bool castle = command[14] == 'c';
-    //    char promote = command[15];
-    //    m_robot->goToPosition(startCol, startRow, stopCol, stopRow, attack, castle, promote);
-    //  } else  if(command[0] == 'r') {
-    //    if(strlen(command)<12) {
-    //      this->printf("Mission Params: r[motor:0-3] [position:0000-9999] [speed:0000-9999]\r\n");
-    //      return;
-    //    }
-    //    int motorID = command[1]-'0';
-    //    char angleStr[16];
-    //    angleStr[0] = command[3];
-    //    angleStr[1] = command[4];
-    //    angleStr[2] = command[5];
-    //    angleStr[3] = command[6];
-    //    angleStr[4] = 0;
-    //    long angle = atoi(angleStr);
-
-    //    char speedStr[16];
-    //    speedStr[0] = command[8];
-    //    speedStr[1] = command[9];
-    //    speedStr[2] = command[10];
-    //    speedStr[3] = command[11];
-    //    speedStr[4] = 0;
-    //    float speed = atof(speedStr);
-    //    m_robot->rotateAngle((MOTOR)motorID, angle, speed);
-    //  }
+    else {
+        this->printf("Unknown Command\r\n");
+    }
 }
 
 void ApplicationController::executeSingleMotor(int motorID,

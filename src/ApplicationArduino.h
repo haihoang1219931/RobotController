@@ -21,10 +21,13 @@ public:
   int readSerial(char* output, int length) override;
   void enableEngine(bool enable) override;
   void initDirection(int motorID, int direction) override;
-  void moveStep(int motorID, int currentStep, int nextStep) override;
+  void moveSingleStep(int motorID, int delayTime) override;
   void moveDoneAction(int motorID) override;
+
 private:
-  uint8_t m_buttonPin[MAX_BUTTON];
+  void initHardwareTimer();
+private:
+  int m_buttonPin[MAX_BUTTON];
   int m_limitGripperValue;
 };
 

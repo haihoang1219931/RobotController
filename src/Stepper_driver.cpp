@@ -5,11 +5,15 @@ Stepper_driver::Stepper_driver(int enablePin, int stepPin, int dirPin):
   m_stepPin(stepPin),
   m_dirPin(dirPin)
 {
+  
+}
+
+void Stepper_driver::init()
+{
   pinMode(m_enablePin, OUTPUT);
   pinMode(m_stepPin, OUTPUT);
   pinMode(m_dirPin, OUTPUT);
 }
-
 void Stepper_driver::enable(bool enableDriver)
 {
   digitalWrite(m_enablePin, enableDriver? LOW:HIGH);

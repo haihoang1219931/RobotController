@@ -18,13 +18,50 @@
 #endif
 
 typedef enum {
-    MOTOR_INIT,
+    MOTOR_EXECUTE_WAIT_COMMAND,
     MOTOR_EXECUTE_INCREASE_SPEED,
     MOTOR_EXECUTE_CRUISE_SPEED,
     MOTOR_EXECUTE_DECREASE_SPEED,
     MOTOR_EXECUTE_HOME,
-    MOTOR_DONE
-}MOTOR_CONTROL_STATE;
+    MOTOR_EXECUTE_DONE,
+} MOTOR_CONTROL_STATE;
+
+typedef enum {
+  // For 2 wires stepper
+  STATE_HIGH,
+  STATE_LOW,
+
+  // For 4 wires stepper
+  STATE_COMMAND1,
+  STATE_COMMAND2,
+  STATE_COMMAND3,
+  STATE_COMMAND4,
+  STATE_COMMAND5,
+  STATE_COMMAND6,
+  STATE_COMMAND7,
+  STATE_COMMAND8,
+
+  // Wait state
+  STATE_WAIT1,
+  STATE_WAIT2,
+  STATE_WAIT3,
+  STATE_WAIT4,
+  STATE_WAIT5,
+  STATE_WAIT6,
+  STATE_WAIT7,
+  STATE_WAIT8,
+
+  // Done state
+  STATE_DONE,
+} STATE_PULSE;
+
+typedef enum {
+  MOTION_INIT,
+  MOTION_PULSE,
+  MOTION_UPDATE_DELAY,
+  MOTION_CHECK_COUNTER,
+  MOTION_DONE
+} MOTION_STATE;
 
 typedef enum {
     MOTOR_LIMIT_MIN,
@@ -36,6 +73,11 @@ typedef enum {
     MOTOR_ENABLED,
     MOTOR_DISABLED
 }MOTOR_ACTIVE_STATE;
+
+typedef enum {
+  MOTOR_TYPE_STEPPER_2_WIRES,
+  MOTOR_TYPE_STEPPER_4_WIRES,
+} MOTOR_TYPE;
 
 typedef enum{
     ROBOT_INIT,
@@ -91,11 +133,15 @@ typedef struct{
     bool active;
     float scale;
     float length;
-    int initAngle;
-    int homeAngle;
+    float initAngle;
+    float homeAngle;
     int homeStepTime;
-    int minAngle;
-    int maxAngle;
+    float minAngle;
+    float maxAngle;
+    int currentStep;
+    int startStep;
+    int targetStep;
+    int direction;
 }JointParam;
 
 

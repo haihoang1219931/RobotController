@@ -7,6 +7,7 @@ class Stepper_driver
 {
   public:
     Stepper_driver(int enablePin, int stepPin, int dirPin);
+    void init();
     void enable(bool enableDriver);
     void setDir(int dir);
     void moveStep(int sleepTime);    

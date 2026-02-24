@@ -1,7 +1,8 @@
 #include "ApplicationArduino.h"
+#include "SmoothMotion.h"
+#include <Arduino.h>
 #include "MiniStepper_driver.h"
 #include "Stepper_driver.h"
-#include "Servo_driver.h"
 #include "SAL/Button.h"
 #include "SAL/ChessBoard.h"
 #include "SAL/Robot.h"
@@ -14,10 +15,10 @@
 #define enPin 8
 #define stepXPin 2 //X.STEP
 #define dirXPin 5 // X.DIR
-#define stepYPin 3 //Y.STEP
-#define dirYPin 6 // Y.DIR
+#define stepYPin 4 //Y.STEP
+#define dirYPin 7 // Y.DIR
 
-#define limitX 9 // X.LIMIT
+#define limitX 13 // X.LIMIT
 #define limitY 10 // Y.LIMIT
 
 #define miniStepperUpdownPin1 34
@@ -40,6 +41,12 @@ MiniStepper_driver miniStepperUpdown(
 MiniStepper_driver miniStepperGripper(
       miniStepperGripperPin1,miniStepperGripperPin2,miniStepperGripperPin3,miniStepperGripperPin4);
 
+SmoothMotion motionDriver1(enPin,stepXPin, dirXPin);
+SmoothMotion motionDriver2(enPin,stepYPin, dirYPin);
+SmoothMotion motionUpdown(miniStepperUpdownPin1,miniStepperUpdownPin2,
+  miniStepperUpdownPin3,miniStepperUpdownPin4);
+SmoothMotion motionGripper(
+      miniStepperGripperPin1,miniStepperGripperPin2,miniStepperGripperPin3,miniStepperGripperPin4);
 ApplicationArduino::ApplicationArduino()
 {
     initRobot();
@@ -52,7 +59,11 @@ ApplicationArduino::ApplicationArduino()
     pinMode(m_buttonPin[MOTOR_ARM2], INPUT_PULLUP);
     pinMode(m_buttonPin[MOTOR_ARM5], INPUT_PULLUP);
     pinMode(enPin, OUTPUT);
+    driver1.init();
+    driver2.init();
     digitalWrite(enPin, HIGH);
+
+    initHardwareTimer();
 }
 
 ApplicationArduino::~ApplicationArduino()
@@ -68,13 +79,13 @@ void ApplicationArduino::initRobot()
     m_chessBoard->setDropZoneSpace(31);
 
     JointParam armPrams[MAX_MOTOR] = {
-    // active |scale=gear_ratio/resolution   |length|init angle|home angle|home step|min angle|max angle|
-         {true,  1.0f/1.0f,                       0,     100,        0,        1,       0,       250   },
-         {true,   18.0f/1.0f*(200.0f/360.0f),   255,       0,      -17,      100,     -17,       150   },
-         {true,  70.0f/20.0f*(200.0f/360.0f),    85,     140,       50,      100,      50,       210   },
-         {false,  1.0f/1.0f,                     15,     130,      130,        1,     130,       130   },
-         {false,  1.0f/1.0f,                    120,     180,      180,        1,     180,       180   },
-         {true,  50.0f/14.0f*(512.0f/360.0f),     0,      20,        0,        1,       0,        45   }
+    // active|   scale=gear_ratio/resolution   |length|init angle|home angle|home step|min angle|max angle|
+      {true,  1.0f/1.0f,                            0,     100,        0,        1,       0,       250   },
+      {true,  8.0f*18.0f/01.0f*(200.0f/360.0f),   255,       0,      -17,      100,     -17,       150   },
+      {true,  8.0f*70.0f/20.0f*(200.0f/360.0f),    85,     140,       50,      500,      50,       210   },
+      {false,  1.0f/1.0f,                          15,     130,      130,        1,     130,       130   },
+      {false,  1.0f/1.0f,                         120,     180,      180,        1,     180,       180   },
+      {true,  50.0f/14.0f*(512.0f/360.0f),          0,      20,        0,     1000,       0,        45   }
     };
 
     for(int motor= MOTOR_CAPTURE; motor<= MOTOR_ARM5; motor++) {
@@ -168,8 +179,8 @@ bool ApplicationArduino::isLimitReached(int motorID, MOTOR_LIMIT_TYPE limitType)
     break;
     case MOTOR::MOTOR_CAPTURE: {
       limitReached = limitType == MOTOR_LIMIT_MIN || limitType == MOTOR_LIMIT_HOME ? 
-                    m_limitGripperValue >= 400 :
-                    m_limitGripperValue <= 170;
+                    m_limitGripperValue >= 500 :
+                    m_limitGripperValue <= 200;
     }
     break;
     default: break;
@@ -214,25 +225,25 @@ void ApplicationArduino::initDirection(int motorID, int direction)
   
 }
 
-void ApplicationArduino::moveStep(int motorID, int currentStep, int nextStep)
+void ApplicationArduino::moveSingleStep(int motorID, int delayTime)
 {
   switch(motorID){
     case MOTOR::MOTOR_ARM1: {
-      driver1.moveStep(1000);
+      driver1.moveStep(delayTime);
     }
     break;
     case MOTOR::MOTOR_ARM2: {
-      driver2.moveStep(4000);
+      driver2.moveStep(delayTime);
     }
     break;
     case MOTOR::MOTOR_ARM5:
     {
-      miniStepperUpdown.moveStep(1000);
+      miniStepperUpdown.moveStep(delayTime);
     }
     break;
     case MOTOR::MOTOR_CAPTURE: 
     {
-      miniStepperGripper.moveStep(1000);
+      miniStepperGripper.moveStep(delayTime);
     }
     break;
     default: break;
@@ -261,4 +272,27 @@ void ApplicationArduino::moveDoneAction(int motorID)
     break;
     default: break;
   }
+}
+
+void ApplicationArduino::initHardwareTimer()
+{
+  const float samplerate = 40000.0f; // 40KHz
+  // initialize timer1
+  noInterrupts(); // disable all interrupts
+  TCCR1A = 0;
+  TCCR1B = 0;
+  TCNT1 = 0;
+  OCR1A = 16000000.0f / samplerate; // compare match register for IRQ with selected samplerate
+  TCCR1B |= (1 << WGM12); // CTC mode
+  TCCR1B |= (1 << CS10); // no prescaler
+  TIMSK1 |= (1 << OCIE1A); // enable timer compare interrupt
+  interrupts(); // enable all interrupts
+}
+
+ISR(TIMER1_COMPA_vect)
+{
+  motionDriver1.motionControlLoop();
+  motionDriver2.motionControlLoop();
+  motionUpdown.motionControlLoop();
+  motionGripper.motionControlLoop();
 }

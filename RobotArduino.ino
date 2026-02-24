@@ -5,17 +5,13 @@ ApplicationArduino* app;
 
 void setup() {
   Serial.begin(38400);
-  // delay(1000);
   Serial.println("======Arduino Serial======");
   app = new ApplicationArduino();
-  // delay(1000);
   app->printf("APP Arduino Init done\r\n");
-  delay(1000);
+  delay(100);
 }
 void loop() {
   app->loop();
-  delayMicroseconds(100);
-  // app->msleep(1000);
 }
 
 #else
