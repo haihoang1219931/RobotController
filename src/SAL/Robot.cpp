@@ -228,10 +228,11 @@ void Robot::initMove()
 {
     m_app->printf("============= Init Move [%02d/%02d] =============\r\n",
                   m_curMove, m_numMove);
+    m_app->enableMotionTask(false);              
     // Calculate time for each motor to reach target step, 
     // then start with the motor which has longest time to reach target step
     float maxTime = 0;
-    for(int i=0; i< MAX_MOTOR; i++) {
+    for(int i=MOTOR_ARM1; i< MAX_MOTOR; i++) {
         if(!m_motorParamList[i].active) continue;
         m_motorParamList[i].targetStep = m_moveSequence[m_curMove].jointSteps[i].steps;
         m_motorParamList[i].startStep = m_motorParamList[i].currentStep;
@@ -243,14 +244,24 @@ void Robot::initMove()
     }
 
     // Set step time for each motor
-    for(int i=0; i< MAX_MOTOR; i++) {
+    for(int i=MOTOR_ARM1; i< MAX_MOTOR; i++) {
         if(!m_motorParamList[i].active) continue;
         float numStep = (float)abs(m_motorParamList[i].targetStep - m_motorParamList[i].currentStep);
         int delayTime = (int)(maxTime / numStep * 40000.0f);
+        int delayTimeStart = (int)(delayTime * numStep * 0.1);
+        delayTimeStart = delayTime;
         m_app->setupMotionTask(i, 
-            (int)(numStep*0.1f), (int)(numStep*0.8f), (int)(numStep*0.1f), 
-            m_motorParamList[i].direction, true, delayTime);
+            (int)(numStep*0.0f), 
+            (int)(numStep*1.0f), 
+            (int)(numStep*0.0f), 
+            m_motorParamList[i].direction, false, delayTime, 21);
         m_app->printf("Motor[%d] numStep[%d] delayTime[%d]\r\n", i, (int)numStep, delayTime);
+    }
+
+    // Initiate direction for each motor
+    for(int i=0; i< MAX_MOTOR; i++) {
+        if(!m_motorParamList[i].active) continue;
+        m_app->initDirection(i, m_motorParamList[i].direction);
     }
     m_app->enableMotionTask(true);
 

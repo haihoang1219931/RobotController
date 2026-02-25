@@ -25,8 +25,8 @@ public:
   void moveDoneAction(int motorID) override;
   void enableMotionTask(bool enable) override;
   void setupMotionTask(int motorID, 
-        int stepsAccel, int stepsCruise, int stepsDecel, 
-        int direction, bool isAccel, float delayStart) override;
+      uint32_t stepsAccel, uint32_t stepsCruise, uint32_t stepsDecel, 
+      int direction, bool isAccel, uint32_t accelStartWaitPulse, uint32_t minWaitPulse) override;
   int readNumStepsFeedback(int motorID) override;
 
 private:

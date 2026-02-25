@@ -27,10 +27,6 @@ typedef enum {
 } MOTOR_CONTROL_STATE;
 
 typedef enum {
-  // For 2 wires stepper
-  STATE_HIGH,
-  STATE_LOW,
-
   // For 4 wires stepper
   STATE_COMMAND1,
   STATE_COMMAND2,
@@ -54,14 +50,6 @@ typedef enum {
   // Done state
   STATE_DONE,
 } STATE_PULSE;
-
-typedef enum {
-  MOTION_INIT,
-  MOTION_PULSE,
-  MOTION_UPDATE_DELAY,
-  MOTION_CHECK_COUNTER,
-  MOTION_DONE
-} MOTION_STATE;
 
 typedef enum {
     MOTOR_LIMIT_MIN,

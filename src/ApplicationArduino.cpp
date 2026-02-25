@@ -34,19 +34,19 @@
 #define limitUpdown 11
 #define limitGripper 62 // A8
 
-Stepper_driver driver1(enPin,stepXPin, dirXPin);
-Stepper_driver driver2(enPin,stepYPin, dirYPin);
+Stepper_driver driver1(enPin, stepXPin, dirXPin);
+Stepper_driver driver2(enPin, stepYPin, dirYPin);
 MiniStepper_driver miniStepperUpdown(
       miniStepperUpdownPin1,miniStepperUpdownPin2,miniStepperUpdownPin3,miniStepperUpdownPin4);
 MiniStepper_driver miniStepperGripper(
       miniStepperGripperPin1,miniStepperGripperPin2,miniStepperGripperPin3,miniStepperGripperPin4);
 
-SmoothMotion motionDriver1(enPin,stepXPin, dirXPin);
-SmoothMotion motionDriver2(enPin,stepYPin, dirYPin);
-SmoothMotion motionUpdown(miniStepperUpdownPin1,miniStepperUpdownPin2,
+SmoothMotion motionDriver1(1,enPin, dirXPin, stepXPin);
+SmoothMotion motionDriver2(2,enPin, dirYPin, stepYPin);
+SmoothMotion motionUpdown(5,miniStepperUpdownPin1,miniStepperUpdownPin2,
   miniStepperUpdownPin3,miniStepperUpdownPin4);
-SmoothMotion motionGripper(
-      miniStepperGripperPin1,miniStepperGripperPin2,miniStepperGripperPin3,miniStepperGripperPin4);
+SmoothMotion motionGripper(0,miniStepperGripperPin1,miniStepperGripperPin2,
+  miniStepperGripperPin3,miniStepperGripperPin4);
 ApplicationArduino::ApplicationArduino()
 {
     initRobot();
@@ -287,7 +287,7 @@ void ApplicationArduino::initHardwareTimer()
   TCCR1B |= (1 << CS10); // no prescaler
   interrupts(); // enable all interrupts
 }
-
+int countPulse = 0;
 void ApplicationArduino::enableMotionTask(bool enable)
 {
   if(enable)
@@ -297,25 +297,25 @@ void ApplicationArduino::enableMotionTask(bool enable)
 }
 
 void ApplicationArduino::setupMotionTask(int motorID, 
-        int stepsAccel, int stepsCruise, int stepsDecel, 
-        int direction, bool isAccel, float delayStart)
+      uint32_t stepsAccel, uint32_t stepsCruise, uint32_t stepsDecel, 
+      int direction, bool isAccel, uint32_t accelStartWaitPulse, uint32_t minWaitPulse)
 {
   switch (motorID)
   {
     case MOTOR::MOTOR_ARM1: {
-      motionDriver1.setupTarget(stepsAccel, stepsCruise, stepsDecel, direction, isAccel, delayStart);
+      motionDriver1.setupTarget(stepsAccel, stepsCruise, stepsDecel, direction, isAccel, accelStartWaitPulse, minWaitPulse);
     }
     break;
     case MOTOR::MOTOR_ARM2: {
-      motionDriver2.setupTarget(stepsAccel, stepsCruise, stepsDecel, direction, isAccel, delayStart);
+      motionDriver2.setupTarget(stepsAccel, stepsCruise, stepsDecel, direction, isAccel, accelStartWaitPulse, minWaitPulse);
     }
     break;
     case MOTOR::MOTOR_ARM5: {
-      motionUpdown.setupTarget(stepsAccel, stepsCruise, stepsDecel, direction, isAccel, delayStart);
+      motionUpdown.setupTarget(stepsAccel, stepsCruise, stepsDecel, direction, isAccel, accelStartWaitPulse, minWaitPulse);
     }
     break;
     case MOTOR::MOTOR_CAPTURE: {
-      motionGripper.setupTarget(stepsAccel, stepsCruise, stepsDecel, direction, isAccel, delayStart);
+      motionGripper.setupTarget(stepsAccel, stepsCruise, stepsDecel, direction, isAccel, accelStartWaitPulse, minWaitPulse);
     }
     break;
     default:
@@ -346,26 +346,13 @@ int ApplicationArduino::readNumStepsFeedback(int motorID)
   }
   return 0;
 }
-int countPulse = 0;
+
 ISR(TIMER1_COMPA_vect)
 {
   motionDriver1.motionControlLoop();
   motionDriver2.motionControlLoop();
-  motionUpdown.motionControlLoop();
+  // motionUpdown.motionControlLoop();
   // motionGripper.motionControlLoop();
-  countPulse++;
-  if(countPulse >= 40000) {
-    countPulse = 0;
-    Serial.print("M1[");
-    Serial.print(motionDriver1.getCurrentSteps());
-    Serial.print("] M2[");
-    Serial.print(motionDriver2.getCurrentSteps());
-    Serial.print("] UPDOWN[");
-    Serial.print(motionUpdown.getCurrentSteps());
-    Serial.print("] GRIPPER[");
-    Serial.print(motionGripper.getCurrentSteps());
-    Serial.println("]");
-  }
 }
 
 // uint8_t statePulse = STATE_HIGH;
