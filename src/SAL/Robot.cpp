@@ -163,6 +163,41 @@ float Robot::homeAngle(int motorID)
     return m_motorParamList[motorID].homeAngle;
 }
 
+int Robot::homeStep(int motorID)
+{
+    return angleToStep(motorID, m_motorParamList[motorID].homeAngle);
+}
+
+uint8_t Robot::statePulse(int motorID)
+{
+    return m_motorParamList[motorID].statePulse;
+}
+
+uint32_t Robot::numWaitPulse(int motorID)
+{
+    return m_motorParamList[motorID].numWaitPulse;
+}
+
+uint32_t Robot::countPulse(int motorID)
+{
+    return m_motorParamList[motorID].countPulse;
+}
+
+void Robot::updateStatePulse(int motorID, uint8_t newState)
+{
+    m_motorParamList[motorID].statePulse = newState;
+}
+
+void Robot::updateCountPulse(int motorID, uint32_t countPulse)
+{
+    m_motorParamList[motorID].countPulse = countPulse;
+}
+
+void Robot::updateNumWaitPulse(int motorID, uint32_t numWaitPulse)
+{
+    m_motorParamList[motorID].numWaitPulse = numWaitPulse;
+}
+
 float Robot::armLength(int motorID)
 {
     return m_motorParamList[motorID].length;
@@ -200,6 +235,13 @@ void Robot::moveSequence(int motorID)
     m_requestMotorID = motorID;
     setState(ROBOT_EXECUTE_SEQUENCE);
     m_sequenceState = ROBOT_MOVE_INIT;
+}
+
+uint8_t Robot::pulseLoop(int motorID)
+{
+    uint8_t newStatePulse = m_app->executePulseLoop(motorID);
+    m_motorParamList[motorID].statePulse = newStatePulse;
+    return newStatePulse;
 }
 
 void Robot::executeMoveSequence()

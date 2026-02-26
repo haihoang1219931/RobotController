@@ -20,7 +20,7 @@ CONFIG += c++11
 #win32: LIBS += -lpthread
 
 HEADERS += \
-    src/SAL/Motor.h \
+    src/SAL/SmoothMotion.h \
     src/SAL/Robot.h \
     src/SAL/Button.h \
     src/SAL/ApplicationController.h \
@@ -34,7 +34,7 @@ HEADERS += \
 
 SOURCES += \
     main.cpp \
-    src/SAL/Motor.cpp \
+    src/SAL/SmoothMotion.cpp \
     src/SAL/Robot.cpp \
     src/SAL/Button.cpp \
     src/SAL/ApplicationController.cpp \

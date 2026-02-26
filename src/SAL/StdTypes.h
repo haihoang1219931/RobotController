@@ -13,6 +13,14 @@
 #define uint8_t unsigned char
 #endif
 
+#ifndef uint16_t
+#define uint16_t unsigned short
+#endif
+
+#ifndef uint32_t
+#define uint32_t unsigned int
+#endif
+
 #ifndef M_PI
 #define M_PI 3.14159265358979323846
 #endif
@@ -48,6 +56,7 @@ typedef enum {
   STATE_WAIT8,
 
   // Done state
+  STATE_PENDING,
   STATE_DONE,
 } STATE_PULSE;
 
@@ -131,6 +140,9 @@ typedef struct{
     int startStep;
     int targetStep;
     int direction;
+    uint32_t numWaitPulse;
+    uint32_t countPulse;
+    uint8_t statePulse;    
 }JointParam;
 
 
@@ -148,4 +160,9 @@ typedef struct {
     int stepTime;
     int active;
 } Joint;
+
+typedef struct {
+    Joint jointSteps[MAX_MOTOR];
+} Move;
+
 #endif // STDTYPES_H

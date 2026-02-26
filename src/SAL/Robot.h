@@ -3,10 +3,7 @@
 
 #include "StdTypes.h"
 
-typedef struct {
-    Joint jointSteps[MAX_MOTOR];
-} Move;
-
+class SmoothMotion;
 class ApplicationController;
 class Robot
 {
@@ -22,6 +19,7 @@ public:
     void resetMoveSequene();
     void appendMove(int* jointSteps);
     void moveSequence(int motorID = MAX_MOTOR);
+    uint8_t pulseLoop(int motorID);
     void executeMoveSequence();
     void initMove();
     void gotoTarget();
@@ -33,15 +31,22 @@ public:
     void currentAngle(float* listCurrentStep, int* numMotor);
     void armLength(float* listArmLength, int* numMotor);
     
+    uint8_t statePulse(int motorID);
+    uint32_t numWaitPulse(int motorID);
+    uint32_t countPulse(int motorID);
+    void updateStatePulse(int motorID, uint8_t newState);
+    void updateCountPulse(int motorID, uint32_t countPulse);
+    void updateNumWaitPulse(int motorID, uint32_t numWaitPulse);
     float armLength(int motorID);
     int currentStep(int motorID);
     int minStep(int motorID);
     int maxStep(int motorID);
     float homeAngle(int motorID);
+    int homeStep(int motorID);
 
 private:
     ApplicationController* m_app;
-    // Motor* m_motorList[MAX_MOTOR];
+    SmoothMotion* m_motorList[MAX_MOTOR];
     JointParam m_motorParamList[MAX_MOTOR];
     ROBOT_STATE m_state;
     ROBOT_SEQUENCE_STATE m_sequenceState;

@@ -71,6 +71,7 @@ public:
       uint32_t stepsAccel, uint32_t stepsCruise, uint32_t stepsDecel, 
       int direction, bool isAccel, uint32_t accelStartWaitPulse, uint32_t minWaitPulse) = 0;
     virtual int readNumStepsFeedback(int motorID) = 0;
+    virtual uint8_t executePulseLoop(int motorID) = 0;
 public:
     MACHINE_STATE m_machineState;
     Button* m_buttonList[MAX_BUTTON];

@@ -1,5 +1,4 @@
 #include "ApplicationSim.h"
-#include "../src/SAL/Motor.h"
 #include "../src/SAL/Robot.h"
 #include "../src/SAL/ChessBoard.h"
 #include <stdio.h>
@@ -173,7 +172,7 @@ void ApplicationSim::initDirection(int motorID, int direction)
 
 }
 
-void ApplicationSim::moveStep(int motorID, int currentStep, int nextStep)
+void ApplicationSim::moveSingleStep(int motorID, int delayTime)
 {
 #ifdef DEBUG_SIM
     this->printf("Sim M[%d] S[%d]\r\n",motorID,simCurrentStep + dir);
@@ -195,4 +194,18 @@ int ApplicationSim::getMotorAngle(int motorID)
 void ApplicationSim::simulateReceivedCommand(char* command, int length)
 {
     memcpy(m_command,command,length);
+}
+
+uint8_t ApplicationSim::executePulseLoop(int motorID)
+{
+    uint8_t statePulse = m_robot->statePulse(motorID);
+    uint32_t countPulse = m_robot->countPulse(motorID);
+    uint32_t numWaitPulse = m_robot->numWaitPulse(motorID);
+    if(countPulse < numWaitPulse) {
+        m_robot->updateCountPulse(motorID,countPulse+1);
+        m_robot->updateStatePulse(motorID,STATE_PENDING);
+        return STATE_PENDING;
+    } else {
+        return STATE_DONE;
+    }
 }
