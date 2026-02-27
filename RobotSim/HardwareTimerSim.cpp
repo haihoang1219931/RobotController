@@ -30,7 +30,6 @@ void HardwareTimerSim::enableTask(bool enable)
 
 void HardwareTimerSim::taskLoop()
 {
-    printf("____");
     m_app->executeSmoothMotionLoop(0);
     m_app->executeSmoothMotionLoop(1);
     m_app->executeSmoothMotionLoop(2);

@@ -142,9 +142,6 @@ typedef struct{
     int startStep;
     int targetStep;
     int direction;
-    uint32_t numWaitPulse;
-    uint32_t countPulse;
-    uint8_t statePulse;    
 }JointParam;
 
 

@@ -9,10 +9,11 @@ MainProcess::MainProcess(QObject *parent) :
 {
     m_application = new ApplicationSim(this);
     m_hardwareTimer = new HardwareTimerSim();
+    m_hardwareTimer->setApplication(m_application);
     memset(m_renderData,0,sizeof(m_renderData));
     m_timer = new QTimer();
     connect(m_timer, &QTimer::timeout, this, &MainProcess::taskLoop);
-    changeSleepTime(1000);
+    changeSleepTime(30);
     for(int i=0; i< MAX_MOTOR; i++)
     {
         m_listAngle.append(0);
@@ -97,7 +98,6 @@ void MainProcess::syncRobot()
 
 void MainProcess::taskLoop() {
     m_application->loop();
-    printf("L");
     updateRobotStep();
 }
 void MainProcess::startService() {

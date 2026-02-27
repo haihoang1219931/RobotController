@@ -36,11 +36,11 @@ void ApplicationSim::initRobot()
     JointParam armPrams[MAX_MOTOR] = {
     // active |scale=gear_ratio/resolution   |length|init angle|home angle|home step|min angle|max angle|
          {true,  1.0f/1.0f,                       0,     100,        0,        1,       0,       250   },
-         {true,   18.0f/1.0f*(200.0f/360.0f),   255,      10,      -17,      100,     -17,       150   },
-         {true,  70.0f/20.0f*(200.0f/360.0f),    85,     140,       50,      100,      50,       210   },
+         {true,  1.0f/1.0f,                     255,      10,      -17,        1,     -17,       150   },
+         {true,  1.0f/1.0f,                      85,     140,       50,        1,      50,       210   },
          {false,  1.0f/1.0f,                     15,     130,      130,        1,     130,       130   },
          {false,  1.0f/1.0f,                    120,     180,      180,        1,     180,       180   },
-         {true,  50.0f/14.0f*(512.0f/360.0f),     0,      20,        0,        1,       0,        45   }
+         {true,  1.0f/1.0f,                       0,      20,        0,        1,       0,        45   }
     };
 #else
     m_chessBoard->setChessBoardPosX(31-31*8/2);
@@ -208,6 +208,8 @@ uint8_t ApplicationSim::executePulseLoop(int motorID)
     uint8_t statePulse = m_robot->statePulse(motorID);
     uint32_t countPulse = m_robot->countPulse(motorID);
     uint32_t numWaitPulse = m_robot->numWaitPulse(motorID);
+//    printf("p S[%d] C[%d/%d]\r\n",
+//           statePulse, countPulse, numWaitPulse);
     if(countPulse < numWaitPulse) {
         m_robot->updateCountPulse(motorID,countPulse+1);
         m_robot->updateStatePulse(motorID,STATE_PENDING);
@@ -224,5 +226,5 @@ void ApplicationSim::enableHardwareTimer(bool enable)
 
 void ApplicationSim::executeSmoothMotionLoop(int motorID)
 {
-
+    m_robot->executeSmoothMotion(motorID);
 }

@@ -50,6 +50,13 @@ void Robot::loop() {
         break;
     }
 }
+
+void Robot::initDirection(int motorID, int direction)
+{
+    m_motorParamList[motorID].direction = direction;
+    m_app->initDirection(motorID, direction);
+}
+
 void Robot::requestGoHome(int motorID) {
     m_app->printf("GO HOME\r\n");
     m_app->enableHardwareTimer(false);
@@ -63,7 +70,7 @@ void Robot::requestGoHome(int motorID) {
             m_motorList[motor]->setupTarget(
                 0,0xFFFF,0,
                 m_motorParamList[motor].initAngle > m_motorParamList[motor].homeAngle ? -1 : 1,
-                false,
+                MOTOR_EXECUTE_HOME,
                 m_motorParamList[motor].homeStepTime, 0);
         }
     }
@@ -124,6 +131,12 @@ int Robot::angleToStep(int motorID, float angle)
     return (int)(angle * m_motorParamList[motorID].scale);
 }
 
+bool Robot::isLimitReached(int motorID,
+                        MOTOR_LIMIT_TYPE limitType)
+{
+    return m_app->isLimitReached(motorID, limitType);
+}
+
 float Robot::stepToAngle(int motorID, int step)
 {
     return (float)step / m_motorParamList[motorID].scale;
@@ -182,32 +195,32 @@ void Robot::executeSmoothMotion(int motorID)
 
 uint8_t Robot::statePulse(int motorID)
 {
-    return m_motorParamList[motorID].statePulse;
+    return m_motorList[motorID]->m_statePulse;
 }
 
 uint32_t Robot::numWaitPulse(int motorID)
 {
-    return m_motorParamList[motorID].numWaitPulse;
+    return m_motorList[motorID]->m_numWaitPulse;
 }
 
 uint32_t Robot::countPulse(int motorID)
 {
-    return m_motorParamList[motorID].countPulse;
+    return m_motorList[motorID]->m_pulseCount;
 }
 
 void Robot::updateStatePulse(int motorID, uint8_t newState)
 {
-    m_motorParamList[motorID].statePulse = newState;
+    m_motorList[motorID]->m_statePulse = newState;
 }
 
 void Robot::updateCountPulse(int motorID, uint32_t countPulse)
 {
-    m_motorParamList[motorID].countPulse = countPulse;
+    m_motorList[motorID]->m_pulseCount = countPulse;
 }
 
 void Robot::updateNumWaitPulse(int motorID, uint32_t numWaitPulse)
 {
-    m_motorParamList[motorID].numWaitPulse = numWaitPulse;
+    m_motorList[motorID]->m_numWaitPulse = numWaitPulse;
 }
 
 void Robot::updateInitAngle(int motorID, float initAngle)
@@ -223,6 +236,14 @@ float Robot::armLength(int motorID)
 int Robot::currentStep(int motorID)
 {
     return m_motorParamList[motorID].currentStep;
+}
+
+void Robot::updateCurrentStep(int motorID)
+{
+    printf("R M[%d] currStep[%d] dir[%d]\r\n",
+           motorID,m_motorParamList[motorID].currentStep,
+           m_motorParamList[motorID].direction);
+    m_motorParamList[motorID].currentStep += m_motorParamList[motorID].direction;
 }
 
 void Robot::resetMoveSequene()
@@ -257,7 +278,7 @@ void Robot::moveSequence(int motorID)
 uint8_t Robot::pulseLoop(int motorID)
 {
     uint8_t newStatePulse = m_app->executePulseLoop(motorID);
-    m_motorParamList[motorID].statePulse = newStatePulse;
+    m_motorList[motorID]->m_statePulse = newStatePulse;
     return newStatePulse;
 }
 

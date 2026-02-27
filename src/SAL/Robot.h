@@ -13,6 +13,7 @@ public:
  
     void loop();
     void setState(ROBOT_STATE newState);
+    void initDirection(int motorID, int direction);
     void requestGoHome(int motorID = MAX_MOTOR);
     void executeGohome();
     void requestGoPosition(int motorID, int targetStep, int stepTime, bool isRelativeMove);
@@ -25,6 +26,8 @@ public:
     void gotoTarget();
     void capture();
     long elapsedTime();
+    bool isLimitReached(int motorID,
+                            MOTOR_LIMIT_TYPE limitType);
     int angleToStep(int motorID, float angle);
     float stepToAngle(int motorID, int step);
     void currentStep(int* listCurrentStep, int* numMotor);
@@ -40,6 +43,7 @@ public:
     void updateInitAngle(int motorID, float initAngle);
     float armLength(int motorID);
     int currentStep(int motorID);
+    void updateCurrentStep(int motorID);
     int minStep(int motorID);
     int maxStep(int motorID);
     float homeAngle(int motorID);

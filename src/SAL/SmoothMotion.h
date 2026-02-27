@@ -8,13 +8,20 @@ class SmoothMotion {
     SmoothMotion(uint32_t id, Robot* robot);
     void init();
     void setupTarget(uint32_t stepsAccel, uint32_t stepsCruise, uint32_t stepsDecel, 
-      int direction, bool isAccel, uint32_t accelStartWaitPulse, uint32_t minWaitPulse);
+      int direction, uint8_t moveType, uint32_t accelStartWaitPulse, uint32_t minWaitPulse);
     void motionControlLoop();
     uint8_t pulseLoop();
     void restartPulse();
+    void homing();
     void increaseSpeed();
     void cruiseSpeed();
     void decreaseSpeed();
+    void resetAccelSteps();
+    void resetCruiseSteps();
+    void resetDecelSteps();
+    void increaseAccelSteps();
+    void increaseCruiseSteps();
+    void increaseDecelSteps();
     float delayAccel(float stepCount, float delayCur);
     float delayDecel(float stepCount, float delayCur);
     uint32_t getCurrentSteps();
@@ -54,7 +61,7 @@ class SmoothMotion {
     int m_stepPin3;
     int m_stepPin4;
 
-    bool m_isAccel;
+    uint8_t m_moveType;
     uint8_t m_statePulse;
     uint8_t m_stateControl;
 };

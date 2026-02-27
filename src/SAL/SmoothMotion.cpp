@@ -17,23 +17,22 @@ SmoothMotion::SmoothMotion(uint32_t id, Robot* robot):
 
 void SmoothMotion::setupTarget(
   uint32_t stepsAccel, uint32_t stepsCruise, uint32_t stepsDecel, 
-  int direction, bool isAccel,  uint32_t accelStartWaitPulse, uint32_t minWaitPulse)
+  int direction, uint8_t moveType,  uint32_t accelStartWaitPulse, uint32_t minWaitPulse)
 {
-  printf("setup Target[%d]\r\n",m_id);
   m_numStepAccel = stepsAccel;
   m_numStepCruise = stepsCruise;
   m_numStepDecel = stepsDecel;
-  m_targetDirection = direction;
-  m_isAccel = isAccel;
+  m_moveType = moveType;
   m_numWaitPulse = (float)accelStartWaitPulse;
   m_minWaitPulse = minWaitPulse;
 
   m_pulseCount = 0;
-  m_stepCountAccel = 0;
-  m_stepCountCruise = 0;
-  m_stepCountDecel = 0;
-  changeStateControl(m_isAccel? MOTOR_EXECUTE_INCREASE_SPEED : MOTOR_EXECUTE_CRUISE_SPEED);
-  printf("setup Target[%d] done\r\n",m_id);
+  m_robot->initDirection(m_id,direction);
+  resetAccelSteps();
+  resetCruiseSteps();
+  resetDecelSteps();
+  changeStateControl(m_moveType);
+  printf("setup Target[%d] waitPulse[%f] done\r\n",m_id,m_numWaitPulse);
 }
 
 float SmoothMotion::delayAccel(float stepCount, float delayCur) {
@@ -58,9 +57,6 @@ void SmoothMotion::changeStateControl(int newState)
 {
   if(m_stateControl != newState) {
     m_stateControl = newState;
-    if(m_stateControl != MOTOR_EXECUTE_DONE) {
-      m_statePulse = STATE_COMMAND1;
-    }
     // switch(m_stateControl){
     //   case MOTOR_EXECUTE_INCREASE_SPEED: Serial.println("Accel");
     //   break;
@@ -86,18 +82,31 @@ void SmoothMotion::motionControlLoop() {
       decreaseSpeed();
     }
     break;
+    case MOTOR_EXECUTE_HOME:{
+      homing();
+    }
+    break;
     case MOTOR_EXECUTE_DONE: {
       m_stateControl = MOTOR_EXECUTE_WAIT_COMMAND;
     }
     break;
   }
 }
-
+void SmoothMotion::homing()
+{
+    m_statePulse = pulseLoop();
+    if(m_statePulse != STATE_DONE) return;
+    restartPulse();
+    increaseCruiseSteps();
+    if(m_robot->isLimitReached(m_id,MOTOR_LIMIT_HOME)){
+      changeStateControl(MOTOR_EXECUTE_DONE);
+    }
+}
 void SmoothMotion::increaseSpeed() {
   m_statePulse = pulseLoop();
   if(m_statePulse != STATE_DONE) return;
   restartPulse();
-  m_stepCountAccel ++;
+  increaseAccelSteps();
   m_numWaitPulse = delayAccel(m_stepCountAccel,m_numWaitPulse);
   if(m_stepCountAccel >= m_numStepAccel){
     changeStateControl(MOTOR_EXECUTE_CRUISE_SPEED);
@@ -108,20 +117,54 @@ void SmoothMotion::cruiseSpeed() {
   m_statePulse = pulseLoop();
   if(m_statePulse != STATE_DONE) return;
   restartPulse();
-  m_stepCountCruise ++;
+  increaseCruiseSteps();
   if(m_stepCountCruise >= m_numStepCruise){
-    changeStateControl(m_isAccel? MOTOR_EXECUTE_DECREASE_SPEED:MOTOR_EXECUTE_DONE);
+    changeStateControl(m_moveType == MOTOR_EXECUTE_INCREASE_SPEED?
+                           MOTOR_EXECUTE_DECREASE_SPEED:MOTOR_EXECUTE_DONE);
   }
 }
 
 void SmoothMotion::decreaseSpeed() {
   m_statePulse = pulseLoop();
   if(m_statePulse != STATE_DONE) return;
-  m_stepCountDecel ++;
+  increaseDecelSteps();
   m_numWaitPulse = delayDecel(m_numStepDecel - m_stepCountDecel,m_numWaitPulse);  
   if(m_stepCountDecel >= m_numStepDecel) {
     changeStateControl(MOTOR_EXECUTE_DONE);
   }
+}
+
+void SmoothMotion::resetAccelSteps()
+{
+    m_stepCountAccel = 0;
+}
+
+void SmoothMotion::resetCruiseSteps()
+{
+    m_stepCountCruise = 0;
+}
+
+void SmoothMotion::resetDecelSteps()
+{
+    m_stepCountDecel = 0;
+}
+
+void SmoothMotion::increaseAccelSteps()
+{
+    m_stepCountAccel++;
+    m_robot->updateCurrentStep((int)m_id);
+}
+
+void SmoothMotion::increaseCruiseSteps()
+{
+    m_stepCountCruise++;
+    m_robot->updateCurrentStep((int)m_id);
+}
+
+void SmoothMotion::increaseDecelSteps()
+{
+    m_stepCountDecel++;
+    m_robot->updateCurrentStep((int)m_id);
 }
 
 uint8_t SmoothMotion::pulseLoop()
