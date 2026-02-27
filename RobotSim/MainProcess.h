@@ -51,6 +51,7 @@ public Q_SLOTS:
     void setNextMove(int startRow, int startCol, int stopRow, int stopCol, char promotePiece);
     void updateRobotStep();
     void changeSleepTime(int sleepTime);
+    void changeTimerPeriod(int sleepTime);
 private:
     unsigned char m_renderData[93110400]; // 1920x1080 I420
     ApplicationSim* m_application;

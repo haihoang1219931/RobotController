@@ -137,7 +137,7 @@ typedef struct{
     int homeStepTime;
     float minAngle;
     float maxAngle;
-    float maxSpeed;
+    int maxSpeed;
     int currentStep;
     int startStep;
     int targetStep;

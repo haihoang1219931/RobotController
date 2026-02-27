@@ -94,13 +94,14 @@ void SmoothMotion::motionControlLoop() {
 }
 void SmoothMotion::homing()
 {
+    if(m_robot->isLimitReached(m_id,MOTOR_LIMIT_HOME)){
+      changeStateControl(MOTOR_EXECUTE_DONE);
+      return;
+    }
     m_statePulse = pulseLoop();
     if(m_statePulse != STATE_DONE) return;
     restartPulse();
     increaseCruiseSteps();
-    if(m_robot->isLimitReached(m_id,MOTOR_LIMIT_HOME)){
-      changeStateControl(MOTOR_EXECUTE_DONE);
-    }
 }
 void SmoothMotion::increaseSpeed() {
   m_statePulse = pulseLoop();

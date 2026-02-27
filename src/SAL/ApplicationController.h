@@ -30,6 +30,7 @@ public:
     bool inverseKinematic(float x, float y,
                            float a1, float a2,float* p1, float* p2);
     void forwardKinematic(float a1, float a2, float p1, float p2, float* x, float* y);
+    void goToHome(int motorID);
     void goToReadyPosition();
     void executeSequence(MOVE_TYPE moveType,
                          int startCol, int startRow,

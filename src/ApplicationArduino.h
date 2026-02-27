@@ -30,7 +30,7 @@ public:
   int readNumStepsFeedback(int motorID) override;
 
 private:
-  void initHardwareTimer();
+  void initHardwareTimer(float samplerate = 40000.0f);
 private:
   int m_buttonPin[MAX_BUTTON];
   int m_limitGripperValue;

@@ -34,13 +34,13 @@ void ApplicationSim::initRobot()
     m_chessBoard->setDropZoneSpace(31);
 
     JointParam armPrams[MAX_MOTOR] = {
-    // active |scale=gear_ratio/resolution   |length|init angle|home angle|home step|min angle|max angle|
-         {true,  1.0f/1.0f,                       0,     100,        0,        1,       0,       250   },
-         {true,  1.0f/1.0f,                     255,      10,      -17,        1,     -17,       150   },
-         {true,  1.0f/1.0f,                      85,     140,       50,        1,      50,       210   },
-         {false,  1.0f/1.0f,                     15,     130,      130,        1,     130,       130   },
-         {false,  1.0f/1.0f,                    120,     180,      180,        1,     180,       180   },
-         {true,  1.0f/1.0f,                       0,      20,        0,        1,       0,        45   }
+    // active|   scale=gear_ratio/resolution   |length|init angle|home angle|home step time|min angle|max angle|max speed (step/s)
+      {true,  1.0f/1.0f,                            0,     100,        0,         1,        0,       250,          1},
+      {true,  1.0f/1.0f,                          255,       0,      -17,         1,      -17,       150,          1},
+      {true,  1.0f/1.0f,                           85,     140,       50,         1,       50,       210,          1},
+      {false,  1.0f/1.0f,                          15,     130,      130,         1,      130,       130,          1},
+      {false,  1.0f/1.0f,                         120,     180,      180,         1,      180,       180,          1},
+      {true,  1.0f/1.0f,                            0,      20,        0,         1,        0,        45,          1}
     };
 #else
     m_chessBoard->setChessBoardPosX(31-31*8/2);
@@ -60,6 +60,8 @@ void ApplicationSim::initRobot()
 
 #endif
     for(int motor= MOTOR_CAPTURE; motor<= MOTOR_ARM5; motor++) {
+        printf("ApplicationSim::initRobot[%d] param maxSpeed[%d]\r\n",
+               motor,armPrams[motor].maxSpeed);
         m_robot->setMotorParam(motor,armPrams[motor]);
         m_robot->updateInitAngle(motor,armPrams[motor].initAngle);
     }
@@ -67,7 +69,7 @@ void ApplicationSim::initRobot()
 
 void ApplicationSim::specificPlatformGohome(int motorID)
 {
-    //@todo: consider to optimize code
+    m_mainProcess->changeTimerPeriod(30);
 }
 
 void ApplicationSim::harwareStop(int motorID)

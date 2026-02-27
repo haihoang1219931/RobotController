@@ -14,6 +14,7 @@ MainProcess::MainProcess(QObject *parent) :
     m_timer = new QTimer();
     connect(m_timer, &QTimer::timeout, this, &MainProcess::taskLoop);
     changeSleepTime(30);
+    changeTimerPeriod(30);
     for(int i=0; i< MAX_MOTOR; i++)
     {
         m_listAngle.append(0);
@@ -139,9 +140,12 @@ void MainProcess::updateRobotStep()
 void MainProcess::changeSleepTime(int sleepTime)
 {
     m_timer->setInterval(sleepTime);
+
+}
+void MainProcess::changeTimerPeriod(int sleepTime)
+{
     m_hardwareTimer->setInterval(sleepTime);
 }
-
 QVariantList MainProcess::listAngle()
 {
     return m_listAngle;

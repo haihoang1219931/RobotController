@@ -21,6 +21,9 @@ Robot::Robot(ApplicationController* app) :
 void Robot::setMotorParam(int motorID, JointParam param)
 {
     m_motorParamList[motorID] = param;
+    printf("Robot::setMotorParam[%d] param maxSpeed[%d] to Robot[%d]\r\n",
+           motorID,param.maxSpeed,
+           m_motorParamList[motorID].maxSpeed);
 }
 
 void Robot::setState(ROBOT_STATE newState) {
@@ -69,7 +72,7 @@ void Robot::requestGoHome(int motorID) {
         if(m_motorParamList[motor].active) {
             m_motorList[motor]->setupTarget(
                 0,0xFFFF,0,
-                m_motorParamList[motor].initAngle > m_motorParamList[motor].homeAngle ? -1 : 1,
+                -1,
                 MOTOR_EXECUTE_HOME,
                 m_motorParamList[motor].homeStepTime, 0);
         }
@@ -106,6 +109,11 @@ void Robot::executeGohome() {
         }
     }
     if(allMotorsAtHome) {
+        for(int motor = startID; motor< stopID; motor++) {
+            if(!m_motorParamList[motor].active) continue;
+            m_app->printf("Homed M[%d] step[%d]\r\n",
+                      motor,m_motorParamList[motor].currentStep);
+        }
         m_app->harwareStop(m_requestMotorID);
         setState(ROBOT_EXECUTE_DONE);
     }
@@ -240,9 +248,9 @@ int Robot::currentStep(int motorID)
 
 void Robot::updateCurrentStep(int motorID)
 {
-    printf("R M[%d] currStep[%d] dir[%d]\r\n",
-           motorID,m_motorParamList[motorID].currentStep,
-           m_motorParamList[motorID].direction);
+//    printf("R M[%d] currStep[%d] dir[%d]\r\n",
+//           motorID,m_motorParamList[motorID].currentStep,
+//           m_motorParamList[motorID].direction);
     m_motorParamList[motorID].currentStep += m_motorParamList[motorID].direction;
 }
 
@@ -317,24 +325,28 @@ void Robot::initMove()
         m_motorParamList[i].targetStep = m_moveSequence[m_curMove].jointSteps[i].steps;
         m_motorParamList[i].startStep = m_motorParamList[i].currentStep;
         m_motorParamList[i].direction = (m_motorParamList[i].targetStep > m_motorParamList[i].currentStep) ? 1 : -1;   
-        float numStep = (float)abs(m_motorParamList[i].targetStep - m_motorParamList[i].currentStep);
-        float time = (float)numStep / m_motorParamList[i].maxSpeed;
+        int numStep = (float)abs(m_motorParamList[i].targetStep - m_motorParamList[i].currentStep);
+        float time = (float)numStep / (float)m_motorParamList[i].maxSpeed;
         if(time > maxTime) maxTime = time;
-        m_app->printf("Motor[%d] numStep[%d] time[%d] => Max[%f]\r\n", i, numStep, time, maxTime);
+        m_app->printf("Motor[%d] numStep[%d][%d->%d] maxSpeed[%d] time[%f] => Max[%f]\r\n",
+                      i,
+                      numStep, m_motorParamList[i].currentStep, m_moveSequence[m_curMove].jointSteps[i].steps,
+                      m_motorParamList[i].maxSpeed, time,
+                      maxTime);
     }
 
     // Set step time for each motor
     for(int i=MOTOR_ARM1; i< MAX_MOTOR; i++) {
         if(!m_motorParamList[i].active) continue;
         float numStep = (float)abs(m_motorParamList[i].targetStep - m_motorParamList[i].currentStep);
-        int delayTime = (int)(maxTime / numStep * 40000.0f);
+        int delayTime = (int)((float)maxTime * 40000.0f / numStep);
         int delayTimeStart = (int)(delayTime * numStep * 0.1);
         delayTimeStart = delayTime;
         m_motorList[i]->setupTarget(
             (int)(numStep*0.0f), 
             (int)(numStep*1.0f), 
             (int)(numStep*0.0f), 
-            m_motorParamList[i].direction, false, delayTime, 21);
+            m_motorParamList[i].direction, MOTOR_EXECUTE_CRUISE_SPEED, delayTime, 21);
         m_app->printf("Motor[%d] numStep[%d] delayTime[%d]\r\n", i, (int)numStep, delayTime);
     }
 

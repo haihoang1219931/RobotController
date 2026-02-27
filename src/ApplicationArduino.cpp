@@ -112,7 +112,7 @@ long ApplicationArduino::getSystemTime() {
 
 void ApplicationArduino::specificPlatformGohome(int motorID)
 {
-  // Not used
+  initHardwareTimer(40000.0f);
 }
 
 void ApplicationArduino::harwareStop(int motorID = MAX_MOTOR)
@@ -274,9 +274,8 @@ void ApplicationArduino::moveDoneAction(int motorID)
   }
 }
 
-void ApplicationArduino::initHardwareTimer()
+void ApplicationArduino::initHardwareTimer(float samplerate)
 {
-  const float samplerate = 40000.0f; // 40KHz
   // initialize timer1
   noInterrupts(); // disable all interrupts
   TCCR1A = 0;
