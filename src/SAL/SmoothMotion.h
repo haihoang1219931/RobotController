@@ -15,7 +15,6 @@ class SmoothMotion {
     void increaseSpeed();
     void cruiseSpeed();
     void decreaseSpeed();
-    void goHome();
     float delayAccel(float stepCount, float delayCur);
     float delayDecel(float stepCount, float delayCur);
     uint32_t getCurrentSteps();

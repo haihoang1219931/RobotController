@@ -9,18 +9,20 @@
 #define MAX_COMMAND_LENGTH 256
 #define MAX_PARAMS_CHESSBOARD 4
 
-#ifndef uint8_t
-#define uint8_t unsigned char
+#ifndef _UINT8_T_DECLARED
+#define _UINT8_T_DECLARED
+typedef unsigned char uint8_t;
 #endif
 
-#ifndef uint16_t
-#define uint16_t unsigned short
+#ifndef _UINT16_T_DECLARED
+#define _UINT16_T_DECLARED
+typedef unsigned short uint16_t;
 #endif
 
-#ifndef uint32_t
-#define uint32_t unsigned int
+#ifndef _UINT32_T_DECLARED
+#define _UINT32_T_DECLARED
+typedef unsigned int uint32_t;
 #endif
-
 #ifndef M_PI
 #define M_PI 3.14159265358979323846
 #endif

@@ -37,12 +37,14 @@ public:
     void updateStatePulse(int motorID, uint8_t newState);
     void updateCountPulse(int motorID, uint32_t countPulse);
     void updateNumWaitPulse(int motorID, uint32_t numWaitPulse);
+    void updateInitAngle(int motorID, float initAngle);
     float armLength(int motorID);
     int currentStep(int motorID);
     int minStep(int motorID);
     int maxStep(int motorID);
     float homeAngle(int motorID);
     int homeStep(int motorID);
+    void executeSmoothMotion(int motorID);
 
 private:
     ApplicationController* m_app;

@@ -1,5 +1,6 @@
 #include "Robot.h"
 #include "ApplicationController.h"
+#include "SmoothMotion.h"
 #include <math.h>
 #include <string.h>
 #ifdef abs
@@ -12,7 +13,9 @@ Robot::Robot(ApplicationController* app) :
     m_app(app),
     m_state(ROBOT_INIT)
 {
-
+    for(uint32_t motorID=MOTOR_CAPTURE; motorID < MAX_MOTOR; motorID++) {
+        m_motorList[motorID] = new SmoothMotion(motorID,this);
+    }
 }
 
 void Robot::setMotorParam(int motorID, JointParam param)
@@ -49,18 +52,24 @@ void Robot::loop() {
 }
 void Robot::requestGoHome(int motorID) {
     m_app->printf("GO HOME\r\n");
+    m_app->enableHardwareTimer(false);
     m_requestMotorID = motorID;
     int startID = motorID == MAX_MOTOR ? 0 : motorID;
     int stopID = motorID == MAX_MOTOR ? MAX_MOTOR : motorID+1;
-    for(int i=startID; i< stopID; i++)
+    m_app->printf("Request go home [%d-%d]\r\n",startID,stopID);
+    for(int motor=startID; motor< stopID; motor++)
     {
-        if(m_motorParamList[i].active) {
-            m_app->initDirection(i, 
-                m_motorParamList[i].initAngle > m_motorParamList[i].homeAngle ? -1 : 1);
+        if(m_motorParamList[motor].active) {
+            m_motorList[motor]->setupTarget(
+                0,0xFFFF,0,
+                m_motorParamList[motor].initAngle > m_motorParamList[motor].homeAngle ? -1 : 1,
+                false,
+                m_motorParamList[motor].homeStepTime, 0);
         }
-    }     
+    }
     m_startTime = m_app->getSystemTime();
     setState(ROBOT_EXECUTE_GO_HOME);
+    m_app->enableHardwareTimer(true);
 }
 
 void Robot::executeGohome() {
@@ -84,8 +93,6 @@ void Robot::executeGohome() {
                         m_motorParamList[motor].targetStep);
             m_app->printf("Robot M[%d] gohome\r\n",motor);
 #endif
-            m_app->moveSingleStep(motor, 
-                m_motorParamList[motor].homeStepTime);
             allMotorsAtHome = false;
         } else {
             m_motorParamList[motor].currentStep = angleToStep(motor, m_motorParamList[motor].homeAngle);
@@ -168,6 +175,11 @@ int Robot::homeStep(int motorID)
     return angleToStep(motorID, m_motorParamList[motorID].homeAngle);
 }
 
+void Robot::executeSmoothMotion(int motorID)
+{
+    m_motorList[motorID]->motionControlLoop();
+}
+
 uint8_t Robot::statePulse(int motorID)
 {
     return m_motorParamList[motorID].statePulse;
@@ -196,6 +208,11 @@ void Robot::updateCountPulse(int motorID, uint32_t countPulse)
 void Robot::updateNumWaitPulse(int motorID, uint32_t numWaitPulse)
 {
     m_motorParamList[motorID].numWaitPulse = numWaitPulse;
+}
+
+void Robot::updateInitAngle(int motorID, float initAngle)
+{
+    m_motorParamList[motorID].currentStep = angleToStep(motorID,initAngle);
 }
 
 float Robot::armLength(int motorID)
@@ -292,7 +309,7 @@ void Robot::initMove()
         int delayTime = (int)(maxTime / numStep * 40000.0f);
         int delayTimeStart = (int)(delayTime * numStep * 0.1);
         delayTimeStart = delayTime;
-        m_app->setupMotionTask(i, 
+        m_motorList[i]->setupTarget(
             (int)(numStep*0.0f), 
             (int)(numStep*1.0f), 
             (int)(numStep*0.0f), 
@@ -312,31 +329,31 @@ void Robot::initMove()
 
 void Robot::gotoTarget()
 {
-    bool allMotorsFinished = true;
-    for(int motor = 0; motor< MAX_MOTOR; motor++)
-    {
-        if(!m_motorParamList[motor].active) continue;
-        m_motorParamList[motor].currentStep = m_app->readNumStepsFeedback(motor);
-        if(m_motorParamList[motor].currentStep != m_motorParamList[motor].targetStep) {
-            allMotorsFinished = false;
-        }
-    }
-    if(allMotorsFinished) {
-        m_app->printf("======All motor finished\r\n");
-        m_sequenceState = ROBOT_MOVE_DONE;
-    }
+//    bool allMotorsFinished = true;
+//    for(int motor = 0; motor< MAX_MOTOR; motor++)
+//    {
+//        if(!m_motorParamList[motor].active) continue;
+//        m_motorParamList[motor].currentStep = m_app->readNumStepsFeedback(motor);
+//        if(m_motorParamList[motor].currentStep != m_motorParamList[motor].targetStep) {
+//            allMotorsFinished = false;
+//        }
+//    }
+//    if(allMotorsFinished) {
+//        m_app->printf("======All motor finished\r\n");
+//        m_sequenceState = ROBOT_MOVE_DONE;
+//    }
 }
 
 void Robot::capture()
 {
-    bool captureDone = true;
-    if(captureDone) {
-        if(m_curMove < m_numMove-1) {
-            m_curMove++;
-            m_sequenceState = ROBOT_MOVE_INIT;
-        } else {
-            m_app->enableMotionTask(false);
-            m_sequenceState = ROBOT_MOVE_DONE;
-        }
-    }
+//    bool captureDone = true;
+//    if(captureDone) {
+//        if(m_curMove < m_numMove-1) {
+//            m_curMove++;
+//            m_sequenceState = ROBOT_MOVE_INIT;
+//        } else {
+//            m_app->enableMotionTask(false);
+//            m_sequenceState = ROBOT_MOVE_DONE;
+//        }
+//    }
 }

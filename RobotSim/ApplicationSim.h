@@ -24,7 +24,10 @@ public:
     void moveDoneAction(int motorID) override;
     int getMotorAngle(int motorID);
     void simulateReceivedCommand(char* command, int length);
+    void enableMotionTask(bool enable) override;
     uint8_t executePulseLoop(int motorID) override;
+    void enableHardwareTimer(bool enable) override;
+    void executeSmoothMotionLoop(int motorID);
 private:
     MainProcess* m_mainProcess;
     char m_command[MAX_COMMAND_LENGTH];    

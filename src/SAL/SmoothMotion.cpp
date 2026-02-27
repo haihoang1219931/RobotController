@@ -17,7 +17,9 @@ SmoothMotion::SmoothMotion(uint32_t id, Robot* robot):
 
 void SmoothMotion::setupTarget(
   uint32_t stepsAccel, uint32_t stepsCruise, uint32_t stepsDecel, 
-  int direction, bool isAccel,  uint32_t accelStartWaitPulse, uint32_t minWaitPulse) {
+  int direction, bool isAccel,  uint32_t accelStartWaitPulse, uint32_t minWaitPulse)
+{
+  printf("setup Target[%d]\r\n",m_id);
   m_numStepAccel = stepsAccel;
   m_numStepCruise = stepsCruise;
   m_numStepDecel = stepsDecel;
@@ -31,6 +33,7 @@ void SmoothMotion::setupTarget(
   m_stepCountCruise = 0;
   m_stepCountDecel = 0;
   changeStateControl(m_isAccel? MOTOR_EXECUTE_INCREASE_SPEED : MOTOR_EXECUTE_CRUISE_SPEED);
+  printf("setup Target[%d] done\r\n",m_id);
 }
 
 float SmoothMotion::delayAccel(float stepCount, float delayCur) {
@@ -83,10 +86,6 @@ void SmoothMotion::motionControlLoop() {
       decreaseSpeed();
     }
     break;
-    case MOTOR_EXECUTE_HOME: {
-      goHome();
-    }
-    break;
     case MOTOR_EXECUTE_DONE: {
       m_stateControl = MOTOR_EXECUTE_WAIT_COMMAND;
     }
@@ -123,11 +122,6 @@ void SmoothMotion::decreaseSpeed() {
   if(m_stepCountDecel >= m_numStepDecel) {
     changeStateControl(MOTOR_EXECUTE_DONE);
   }
-}
-
-void SmoothMotion::goHome()
-{
-
 }
 
 uint8_t SmoothMotion::pulseLoop()

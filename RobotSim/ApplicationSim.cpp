@@ -1,4 +1,5 @@
 #include "ApplicationSim.h"
+#include "MainProcess.h"
 #include "../src/SAL/Robot.h"
 #include "../src/SAL/ChessBoard.h"
 #include <stdio.h>
@@ -35,7 +36,7 @@ void ApplicationSim::initRobot()
     JointParam armPrams[MAX_MOTOR] = {
     // active |scale=gear_ratio/resolution   |length|init angle|home angle|home step|min angle|max angle|
          {true,  1.0f/1.0f,                       0,     100,        0,        1,       0,       250   },
-         {true,   18.0f/1.0f*(200.0f/360.0f),   255,       0,      -17,      100,     -17,       150   },
+         {true,   18.0f/1.0f*(200.0f/360.0f),   255,      10,      -17,      100,     -17,       150   },
          {true,  70.0f/20.0f*(200.0f/360.0f),    85,     140,       50,      100,      50,       210   },
          {false,  1.0f/1.0f,                     15,     130,      130,        1,     130,       130   },
          {false,  1.0f/1.0f,                    120,     180,      180,        1,     180,       180   },
@@ -60,6 +61,7 @@ void ApplicationSim::initRobot()
 #endif
     for(int motor= MOTOR_CAPTURE; motor<= MOTOR_ARM5; motor++) {
         m_robot->setMotorParam(motor,armPrams[motor]);
+        m_robot->updateInitAngle(motor,armPrams[motor].initAngle);
     }
 }
 
@@ -196,6 +198,11 @@ void ApplicationSim::simulateReceivedCommand(char* command, int length)
     memcpy(m_command,command,length);
 }
 
+void ApplicationSim::enableMotionTask(bool enable)
+{
+
+}
+
 uint8_t ApplicationSim::executePulseLoop(int motorID)
 {
     uint8_t statePulse = m_robot->statePulse(motorID);
@@ -208,4 +215,14 @@ uint8_t ApplicationSim::executePulseLoop(int motorID)
     } else {
         return STATE_DONE;
     }
+}
+
+void ApplicationSim::enableHardwareTimer(bool enable)
+{
+    m_mainProcess->enableHardwareTimer(enable);
+}
+
+void ApplicationSim::executeSmoothMotionLoop(int motorID)
+{
+
 }
