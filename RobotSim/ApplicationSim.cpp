@@ -35,12 +35,12 @@ void ApplicationSim::initRobot()
 
     JointParam armPrams[MAX_MOTOR] = {
     // active|   scale=gear_ratio/resolution   |length|init angle|home angle|home step time|min angle|max angle|max speed (step/s)
-      {true,  1.0f/1.0f,                            0,     100,        0,         1,        0,       250,          1},
-      {true,  1.0f/1.0f,                          255,       0,      -17,         1,      -17,       150,          1},
-      {true,  1.0f/1.0f,                           85,     140,       50,         1,       50,       210,          1},
+      {true,  1.0f/1.0f,                            0,     100,        0,       100,        0,       250,          100},
+      {true,  18.0f/1.0f,                          255,       0,      -17,         2,      -17,       150,          2},
+      {true,  2.0f/1.0f,                           85,     140,       50,         2,       50,       210,          2},
       {false,  1.0f/1.0f,                          15,     130,      130,         1,      130,       130,          1},
       {false,  1.0f/1.0f,                         120,     180,      180,         1,      180,       180,          1},
-      {true,  1.0f/1.0f,                            0,      20,        0,         1,        0,        45,          1}
+      {true,  1.0f/1.0f,                            0,      20,        0,       100,        0,        45,          100}
     };
 #else
     m_chessBoard->setChessBoardPosX(31-31*8/2);
@@ -69,7 +69,7 @@ void ApplicationSim::initRobot()
 
 void ApplicationSim::specificPlatformGohome(int motorID)
 {
-    m_mainProcess->changeTimerPeriod(30);
+    m_mainProcess->changeTimerPeriod(1);
 }
 
 void ApplicationSim::harwareStop(int motorID)

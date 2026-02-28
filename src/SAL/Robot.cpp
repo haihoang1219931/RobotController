@@ -319,7 +319,7 @@ void Robot::initMove(int motorIDFirst, int motorIDLast)
 {
     m_app->printf("============= Init Move [%02d/%02d] =============\r\n",
                   m_curMove, m_numMove);
-    m_motorIDFirst = motorIDLast;
+    m_motorIDFirst = motorIDFirst;
     m_motorIDLast = motorIDLast;
     m_app->enableMotionTask(false);              
     // Calculate time for each motor to reach target step, 
@@ -373,6 +373,7 @@ void Robot::gotoTarget()
         if(!m_motorParamList[motor].active) continue;
         if(m_motorParamList[motor].currentStep != m_motorParamList[motor].targetStep) {
             allMotorsFinished = false;
+            break;
         }
     }
     if(allMotorsFinished) {
