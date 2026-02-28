@@ -280,7 +280,7 @@ void Robot::moveSequence(int motorID)
 #endif
     m_requestMotorID = motorID;
     setState(ROBOT_EXECUTE_SEQUENCE);
-    m_sequenceState = ROBOT_MOVE_INIT;
+    m_sequenceState = ROBOT_MOVE_EXECUTE_INIT;
 }
 
 uint8_t Robot::pulseLoop(int motorID)
@@ -293,15 +293,18 @@ uint8_t Robot::pulseLoop(int motorID)
 void Robot::executeMoveSequence()
 {
     switch (m_sequenceState) {
-        case ROBOT_MOVE_INIT:{
-            initMove();
+        case ROBOT_MOVE_EXECUTE_INIT:{
+            initMove(MOTOR_ARM1, MOTOR_ARM5);
         }
             break;
-        case ROBOT_MOVE_EXECUTE: {
+        case ROBOT_MOVE_EXECUTE_CHECK_RESULT: {
             gotoTarget();
         }
             break;
-        case ROBOT_MOVE_CAPTURE: {
+        case ROBOT_MOVE_CAPTURE_INIT: {
+            initMove(MOTOR_CAPTURE, MOTOR_CAPTURE);
+        }
+        case ROBOT_MOVE_CAPTURE_CHECK_RESULT: {
             capture();
         }
             break;
@@ -312,23 +315,25 @@ void Robot::executeMoveSequence()
     }
 }
 
-void Robot::initMove()
+void Robot::initMove(int motorIDFirst, int motorIDLast)
 {
     m_app->printf("============= Init Move [%02d/%02d] =============\r\n",
                   m_curMove, m_numMove);
+    m_motorIDFirst = motorIDLast;
+    m_motorIDLast = motorIDLast;
     m_app->enableMotionTask(false);              
     // Calculate time for each motor to reach target step, 
     // then start with the motor which has longest time to reach target step
-    float maxTime = 0;
-    for(int i=MOTOR_ARM1; i< MAX_MOTOR; i++) {
+    int maxTime = 0;
+    for(int i=motorIDFirst; i<= motorIDLast; i++) {
         if(!m_motorParamList[i].active) continue;
         m_motorParamList[i].targetStep = m_moveSequence[m_curMove].jointSteps[i].steps;
         m_motorParamList[i].startStep = m_motorParamList[i].currentStep;
         m_motorParamList[i].direction = (m_motorParamList[i].targetStep > m_motorParamList[i].currentStep) ? 1 : -1;   
-        int numStep = (float)abs(m_motorParamList[i].targetStep - m_motorParamList[i].currentStep);
-        float time = (float)numStep / (float)m_motorParamList[i].maxSpeed;
+        int numStep = abs(m_motorParamList[i].targetStep - m_motorParamList[i].currentStep);
+        int time = numStep * m_motorParamList[i].maxSpeed;
         if(time > maxTime) maxTime = time;
-        m_app->printf("Motor[%d] numStep[%d][%d->%d] maxSpeed[%d] time[%f] => Max[%f]\r\n",
+        m_app->printf("Motor[%d] numStep[%d][%d->%d] maxSpeed[%d] time[%d] => Max[%f]\r\n",
                       i,
                       numStep, m_motorParamList[i].currentStep, m_moveSequence[m_curMove].jointSteps[i].steps,
                       m_motorParamList[i].maxSpeed, time,
@@ -336,18 +341,17 @@ void Robot::initMove()
     }
 
     // Set step time for each motor
-    for(int i=MOTOR_ARM1; i< MAX_MOTOR; i++) {
+    for(int i=motorIDFirst; i<= motorIDLast; i++) {
         if(!m_motorParamList[i].active) continue;
-        float numStep = (float)abs(m_motorParamList[i].targetStep - m_motorParamList[i].currentStep);
-        int delayTime = (int)((float)maxTime * 40000.0f / numStep);
-        int delayTimeStart = (int)(delayTime * numStep * 0.1);
-        delayTimeStart = delayTime;
+        int numStep = (float)abs(m_motorParamList[i].targetStep - m_motorParamList[i].currentStep);
+        if(numStep == 0) continue;
+        float delayTime = (float)maxTime / (float)numStep;
         m_motorList[i]->setupTarget(
             (int)(numStep*0.0f), 
             (int)(numStep*1.0f), 
             (int)(numStep*0.0f), 
             m_motorParamList[i].direction, MOTOR_EXECUTE_CRUISE_SPEED, delayTime, 21);
-        m_app->printf("Motor[%d] numStep[%d] delayTime[%d]\r\n", i, (int)numStep, delayTime);
+        m_app->printf("Motor[%d] numStep[%d] delayTime[%f]\r\n", i, (int)numStep, delayTime);
     }
 
     // Initiate direction for each motor
@@ -357,36 +361,40 @@ void Robot::initMove()
     }
     m_app->enableMotionTask(true);
 
-    m_sequenceState = ROBOT_MOVE_EXECUTE;
+    m_sequenceState = motorIDFirst != MOTOR_CAPTURE ?
+                ROBOT_MOVE_EXECUTE_CHECK_RESULT:ROBOT_MOVE_CAPTURE_CHECK_RESULT;
 }
 
 void Robot::gotoTarget()
 {
-//    bool allMotorsFinished = true;
-//    for(int motor = 0; motor< MAX_MOTOR; motor++)
-//    {
-//        if(!m_motorParamList[motor].active) continue;
-//        m_motorParamList[motor].currentStep = m_app->readNumStepsFeedback(motor);
-//        if(m_motorParamList[motor].currentStep != m_motorParamList[motor].targetStep) {
-//            allMotorsFinished = false;
-//        }
-//    }
-//    if(allMotorsFinished) {
-//        m_app->printf("======All motor finished\r\n");
-//        m_sequenceState = ROBOT_MOVE_DONE;
-//    }
+    bool allMotorsFinished = true;
+    for(int motor = m_motorIDFirst; motor<= m_motorIDLast; motor++)
+    {
+        if(!m_motorParamList[motor].active) continue;
+        if(m_motorParamList[motor].currentStep != m_motorParamList[motor].targetStep) {
+            allMotorsFinished = false;
+        }
+    }
+    if(allMotorsFinished) {
+        m_app->printf("======All motor finished\r\n");
+        m_sequenceState = ROBOT_MOVE_CAPTURE_INIT;
+    }
 }
 
 void Robot::capture()
 {
-//    bool captureDone = true;
-//    if(captureDone) {
-//        if(m_curMove < m_numMove-1) {
-//            m_curMove++;
-//            m_sequenceState = ROBOT_MOVE_INIT;
-//        } else {
-//            m_app->enableMotionTask(false);
-//            m_sequenceState = ROBOT_MOVE_DONE;
-//        }
-//    }
+    bool captureDone = true;
+    if(!m_motorParamList[MOTOR_CAPTURE].active)
+        m_sequenceState = ROBOT_MOVE_DONE;
+    if(m_motorParamList[MOTOR_CAPTURE].currentStep != m_motorParamList[MOTOR_CAPTURE].targetStep)
+        captureDone = false;
+    if(captureDone) {
+        if(m_curMove < m_numMove-1) {
+            m_curMove++;
+            m_sequenceState = ROBOT_MOVE_EXECUTE_INIT;
+        } else {
+            m_app->enableMotionTask(false);
+            m_sequenceState = ROBOT_MOVE_DONE;
+        }
+    }
 }

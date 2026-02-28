@@ -22,7 +22,7 @@ public:
     void moveSequence(int motorID = MAX_MOTOR);
     uint8_t pulseLoop(int motorID);
     void executeMoveSequence();
-    void initMove();
+    void initMove(int motorIDFirst, int motorIDLast);
     void gotoTarget();
     void capture();
     long elapsedTime();
@@ -57,6 +57,8 @@ private:
     ROBOT_STATE m_state;
     ROBOT_SEQUENCE_STATE m_sequenceState;
     Move m_moveSequence[MAX_MOVE_SEQUENCE];
+    int m_motorIDFirst;
+    int m_motorIDLast;
     int m_curMove;
     int m_numMove;
     int m_numMotor;
